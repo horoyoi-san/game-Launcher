@@ -107,14 +107,14 @@ export default function Header() {
 
                     <button
                         onClick={() => {
-                            setActiveUrl("https://genshin-impact-beta-gacha.vercel.app");
+                            setActiveUrl("https://hoyo-swart.vercel.app");
                             setShowPanel(true);
                             setIsMinimized(false);
                         }}
                         className="hover:scale-110 transition"
                     >
                         <img
-                            src="https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/paimon-2.png"
+                            src="https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/pompom.png"
                             alt="bg"
                             className="w-5 h-5 object-cover rounded"
                         />

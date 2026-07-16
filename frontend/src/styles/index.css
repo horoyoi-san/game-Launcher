@@ -2,3 +2,45 @@
 @plugin "daisyui"{
     themes: dracula --default;
 }
+
+html,
+body,
+#root {
+    min-height: 100%;
+}
+
+body {
+    --wails-draggable: drag;
+    user-select: none;
+}
+
+/* Background video & images should not capture mouse events, allowing dragging through them */
+video.fixed.inset-0,
+img.fixed.inset-0 {
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+button,
+a,
+input,
+textarea,
+select,
+label,
+iframe,
+video,
+[role="button"],
+.btn,
+.dropdown,
+.modal,
+.toast,
+.Toastify,
+[data-no-drag] {
+    --wails-draggable: no-drag;
+}
+
+input,
+textarea {
+    user-select: auto;
+}

@@ -8,32 +8,46 @@ export async function CheckUpdateServer(
     serverPath: string,
     serverVersion: string
 ): Promise<{ isUpdate: boolean; isExists: boolean; version: string }> {
-    const [ok, latestVersion, error] = await GitService.GetLatestServerVersion()
-    const isExists = await FSService.FileExists(serverPath)
+    const resolvedServerPath = serverPath || "./server/firefly-go_win.exe"
+    const isExists = await FSService.FileExists(resolvedServerPath)
 
-    if (!ok) {
-        toast.error("Server error: " + error)
-        return { isUpdate: false, isExists, version: "" }
+    if (isExists) {
+        const { setServerPath } = useSettingStore.getState()
+        if (!serverPath) {
+            setServerPath(resolvedServerPath)
+        }
+        return { isUpdate: false, isExists: true, version: serverVersion }
     }
 
-    const isUpdate = latestVersion !== serverVersion
-    return { isUpdate, isExists, version: latestVersion }
+    return { isUpdate: false, isExists, version: "" }
 }
 
 
-export async function UpdateServer(serverVersion: string) : Promise<void> {
+export async function UpdateServer(serverVersion: string) : Promise<boolean> {
     const {setDownloadType } = useLauncherStore.getState()
     const {setServerPath, setServerVersion} = useSettingStore.getState()
+    let targetVersion = serverVersion
+    if (!targetVersion) {
+        const [ok, latestVersion, error] = await GitService.GetLatestServerVersion()
+        if (!ok) {
+            toast.error("Server error: " + error)
+            return false
+        }
+        targetVersion = latestVersion
+    }
+
     setDownloadType("Downloading server...")
-    const [ok, error] = await GitService.DownloadServerProgress(serverVersion)
+    const [ok, error] = await GitService.DownloadServerProgress(targetVersion)
     if (ok) {
         setDownloadType("Unzipping server...")
         GitService.UnzipServer()
         setDownloadType("Download server successfully")
-        setServerVersion(serverVersion)
+        setServerVersion(targetVersion)
         setServerPath("./server/firefly-go_win.exe")
+        return true
     } else {
         toast.error(error)
         setDownloadType("Download server failed")
+        return false
     }
 }

@@ -251,20 +251,16 @@ export default function LauncherPage() {
 
     useEffect(() => {
         const check = async () => {
-            if (!serverVersion || !proxyVersion) {
-                setServerReady(false)
-                setProxyReady(false)
-                return
-            }
-
-            const serverExists = await FSService.FileExists(serverPath)
-            const proxyExists = await FSService.FileExists(proxyPath)
+            const resolvedServerPath = serverPath || "./server/firefly-go_win.exe"
+            const resolvedProxyPath = proxyPath || "./proxy/Proxy.exe"
+            const serverExists = await FSService.FileExists(resolvedServerPath)
+            const proxyExists = await FSService.FileExists(resolvedProxyPath)
             setServerReady(serverExists)
             setProxyReady(proxyExists)
         }
 
         check()
-    }, [serverPath, proxyPath, serverVersion, proxyVersion])
+    }, [serverPath, proxyPath])
 
     useEffect(() => {
         const checkStartUp = async (): Promise<void> => {
@@ -301,12 +297,6 @@ export default function LauncherPage() {
                 return
             }
 
-            if (serverData.isUpdate || proxyData.isUpdate) {
-                setServerReady(true)
-                setProxyReady(true)
-                setIsOpenUpdateDataModal(true)
-                return
-            }
             setServerReady(true)
             setProxyReady(true)
         }
@@ -380,8 +370,25 @@ export default function LauncherPage() {
         }
         try {
             setIsLoading(true)
+            const activeServerPath = serverPath || "./server/firefly-go_win.exe"
+            const activeProxyPath = proxyPath || "./proxy/Proxy.exe"
+            const serverData = await CheckUpdateServer(serverPath, serverVersion)
+            const proxyData = await CheckUpdateProxy(proxyPath, proxyVersion)
+            setUpdateData({
+                server: serverData,
+                proxy: proxyData,
+                launcher: updateData.launcher
+            })
+
+            if (!serverData.isExists || !proxyData.isExists) {
+                setServerReady(serverData.isExists)
+                setProxyReady(proxyData.isExists)
+                setIsOpenDownloadDataModal(true)
+                return
+            }
+
             if (!proxyRunning && !gamePath.endsWith("launcher.exe")) {
-                const resultProxy = await FSService.StartWithConsole(proxyPath)
+                const resultProxy = await FSService.StartWithConsole(activeProxyPath)
                 if (!resultProxy) {
                     toast.error('Failed to start proxy')
                     return
@@ -390,7 +397,7 @@ export default function LauncherPage() {
             }
             await sleep(500)
             if (!serverRunning) {
-                const resultServer = await FSService.StartWithConsole(serverPath)
+                const resultServer = await FSService.StartWithConsole(activeServerPath)
                 if (!resultServer) {
                     toast.error('Failed to start server')
                     return
@@ -423,22 +430,24 @@ export default function LauncherPage() {
 
     const handlerUpdateData = async () => {
         setIsDownloading(true)
+        const nextUpdateData = { ...updateData }
         if (updateData.launcher.isUpdate) {
             await UpdateLauncher(updateData.launcher.version)
-            setUpdateData({ ...updateData, launcher: { isUpdate: false, isExists: true, version: updateData.launcher.version } })
+            nextUpdateData.launcher = { isUpdate: false, isExists: true, version: updateData.launcher.version }
             setIsOpenSelfUpdateModal(true)
         }
-        if (updateData.server.isUpdate || !updateData.server.isExists) {
-            await UpdateServer(updateData.server.version)
-            setServerReady(true)
-            setUpdateData({ ...updateData, server: { isUpdate: false, isExists: true, version: updateData.server.version } })
+        if (!updateData.server.isExists) {
+            const serverOk = await UpdateServer(updateData.server.version)
+            setServerReady(serverOk)
+            nextUpdateData.server = { isUpdate: false, isExists: serverOk, version: updateData.server.version }
         }
-        if (updateData.proxy.isUpdate || !updateData.proxy.isExists) {
-            await UpdateProxy(updateData.proxy.version)
-            setProxyReady(true)
-            setUpdateData({ ...updateData, proxy: { isUpdate: false, isExists: true, version: updateData.proxy.version } })
+        if (!updateData.proxy.isExists) {
+            const proxyOk = await UpdateProxy(updateData.proxy.version)
+            setProxyReady(proxyOk)
+            nextUpdateData.proxy = { isUpdate: false, isExists: proxyOk, version: updateData.proxy.version }
         }
 
+        setUpdateData(nextUpdateData)
         setDownloadType("")
         setIsDownloading(false)
     }
@@ -568,14 +577,14 @@ export default function LauncherPage() {
 
 
             {/* Bottom Panel */}
-            {serverReady && proxyReady && !isDownloading && (
+            {!isDownloading && (
 
 
                 <div className="fixed bottom-2 right-0 p-8 z-50">
 
                     <div className="flex flex-wrap items-center justify-center gap-2">
 
-                        {gamePath === "" ? (
+                        {(
 
                             <button
                                 // ปุ่ม Select Game file: คงเดิม
@@ -583,15 +592,17 @@ export default function LauncherPage() {
                                 onClick={handlePickFile}
                             >
                                 <FolderOpen className="w-5 h-5" />
-                                {isLoading ? 'Selecting...' : 'Select Game file'}
+                                {isLoading ? 'Selecting...' : gamePath ? 'Change Game Path' : 'Select Game file'}
                             </button>
 
-                        ) : (
+                        )}
+                        {(
 
                             <button
                                 // ปุ่ม Start Game: เป็นสี่เหลี่ยมมุมโค้ง มีรูปภาพพื้นหลัง และ **เรืองแสง (Glow)**
                                 className="btn btn-secondary btn-xl font-bold relative overflow-hidden"
                                 onClick={handleStartGame}
+                                disabled={!gamePath || isLoading || gameRunning}
                                 style={{
                                     // กำหนดรูปภาพพื้นหลัง
                                     //  backgroundImage: "url('https://act-webstatic.hoyoverse.com/puzzle/hk4e/pz_df1bhOOLAB/resource/puzzle/2025/09/22/294b38ce0a4a1cbe94d10dd5082af4fe_5739821151544819626.png')",
@@ -679,27 +690,19 @@ export default function LauncherPage() {
                                                 setIsOpenDownloadDataModal(true)
                                                 return
                                             }
-                                            if (serverData.isUpdate || proxyData.isUpdate) {
-                                                setIsOpenUpdateDataModal(true)
-                                                return
-                                            }
-                                            toast.success("No updates available")
+                                            toast.success("Server and proxy files are ready")
                                         }}>
-                                        Check for Updates Server & Proxy
+                                        Check Server & Proxy Files
                                     </button>
                                 </li>
                                 <li>
 
                                 </li>
-                                <li><button disabled={!serverPath} onClick={() => {
-                                    if (serverPath) {
-                                        FSService.OpenFolder("./server")
-                                    }
+                                <li><button disabled={!serverPath && !serverReady} onClick={() => {
+                                    FSService.OpenFolder("./server")
                                 }}>Open server folder</button></li>
-                                <li><button disabled={!proxyPath} onClick={() => {
-                                    if (proxyPath) {
-                                        FSService.OpenFolder("./proxy")
-                                    }
+                                <li><button disabled={!proxyPath && !proxyReady} onClick={() => {
+                                    FSService.OpenFolder("./proxy")
                                 }}>Open proxy folder</button></li>
                                 <li><button disabled={!gameDir} onClick={() => {
                                     if (gameDir) {
@@ -715,9 +718,7 @@ export default function LauncherPage() {
 
             {/* Downloading */}
             {isDownloading && (
-                updateData.proxy.isUpdate
-                || updateData.server.isUpdate
-                || !updateData.proxy.isExists
+                !updateData.proxy.isExists
                 || !updateData.server.isExists
             ) && (
                     <div className="fixed bottom-4 left-1/2  transform -translate-x-1/2 z-60 w-[60vw] bg-black/20 backdrop-blur-sm rounded-lg p-4 shadow-lg">
@@ -839,7 +840,7 @@ export default function LauncherPage() {
                 isOpen={isOpenDownloadDataModal}
                 onClose={() => setIsOpenDownloadDataModal(false)}
                 title="Download Data"
-                message="Data server and proxy download required"
+                message="Server or proxy download required"
                 buttons={[
                     { text: "Download", onClick: async () => { setIsOpenDownloadDataModal(false); await handlerUpdateData() }, variant: "primary" }
                 ]}

@@ -57,7 +57,7 @@ useEffect(() => {
     {
       tooltip: "GitHub Horoyoi-san",
       href: "https://github.com/horoyoi-san",
-      img: "https://raw.githubusercontent.com/horoyoi-san/Hoyo/refs/heads/launcher-sr/frontend/public/icon/github-white-icon.webp",
+      img: "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/github-white-icon.webp",
       btnClass: "me-media-icon media-list"
     }
   ];

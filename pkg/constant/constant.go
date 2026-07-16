@@ -1,7 +1,7 @@
 package constant
 
 const ProxyGitUrl = "https://gist.githubusercontent.com/horoyoi-san/87f26bc84cf32eab93d6f6d08f0d0f43/raw/9bf50c60edf2b527af4ac2bda31e7e0793fb73ff/ps.json"
-const ServerGitUrl = "https://git.kain.io.vn/api/v1/repos/Firefly-Shelter/FireflyGo_Local_Archive/releases"
+const ServerGitUrl = ""
 const LauncherGitUrl = ""
 const ServerStorageUrl = "./server"
 const ProxyStorageUrl = "./proxy"
