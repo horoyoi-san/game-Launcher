@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+type GitService struct{}
+
 func HumanFormat(bytes float64) string {
 	if math.IsNaN(bytes) || math.IsInf(bytes, 0) {
 		return fmt.Sprintf("%v", bytes)

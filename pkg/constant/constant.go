@@ -2,12 +2,10 @@ package constant
 
 const ProxyGitUrl = "https://gist.githubusercontent.com/horoyoi-san/87f26bc84cf32eab93d6f6d08f0d0f43/raw/9bf50c60edf2b527af4ac2bda31e7e0793fb73ff/ps.json"
 const ServerGitUrl = ""
-const LauncherGitUrl = ""
 const ServerStorageUrl = "./server"
 const ProxyStorageUrl = "./proxy"
 const ServerZipFile = "prebuild_win_x86.zip"
 const ProxyZipFile = "proxy-SR.zip"
-const LauncherFile = ""
 const TempUrl = "./temp"
 
 const CurrentLauncherVersion = "2.1.0"

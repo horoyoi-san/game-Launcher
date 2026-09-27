@@ -97,46 +97,7 @@ export default function fireflytoolsPage() {
                             </p>
 
                         </div>
-                        <div className="grid md:grid-cols-2 gap-4">
 
-                            <div className="bg-white border border-blue-200 rounded-lg p-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-blue-600 text-lg">🏆</span>
-                                    <span className="font-semibold text-blue-800">เว็บไซต์หลัก</span>
-
-                                </div>
-                                <a
-                                    href="https://srtools.kain.id.vn/"
-
-                                    className="link link-accent font-mono text-sm break-all"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-
-                                >
-                                    https://srtools.kain.id.vn/
-
-                                </a>
-
-                            </div>
-
-                            <div className="bg-white border border-blue-200 rounded-lg p-4">
-
-                                <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-blue-600 text-lg">🔄</span>
-                                    <span className="font-semibold text-blue-800">เว็บไซต์สำรอง</span>
-                                </div>
-                                <a
-                                    href="https://Cyrene-srtools.vercel.app/"
-                                    className="link link-accent font-mono text-sm break-all"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-
-                                >
-                                    https://Cyrene-srtools.vercel.app/
-
-                                </a>
-                            </div>
-                        </div>
 
                         <div className="flex items-start gap-3">
 

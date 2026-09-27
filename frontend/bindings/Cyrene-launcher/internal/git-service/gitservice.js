@@ -25,13 +25,6 @@ export function DownloadServerProgress(version) {
 /**
  * @returns {$CancellablePromise<[boolean, string, string]>}
  */
-export function GetLatestLauncherVersion() {
-    return $Call.ByID(4064056837);
-}
-
-/**
- * @returns {$CancellablePromise<[boolean, string, string]>}
- */
 export function GetLatestProxyVersion() {
     return $Call.ByID(4068812447);
 }
@@ -55,12 +48,4 @@ export function UnzipProxy() {
  */
 export function UnzipServer() {
     return $Call.ByID(3898887297);
-}
-
-/**
- * @param {string} version
- * @returns {$CancellablePromise<[boolean, string]>}
- */
-export function UpdateLauncherProgress(version) {
-    return $Call.ByID(2046545346, version);
 }

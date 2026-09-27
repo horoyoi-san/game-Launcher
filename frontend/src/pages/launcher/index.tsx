@@ -8,7 +8,7 @@ import useSettingStore from '@/stores/settingStore';
 import useModalStore from '@/stores/modalStore';
 import useLauncherStore from '@/stores/launcherStore';
 import { motion } from 'motion/react';
-import { CheckUpdateLauncher, CheckUpdateProxy, CheckUpdateServer, sleep, UpdateLauncher, UpdateProxy, UpdateServer } from '@/helper';
+import { CheckUpdateProxy, sleep, UpdateProxy } from '@/helper';
 import UpdateModal from '@/components/updateModal';
 import usePanelStore from "@/stores/panelStore";
 
@@ -153,18 +153,13 @@ export default function LauncherPage() {
         serverPath,
         proxyPath,
         gameDir,
-        serverVersion,
         proxyVersion,
 
     } = useSettingStore()
 
     const {
         isOpenDownloadDataModal,
-        isOpenUpdateDataModal,
-        isOpenSelfUpdateModal,
-        setIsOpenDownloadDataModal,
-        setIsOpenUpdateDataModal,
-        setIsOpenSelfUpdateModal
+        setIsOpenDownloadDataModal
     } = useModalStore()
 
     const {
@@ -180,10 +175,8 @@ export default function LauncherPage() {
         downloadSpeed,
         updateData,
 
-        setLauncherVersion,
         setIsLoading,
         setDownloadType,
-        setServerReady,
         setProxyReady,
         setIsDownloading,
         setServerRunning,
@@ -251,37 +244,21 @@ export default function LauncherPage() {
 
     useEffect(() => {
         const check = async () => {
-            const resolvedServerPath = serverPath || "./server/firefly-go_win.exe"
             const resolvedProxyPath = proxyPath || "./proxy/Proxy.exe"
-            const serverExists = await FSService.FileExists(resolvedServerPath)
             const proxyExists = await FSService.FileExists(resolvedProxyPath)
-            setServerReady(serverExists)
             setProxyReady(proxyExists)
         }
 
         check()
-    }, [serverPath, proxyPath])
+    }, [proxyPath])
 
     useEffect(() => {
         const checkStartUp = async (): Promise<void> => {
-            const [_, version] = await AppService.GetCurrentLauncherVersion()
-            setLauncherVersion(version)
-            const launcherData = await CheckUpdateLauncher()
-            if (launcherData.isUpdate) {
-                setUpdateData({
-                    server: { isUpdate: false, isExists: false, version: "" },
-                    proxy: { isUpdate: false, isExists: false, version: "" },
-                    launcher: launcherData
-                })
-                setIsOpenSelfUpdateModal(true)
-                return
-            }
-            const serverData = await CheckUpdateServer(serverPath, serverVersion)
             const proxyData = await CheckUpdateProxy(proxyPath, proxyVersion)
             setUpdateData({
-                server: serverData,
+                server: { isUpdate: false, isExists: true, version: "" },
                 proxy: proxyData,
-                launcher: launcherData
+                launcher: { isUpdate: false, isExists: true, version: "" }
             })
             const exitGame = await FSService.FileExists(gamePath)
             if (!exitGame) {
@@ -290,14 +267,12 @@ export default function LauncherPage() {
                 setGameDir("")
             }
 
-            if (!serverData.isExists || !proxyData.isExists) {
-                setServerReady(false)
+            if (!proxyData.isExists) {
                 setProxyReady(false)
                 setIsOpenDownloadDataModal(true)
                 return
             }
 
-            setServerReady(true)
             setProxyReady(true)
         }
         checkStartUp()
@@ -329,17 +304,7 @@ export default function LauncherPage() {
         }
     }
 
-    useEffect(() => {
-        const handleEscKey = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                setIsOpenDownloadDataModal(false);
-                setIsOpenUpdateDataModal(false);
-                setIsOpenSelfUpdateModal(false);
-            }
-        };
-        window.addEventListener('keydown', handleEscKey);
-        return () => window.removeEventListener('keydown', handleEscKey);
-    }, [isOpenDownloadDataModal, isOpenUpdateDataModal, isOpenSelfUpdateModal]);
+
 
     // นับเวลาปัจจุบัน (เรียลไทม์)
     const [time, setTime] = useState<string>("");
@@ -372,17 +337,15 @@ export default function LauncherPage() {
             setIsLoading(true)
             const activeServerPath = serverPath || "./server/firefly-go_win.exe"
             const activeProxyPath = proxyPath || "./proxy/Proxy.exe"
-            const serverData = await CheckUpdateServer(serverPath, serverVersion)
             const proxyData = await CheckUpdateProxy(proxyPath, proxyVersion)
             setUpdateData({
-                server: serverData,
+                server: { isUpdate: false, isExists: true, version: "" },
                 proxy: proxyData,
                 launcher: updateData.launcher
             })
 
-            if (!serverData.isExists || !proxyData.isExists) {
-                setServerReady(serverData.isExists)
-                setProxyReady(proxyData.isExists)
+            if (!proxyData.isExists) {
+                setProxyReady(false)
                 setIsOpenDownloadDataModal(true)
                 return
             }
@@ -396,7 +359,8 @@ export default function LauncherPage() {
                 setProxyRunning(true)
             }
             await sleep(500)
-            if (!serverRunning) {
+            const serverExists = await FSService.FileExists(activeServerPath)
+            if (serverExists && !serverRunning) {
                 const resultServer = await FSService.StartWithConsole(activeServerPath)
                 if (!resultServer) {
                     toast.error('Failed to start server')
@@ -431,16 +395,6 @@ export default function LauncherPage() {
     const handlerUpdateData = async () => {
         setIsDownloading(true)
         const nextUpdateData = { ...updateData }
-        if (updateData.launcher.isUpdate) {
-            await UpdateLauncher(updateData.launcher.version)
-            nextUpdateData.launcher = { isUpdate: false, isExists: true, version: updateData.launcher.version }
-            setIsOpenSelfUpdateModal(true)
-        }
-        if (!updateData.server.isExists) {
-            const serverOk = await UpdateServer(updateData.server.version)
-            setServerReady(serverOk)
-            nextUpdateData.server = { isUpdate: false, isExists: serverOk, version: updateData.server.version }
-        }
         if (!updateData.proxy.isExists) {
             const proxyOk = await UpdateProxy(updateData.proxy.version)
             setProxyReady(proxyOk)
@@ -458,13 +412,11 @@ export default function LauncherPage() {
         const handleEscKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
                 setIsOpenDownloadDataModal(false);
-                setIsOpenUpdateDataModal(false);
-                setIsOpenSelfUpdateModal(false);
             }
         };
         window.addEventListener('keydown', handleEscKey);
         return () => window.removeEventListener('keydown', handleEscKey);
-    }, [isOpenDownloadDataModal, isOpenUpdateDataModal, isOpenSelfUpdateModal]);
+    }, [isOpenDownloadDataModal]);
 
 
     return (
@@ -650,6 +602,21 @@ export default function LauncherPage() {
                                     </button>
                                 </li>
 
+                                <li>
+                                    <button
+                                        onClick={() => {
+                                            window.open(
+                                                "https://github.com/horoyoi-san/Hoyo/tree/hkrpg-RobinSR",
+                                                "_blank"
+                                            );
+                                        }}
+                                    >
+                                        RobinSR Srever
+                                    </button>
+                                </li>
+
+
+
                                 {/* ✅ ปุ่ม reset */}
                                 <li>
                                     <button onClick={handleSetVideoUrl}>Set Background URL</button>
@@ -678,21 +645,20 @@ export default function LauncherPage() {
                                 <li>
                                     <button
                                         onClick={async () => {
-                                            const serverData = await CheckUpdateServer(serverPath, serverVersion)
                                             const proxyData = await CheckUpdateProxy(proxyPath, proxyVersion)
                                             setUpdateData({
-                                                server: serverData,
+                                                server: { isUpdate: false, isExists: true, version: "" },
                                                 proxy: proxyData,
                                                 launcher: updateData.launcher
                                             })
 
-                                            if (!serverData.isExists || !proxyData.isExists) {
+                                            if (!proxyData.isExists) {
                                                 setIsOpenDownloadDataModal(true)
                                                 return
                                             }
-                                            toast.success("Server and proxy files are ready")
+                                            toast.success("Proxy file is ready")
                                         }}>
-                                        Check Server & Proxy Files
+                                        Check Proxy File
                                     </button>
                                 </li>
                                 <li>
@@ -717,76 +683,32 @@ export default function LauncherPage() {
             )}
 
             {/* Downloading */}
-            {isDownloading && (
-                !updateData.proxy.isExists
-                || !updateData.server.isExists
-            ) && (
-                    <div className="fixed bottom-4 left-1/2  transform -translate-x-1/2 z-60 w-[60vw] bg-black/20 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-                        <div className="space-y-3">
-                            <div className="flex justify-center items-center text-sm text-white/80">
-                                <span>{downloadType}</span>
-                                <div className="flex items-center gap-4 ml-4">
-                                    <span className="text-cyan-400 font-semibold">{downloadSpeed}</span>
-                                    <span className="text-white font-bold">{progressDownload.toFixed(1)}%</span>
-                                </div>
-                            </div>
-                            <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
-                                <motion.div
-                                    className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${progressDownload}%` }}
-                                    transition={{ type: "tween", ease: "linear", duration: 0.03 }}
-                                />
-                            </div>
-                            <div className="text-center text-xs text-white/60">
-                                {progressDownload < 100 ? 'Please wait...' : 'Complete!'}
+            {isDownloading && !updateData.proxy.isExists && (
+                <div className="fixed bottom-4 left-1/2  transform -translate-x-1/2 z-60 w-[60vw] bg-black/20 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+                    <div className="space-y-3">
+                        <div className="flex justify-center items-center text-sm text-white/80">
+                            <span>{downloadType}</span>
+                            <div className="flex items-center gap-4 ml-4">
+                                <span className="text-cyan-400 font-semibold">{downloadSpeed}</span>
+                                <span className="text-white font-bold">{progressDownload.toFixed(1)}%</span>
                             </div>
                         </div>
-                    </div>
-                )}
-
-            {isDownloading && updateData.launcher.isUpdate && (
-                <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-60 w-[60vw] bg-black/20 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-                    <div className="space-y-3 text-sm text-white/80 text-center">
-                        {["update:launcher:downloading", "update:launcher:success", "update:launcher:failed"].includes(downloadType) && (
-                            <div className="flex justify-center items-center gap-4 ml-4">
-                                <span
-                                    className={`font-bold ${downloadType === "update:launcher:downloading"
-                                        ? "text-yellow-200 text-2xl"
-                                        : downloadType === "update:launcher:success"
-                                            ? "text-emerald-200 text-xl"
-                                            : "text-red-200 text-xl"
-                                        }`}
-                                >
-                                    {downloadType === "update:launcher:downloading" && "Updating launcher"}
-                                    {downloadType === "update:launcher:success" && "Launcher updated successfully, auto closing after 5s"}
-                                    {downloadType === "update:launcher:failed" && "Launcher update failed, auto closing after 5s"}
-                                    <span className="dot-animation ml-1"></span>
-                                </span>
-                            </div>
-                        )}
-
-                        <div className="text-xs text-white/60">
-                            {progressDownload < 100 ? "Please wait..." : "Complete!"}
+                        <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+                            <motion.div
+                                className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progressDownload}%` }}
+                                transition={{ type: "tween", ease: "linear", duration: 0.03 }}
+                            />
+                        </div>
+                        <div className="text-center text-xs text-white/60">
+                            {progressDownload < 100 ? 'Please wait...' : 'Complete!'}
                         </div>
                     </div>
-
-                    <style>{`
-                        .dot-animation::after {
-                            content: '';
-                            animation: dots 1.2s steps(4, end) infinite;
-                        }
-                        @keyframes dots {
-                            0% { content: ''; }
-                            25% { content: '.'; }
-                            50% { content: '..'; }
-                            75% { content: '...'; }
-                            100% { content: ''; }
-                        }
-                        `}
-                    </style>
                 </div>
             )}
+
+
 
             {/* 🎬 Video News Panel */}
             <div className="fixed bottom-4 left-20 z-50 w-[300px] rounded-xl overflow-hidden bg-black/30 backdrop-blur-md border border-white/10">
@@ -826,34 +748,12 @@ export default function LauncherPage() {
 
             {/* Modal */}
             <UpdateModal
-                isOpen={isOpenUpdateDataModal}
-                onClose={() => setIsOpenUpdateDataModal(false)}
-                title="Update Data"
-                message="Do you want to update data server and proxy?"
-                buttons={[
-                    { text: "No", onClick: () => setIsOpenUpdateDataModal(false), variant: "outline" },
-                    { text: "Yes", onClick: async () => { setIsOpenUpdateDataModal(false); await handlerUpdateData() }, variant: "primary" }
-                ]}
-            />
-
-            <UpdateModal
                 isOpen={isOpenDownloadDataModal}
                 onClose={() => setIsOpenDownloadDataModal(false)}
                 title="Download Data"
-                message="Server or proxy download required"
+                message="Proxy download required"
                 buttons={[
                     { text: "Download", onClick: async () => { setIsOpenDownloadDataModal(false); await handlerUpdateData() }, variant: "primary" }
-                ]}
-            />
-
-            <UpdateModal
-                isOpen={isOpenSelfUpdateModal}
-                onClose={() => setIsOpenSelfUpdateModal(false)}
-                title="Update Launcher"
-                message="Do you want to update launcher?"
-                buttons={[
-                    { text: "No", onClick: () => setIsOpenSelfUpdateModal(false), variant: "outline" },
-                    { text: "Yes", onClick: async () => { setIsOpenSelfUpdateModal(false); await handlerUpdateData() }, variant: "primary" }
                 ]}
             />
 

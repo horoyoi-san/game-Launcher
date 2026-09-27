@@ -1,8 +1,4 @@
-import { CheckUpdateLauncher } from "@/helper"
-import useModalStore from "@/stores/modalStore"
 import useSettingStore from "@/stores/settingStore"
-import useLauncherStore from "@/stores/launcherStore"
-import { toast } from "react-toastify"
 import { AppService } from '@bindings/Cyrene-launcher/internal/app-service'
 import i18n from "i18next"
 
@@ -22,23 +18,7 @@ export default function SettingModal({
         window.location.reload() // 🔥 บังคับรีเฟรช
     }
 
-    const { setIsOpenSelfUpdateModal } = useModalStore()
     const { closingOption, setClosingOption } = useSettingStore()
-    const { setUpdateData, updateData } = useLauncherStore()
-    const CheckUpdate = async () => {
-        const launcherData = await CheckUpdateLauncher()
-        if (!launcherData.isUpdate) {
-            toast.success("Launcher is already up to date")
-            return
-        }
-        setUpdateData({
-            server: updateData.server,
-            proxy: updateData.proxy,
-            launcher: launcherData
-        })
-
-        setIsOpenSelfUpdateModal(true)
-    }
     const handleResize = (w: number, h: number) => {
         AppService.SetWindowSize(w, h)
     }
@@ -61,21 +41,7 @@ export default function SettingModal({
 
                 {/* Content */}
                 <div className="flex flex-col gap-6">
-                    {/* Section 1: Launcher Update */}
-                    <div className="p-4 bg-black/30 backdrop-blur-md rounded-xl border border-purple-400/30 shadow-lg shadow-purple-500/20">
-                        <h4 className="font-bold text-lg mb-2">Launcher Update</h4>
-                        <p className="text-sm text-info mb-3">
-                            Check if your launcher is up to date.
-                        </p>
-                        <button
-                            className="btn btn-primary bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-500 text-white shadow-md hover:shadow-lg transition-all duration-200"
-                            onClick={CheckUpdate}
-                        >
-                            Check for Launcher Updates
-                        </button>
-                    </div>
-
-                    {/* Section 3: Window Size */}
+                    {/* Section 1: Window Size */}
                     <div className="p-4 bg-black/30 backdrop-blur-md rounded-xl border border-purple-400/30 shadow-lg shadow-purple-500/20">
                         <h4 className="font-bold text-lg mb-2">Window Size</h4>
                         <p className="text-sm text-info mb-3">
