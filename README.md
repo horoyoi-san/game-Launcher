@@ -1,5 +1,6 @@
 # 🚀 SilwerWolf999 Launcher
 
+# Support REL/BETA
 
 ![alt text](image.png)
 

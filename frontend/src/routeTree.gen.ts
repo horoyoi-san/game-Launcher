@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as NapRouteImport } from './routes/nap'
+import { Route as KlRouteImport } from './routes/kl'
 import { Route as HygRouteImport } from './routes/hyg'
 import { Route as HowtoRouteImport } from './routes/howto'
 import { Route as HkrpgRouteImport } from './routes/hkrpg'
@@ -22,6 +23,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const NapRoute = NapRouteImport.update({
   id: '/nap',
   path: '/nap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KlRoute = KlRouteImport.update({
+  id: '/kl',
+  path: '/kl',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HygRoute = HygRouteImport.update({
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/hkrpg': typeof HkrpgRoute
   '/howto': typeof HowtoRoute
   '/hyg': typeof HygRoute
+  '/kl': typeof KlRoute
   '/nap': typeof NapRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/hkrpg': typeof HkrpgRoute
   '/howto': typeof HowtoRoute
   '/hyg': typeof HygRoute
+  '/kl': typeof KlRoute
   '/nap': typeof NapRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/hkrpg': typeof HkrpgRoute
   '/howto': typeof HowtoRoute
   '/hyg': typeof HygRoute
+  '/kl': typeof KlRoute
   '/nap': typeof NapRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/hkrpg'
     | '/howto'
     | '/hyg'
+    | '/kl'
     | '/nap'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/hkrpg'
     | '/howto'
     | '/hyg'
+    | '/kl'
     | '/nap'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/hkrpg'
     | '/howto'
     | '/hyg'
+    | '/kl'
     | '/nap'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   HkrpgRoute: typeof HkrpgRoute
   HowtoRoute: typeof HowtoRoute
   HygRoute: typeof HygRoute
+  KlRoute: typeof KlRoute
   NapRoute: typeof NapRoute
 }
 
@@ -154,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/nap'
       fullPath: '/nap'
       preLoaderRoute: typeof NapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kl': {
+      id: '/kl'
+      path: '/kl'
+      fullPath: '/kl'
+      preLoaderRoute: typeof KlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hyg': {
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   HkrpgRoute: HkrpgRoute,
   HowtoRoute: HowtoRoute,
   HygRoute: HygRoute,
+  KlRoute: KlRoute,
   NapRoute: NapRoute,
 }
 export const routeTree = rootRouteImport

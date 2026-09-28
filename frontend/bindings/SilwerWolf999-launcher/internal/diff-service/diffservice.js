@@ -7,6 +7,15 @@
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 /**
+ * @param {string} gamePath
+ * @param {string} patchPath
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function ApplyDiffZip(gamePath, patchPath) {
+    return $Call.ByID(3732594501, gamePath, patchPath);
+}
+
+/**
  * @param {string} patchPath
  * @returns {$CancellablePromise<[boolean, string, string]>}
  */

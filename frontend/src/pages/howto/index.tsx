@@ -86,7 +86,7 @@ return (
         <p>
           1. ดาวน์โหลด{" "}
           <a
-            href="https://github.com/horoyoi-san/game-Launcher/releases/download/sophon/sophon.zip"
+            href="https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/Sophon.Downloader.zip"
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold text-blue-400 underline hover:text-blue-300"
@@ -98,15 +98,16 @@ return (
 
         <p>2. แตกไฟล์ลงใน:</p>
         <code className="block bg-black/40 px-2 py-1 rounded text-xs">
-          /main ต้องอยู่ด้วยกันกับ Silwerwolf-launcher.exe
+          /Sophon ต้องอยู่ด้วยกันกับ Silwerwolf-launcher.exe
         </code>
 
         <p>ในโฟลเดอร์ควรมี:</p>
         <pre className="block bg-black/40 px-2 py-2 rounded text-xs text-indigo-200">
         {` 
         ├── Silwerwolf-launcher.exe
-        ├── Sophon/
-        └── sophon.download.exe
+        └── Sophon
+            └── net9.0
+                └── sophon.download.exe
         `}
         </pre>
 

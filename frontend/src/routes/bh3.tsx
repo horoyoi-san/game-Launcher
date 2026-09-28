@@ -1,8 +1,8 @@
-import bh3Page from '@/pages/bh3'
 import { createFileRoute } from '@tanstack/react-router'
+import SophonGamePage from '@/components/sophonGamePage'
 
 export const Route = createFileRoute('/bh3')({
-  component: bh3Page,
+  component: () => <SophonGamePage gameId="Impact3rd" />,
 })
 
 

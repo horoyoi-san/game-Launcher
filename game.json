@@ -3,62 +3,83 @@
     {
       "id": "Impact3rd",
       "name": "Honkai Impact 3rd",
-      "biz": "bh3_global",
-      "gameId": "5TIVvvcwtM",
       "package": "game",
-      "version": "8.8",
-      "output": "GameData/HonkaiImpact3rd",
-      "region": "OSREL"
+      "region": "CN | OS",
+      "gameIds": {
+        "gameid": ["gameid"],
+        "OSREL": ["5TIVvvcwtM"],
+        "CNREL": ["osvnlOc0S8"]
+      },
+      "output": "GameData/HonkaiImpact3rd"
     },
     {
       "id": "Genshin",
       "name": "Genshin Impact",
-      "biz": "hk4e_global",
-      "gameId": "gopR6Cufr3",
       "package": "game",
-      "version": "6.5",
-      "output": "GameData/GenshinImpact",
-      "region": "OSREL"
+      "region": "CN | OS",
+      "gameIds": {
+        "OSREL": ["gopR6Cufr3"],
+        "CNREL": ["1Z8W5NHUQb"]
+      },
+      "output": "GameData/GenshinImpact"
     },
     {
       "id": "StarRail",
       "name": "Honkai: Star Rail",
-      "biz": "hkrpg_global",
-      "gameId": "4ziysqXOQ8",
       "package": "game",
-      "version": "3.6",
-      "output": "GameData/HonkaiStarRail",
-      "region": "OSREL"
+      "region": "CN | OS",
+      "gameIds": {
+        "OSREL": ["4ziysqXOQ8"],
+        "CNREL": ["64kMb5iAWu"]
+      },
+      "output": "GameData/HonkaiStarRail"
     },
     {
       "id": "Zenless",
       "name": "Zenless Zone Zero",
-      "biz": "nap_global",
-      "gameId": "U5hbdsT9W7",
       "package": "game",
-      "version": "2.7",
-      "output": "GameData/ZenlessZoneZero",
-      "region": "OSREL"
+      "region": "CN | OS",
+      "gameIds": {
+        "OSREL": ["U5hbdsT9W7"],
+        "CNREL": ["x6znKlJ0xK"]
+      },
+      "output": "GameData/ZenlessZoneZero"
     },
     {
       "id": "Nexusanima",
       "name": "Honkai: Nexus anima",
-      "biz": "abc_global",
-      "gameId": "4qvmDrMwKS",
       "package": "game",
-      "version": "0.3.0",
-      "output": "GameData/HonkaiNexusanima",
-      "region": "OSBETA"
+      "region": "CN | OS",
+      "gameIds": {
+        "OSREL": ["yneO4yGc4x"],
+        "CNREL": ["m8TGERqknS"],
+        "OSBETA": ["4qvmDrMwKS", "IWISpEcDbC"],
+        "CNBETA": ["j7rlly0oYR", "lgyIM35mz8"]
+      },
+      "output": "GameData/HonkaiNexusanima"
     },
     {
       "id": "PetitPlanet",
       "name": "Petit Planet",
-      "biz": "hyg_global",
-      "gameId": "679gqJWz4L",
       "package": "game",
-      "version": "0.92.7",
-      "output": "GameData/PetitPlanet",
-      "region": "OSBETA"
+      "region": "CN | OS",
+      "gameIds": {
+        "OSREL": ["viiywh5G2H", "a26PNg1Mgk"],
+        "CNREL": ["ERYDdvf0w8"],
+        "OSBETA": ["679gqJWz4L"],
+        "CNBETA": ["0fijU7nET7", "Dg5IUTLSzd"]
+      },
+      "output": "GameData/PetitPlanet"
+    },
+    {
+      "id": "TheWeavers",
+      "name": "The Weavers",
+      "package": "game",
+      "region": "CN | OS",
+      "gameIds": {
+        "CNBETA": ["pkMBmK7jxJ"]
+      },
+      "output": "GameData/TheWeavers"
     }
   ]
 }

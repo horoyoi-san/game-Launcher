@@ -236,7 +236,7 @@ export default function LauncherPage() {
             dataCheck: "StarRail_Data",
         },
         {
-            id: "genshin",
+            id: "GenshinImpact",
             exe: "GenshinImpact.exe",
             dataCheck: "GenshinImpact_Data",
         },
@@ -256,78 +256,83 @@ export default function LauncherPage() {
             dataCheck: "PetitPlanet_Data",
         },
         {
-            id: "zzz",
-            exe: "ZenlessZoneZero.exe",
-            dataCheck: "ZenlessZoneZero_Data",
+            id: "ZenlessZoneZeroBeta",
+            exe: "ZenlessZoneZeroBeta.exe",
+            dataCheck: "ZenlessZoneZeroBeta_Data",
+        },
+        {
+            id: "TheWeavers",
+            exe: "TheWeavers.exe",
+            dataCheck: "TheWeavers_Data",
         }
     ]
 
-function detectGame(basePath: string) {
-    const fileName = basePath.split(/[\\/]/).pop()
+    function detectGame(basePath: string) {
+        const fileName = basePath.split(/[\\/]/).pop()
 
-    return GAME_RULES.find(game =>
-        fileName?.toLowerCase() === game.exe.toLowerCase()
-    )
-}
-
-const handlePickFile = async () => {
-    try {
-        setIsLoading(true)
-
-        const basePath = await FSService.PickFile("exe")
-
-        const game = detectGame(basePath)
-
-        if (!game) {
-            toast.error("Unsupported game exe")
-            return
-        }
-
-        const normalized = basePath.replace(/\\/g, '/')
-        const folderPath = path.dirname(normalized)
-
-        const fullPath = `${folderPath}/${game.dataCheck}`
-
-        const exists = await FSService.DirExists(fullPath)
-
-        if (!exists) {
-            toast.error("Game folder not valid")
-            return
-        }
-
-        setGamePath(basePath)
-        setGameDir(folderPath)
-
-        toast.success(`Loaded: ${game.id}`)
-
-    } catch (err: any) {
-        toast.error('PickFolder error:', err)
-    } finally {
-        setIsLoading(false)
+        return GAME_RULES.find(game =>
+            fileName?.toLowerCase() === game.exe.toLowerCase()
+        )
     }
-}
 
-const handleStartGame = async () => {
-    if (!gamePath || gameRunning) return
+    const handlePickFile = async () => {
+        try {
+            setIsLoading(true)
 
-    try {
-        setIsLoading(true)
+            const basePath = await FSService.PickFile("exe")
 
-        const result = await FSService.StartApp(gamePath)
+            const game = detectGame(basePath)
 
-        if (!result) {
-            toast.error("Failed to start game")
-            return
+            if (!game) {
+                toast.error("Unsupported game exe")
+                return
+            }
+
+            const normalized = basePath.replace(/\\/g, '/')
+            const folderPath = path.dirname(normalized)
+
+            const fullPath = `${folderPath}/${game.dataCheck}`
+
+            const exists = await FSService.DirExists(fullPath)
+
+            if (!exists) {
+                toast.error("Game folder not valid")
+                return
+            }
+
+            setGamePath(basePath)
+            setGameDir(folderPath)
+
+            toast.success(`Loaded: ${game.id}`)
+
+        } catch (err: any) {
+            toast.error('PickFolder error:', err)
+        } finally {
+            setIsLoading(false)
         }
-
-        setGameRunning(true)
-
-    } catch (err: any) {
-        toast.error("StartGame error:", err)
-    } finally {
-        setIsLoading(false)
     }
-}
+
+    const handleStartGame = async () => {
+        if (!gamePath || gameRunning) return
+
+        try {
+            setIsLoading(true)
+
+            const result = await FSService.StartApp(gamePath)
+
+            if (!result) {
+                toast.error("Failed to start game")
+                return
+            }
+
+            setGameRunning(true)
+
+        } catch (err: any) {
+            toast.error("StartGame error:", err)
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     // นับเวลาปัจจุบัน (เรียลไทม์)
     const [time, setTime] = useState<string>("");
@@ -458,7 +463,7 @@ const handleStartGame = async () => {
 
 
             {/* Bottom Panel */}
-            { proxyReady && !isDownloading && (
+            {proxyReady && !isDownloading && (
 
 
                 <div className="fixed bottom-2 right-0 p-8 z-50">
@@ -533,7 +538,7 @@ const handleStartGame = async () => {
                                     <button
                                         onClick={() => {
                                             window.open(
-                                                "https://github.com/horoyoi-san/game-Launcher/releases/download/sophon/sophon.zip",
+                                                "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/Sophon.Downloader.zip",
                                                 "_blank"
                                             );
                                         }}
@@ -587,30 +592,30 @@ const handleStartGame = async () => {
             )}
 
             {/* Downloading */}
-            {isDownloading  && (
-                    <div className="fixed bottom-4 left-1/2  transform -translate-x-1/2 z-60 w-[60vw] bg-black/20 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-                        <div className="space-y-3">
-                            <div className="flex justify-center items-center text-sm text-white/80">
-                                <span>{downloadType}</span>
-                                <div className="flex items-center gap-4 ml-4">
-                                    <span className="text-cyan-400 font-semibold">{downloadSpeed}</span>
-                                    <span className="text-white font-bold">{progressDownload.toFixed(1)}%</span>
-                                </div>
-                            </div>
-                            <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
-                                <motion.div
-                                    className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${progressDownload}%` }}
-                                    transition={{ type: "tween", ease: "linear", duration: 0.03 }}
-                                />
-                            </div>
-                            <div className="text-center text-xs text-white/60">
-                                {progressDownload < 100 ? 'Please wait...' : 'Complete!'}
+            {isDownloading && (
+                <div className="fixed bottom-4 left-1/2  transform -translate-x-1/2 z-60 w-[60vw] bg-black/20 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+                    <div className="space-y-3">
+                        <div className="flex justify-center items-center text-sm text-white/80">
+                            <span>{downloadType}</span>
+                            <div className="flex items-center gap-4 ml-4">
+                                <span className="text-cyan-400 font-semibold">{downloadSpeed}</span>
+                                <span className="text-white font-bold">{progressDownload.toFixed(1)}%</span>
                             </div>
                         </div>
+                        <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+                            <motion.div
+                                className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progressDownload}%` }}
+                                transition={{ type: "tween", ease: "linear", duration: 0.03 }}
+                            />
+                        </div>
+                        <div className="text-center text-xs text-white/60">
+                            {progressDownload < 100 ? 'Please wait...' : 'Complete!'}
+                        </div>
                     </div>
-                )}
+                </div>
+            )}
 
             {isDownloading && (
                 <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-60 w-[60vw] bg-black/20 backdrop-blur-sm rounded-lg p-4 shadow-lg">

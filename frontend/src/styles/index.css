@@ -2,3 +2,11 @@
 @plugin "daisyui"{
     themes: dracula --default;
 }
+
+body {
+    --wails-draggable: drag;
+}
+
+:where(a, button, input, select, textarea, label, summary, [role="button"], [contenteditable="true"], [data-no-drag]) {
+    --wails-draggable: no-drag;
+}

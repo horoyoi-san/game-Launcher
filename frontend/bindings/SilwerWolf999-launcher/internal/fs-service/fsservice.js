@@ -6,6 +6,10 @@
 // @ts-ignore: Unused imports
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
+
 /**
  * @param {string} path
  * @returns {$CancellablePromise<boolean>}
@@ -44,6 +48,17 @@ export function GetDir(path) {
  */
 export function GetLauncherDir() {
     return $Call.ByID(1772893036);
+}
+
+/**
+ * @param {string[]} gameIDs
+ * @param {string} region
+ * @returns {$CancellablePromise<$models.SophonVersion[]>}
+ */
+export function GetSophonVersions(gameIDs, region) {
+    return $Call.ByID(737472939, gameIDs, region).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
 }
 
 /**
@@ -91,10 +106,12 @@ export function RemoveFile(path) {
  * @param {string} version
  * @param {string} output
  * @param {string} region
+ * @param {string} branch
+ * @param {string} launcherID
  * @returns {$CancellablePromise<boolean>}
  */
-export function RunDownloader(gameID, pkg, version, output, region) {
-    return $Call.ByID(2108586039, gameID, pkg, version, output, region);
+export function RunDownloader(gameID, pkg, version, output, region, branch, launcherID) {
+    return $Call.ByID(2108586039, gameID, pkg, version, output, region, branch, launcherID);
 }
 
 /**
@@ -112,3 +129,7 @@ export function StartApp(path) {
 export function StartWithConsole(path) {
     return $Call.ByID(333959942, path);
 }
+
+// Private type creation functions
+const $$createType0 = $models.SophonVersion.createFrom;
+const $$createType1 = $Create.Array($$createType0);

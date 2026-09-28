@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import hygPage from '@/pages/hyg'
+import SophonGamePage from '@/components/sophonGamePage'
 
 export const Route = createFileRoute('/hyg')({
-  component: hygPage,
-  
+  component: () => <SophonGamePage gameId="PetitPlanet" />,
 })

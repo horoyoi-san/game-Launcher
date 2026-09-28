@@ -1,8 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import hk4ePage from '@/pages/hk4e'
+import SophonGamePage from '@/components/sophonGamePage'
 
 export const Route = createFileRoute('/hk4e')({
-  component: hk4ePage,
-  
+  component: () => <SophonGamePage gameId="Genshin" />,
 })
 

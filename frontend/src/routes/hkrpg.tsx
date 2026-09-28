@@ -1,7 +1,7 @@
-import hkrpgPage from '@/pages/hkrpg'
 import { createFileRoute } from '@tanstack/react-router'
+import SophonGamePage from '@/components/sophonGamePage'
 
 export const Route = createFileRoute('/hkrpg')({
-  component: hkrpgPage,
+  component: () => <SophonGamePage gameId="StarRail" />,
 })
 

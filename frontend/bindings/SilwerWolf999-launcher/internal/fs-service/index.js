@@ -6,3 +6,7 @@ import * as FSService from "./fsservice.js";
 export {
     FSService
 };
+
+export {
+    SophonVersion
+} from "./models.js";
