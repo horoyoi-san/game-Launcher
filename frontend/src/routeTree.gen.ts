@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as NapRouteImport } from './routes/nap'
+import { Route as LegacyDiffRouteImport } from './routes/legacy-diff'
 import { Route as KlRouteImport } from './routes/kl'
 import { Route as HygRouteImport } from './routes/hyg'
 import { Route as HowtoRouteImport } from './routes/howto'
@@ -23,6 +24,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const NapRoute = NapRouteImport.update({
   id: '/nap',
   path: '/nap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegacyDiffRoute = LegacyDiffRouteImport.update({
+  id: '/legacy-diff',
+  path: '/legacy-diff',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KlRoute = KlRouteImport.update({
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/howto': typeof HowtoRoute
   '/hyg': typeof HygRoute
   '/kl': typeof KlRoute
+  '/legacy-diff': typeof LegacyDiffRoute
   '/nap': typeof NapRoute
 }
 export interface FileRoutesByTo {
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/howto': typeof HowtoRoute
   '/hyg': typeof HygRoute
   '/kl': typeof KlRoute
+  '/legacy-diff': typeof LegacyDiffRoute
   '/nap': typeof NapRoute
 }
 export interface FileRoutesById {
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/howto': typeof HowtoRoute
   '/hyg': typeof HygRoute
   '/kl': typeof KlRoute
+  '/legacy-diff': typeof LegacyDiffRoute
   '/nap': typeof NapRoute
 }
 export interface FileRouteTypes {
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/howto'
     | '/hyg'
     | '/kl'
+    | '/legacy-diff'
     | '/nap'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/howto'
     | '/hyg'
     | '/kl'
+    | '/legacy-diff'
     | '/nap'
   id:
     | '__root__'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/howto'
     | '/hyg'
     | '/kl'
+    | '/legacy-diff'
     | '/nap'
   fileRoutesById: FileRoutesById
 }
@@ -157,6 +169,7 @@ export interface RootRouteChildren {
   HowtoRoute: typeof HowtoRoute
   HygRoute: typeof HygRoute
   KlRoute: typeof KlRoute
+  LegacyDiffRoute: typeof LegacyDiffRoute
   NapRoute: typeof NapRoute
 }
 
@@ -167,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/nap'
       fullPath: '/nap'
       preLoaderRoute: typeof NapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legacy-diff': {
+      id: '/legacy-diff'
+      path: '/legacy-diff'
+      fullPath: '/legacy-diff'
+      preLoaderRoute: typeof LegacyDiffRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kl': {
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   HowtoRoute: HowtoRoute,
   HygRoute: HygRoute,
   KlRoute: KlRoute,
+  LegacyDiffRoute: LegacyDiffRoute,
   NapRoute: NapRoute,
 }
 export const routeTree = rootRouteImport

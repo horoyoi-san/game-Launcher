@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import useModalStore from "@/stores/modalStore";
-import { BookOpen, Diff, Home, Images, Minus, Settings, X } from "lucide-react";
+import { BookOpen, Diff, GitCompareArrows, Home, Images, Minus, Settings, X } from "lucide-react";
 import { AppService } from "@bindings/SilwerWolf999-launcher/internal/app-service";
 import { motion } from "motion/react";
 import usePanelStore from "@/stores/panelStore";
@@ -59,8 +59,11 @@ export default function Header() {
                     <Link to="/abc" className="hover:text-cyan-300"><img src="/icon/abc.png" className="w-7 h-7 object-contain"/></Link>
                     <Link to="/hyg" className="hover:text-cyan-300"><img src="/icon/hyg.png" className="w-7 h-7 object-contain"/></Link>
                     <Link to="/kl" title="The Weavers" className="hover:text-cyan-300"><img src="/icon/kl.png" className="w-7 h-7 object-contain"/></Link>
-                    <Link to="/diff" title="Diff Patch" aria-label="Diff Patch" className="hover:text-cyan-300">
+                    <Link to="/diff" title="Diff Update" aria-label="Diff Update" className="hover:text-cyan-300">
                         <Diff size={20} />
+                    </Link>
+                    <Link to="/legacy-diff" title="Legacy Diff" aria-label="Legacy Diff" className="hover:text-cyan-300">
+                        <GitCompareArrows size={20} />
                     </Link>
                     <button
                         onClick={() => {
