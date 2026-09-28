@@ -176,7 +176,7 @@ export default function LauncherPage() {
     const widgetLinks = [
         {
             tooltip: "SilwerWolf999 Launcher Update",
-            href: "https://github.com/horoyoi-san/Hoyo/releases/download/SR/SilwerWolf999-launcher.exe",
+            href: "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/SilwerWolf999-launcher.exe",
             img: "https://raw.githubusercontent.com/horoyoi-san/Hoyo/refs/heads/launcher-sr/build/appicon.png",
             btnClass: "me-media-icon media-list"
         },
@@ -525,7 +525,7 @@ export default function LauncherPage() {
                                     <button
                                         onClick={() => {
                                             window.open(
-                                                "https://github.com/horoyoi-san/Hoyo/releases/download/SR/SilwerWolf999-launcher.exe",
+                                                "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/SilwerWolf999-launcher.exe",
                                                 "_blank"
                                             );
                                         }}
