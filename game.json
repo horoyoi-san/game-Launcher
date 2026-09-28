@@ -18,6 +18,7 @@
       "package": "game",
       "region": "CN | OS",
       "gameIds": {
+        "gameid": ["gameid"],
         "OSREL": ["gopR6Cufr3"],
         "CNREL": ["1Z8W5NHUQb"]
       },
@@ -29,6 +30,7 @@
       "package": "game",
       "region": "CN | OS",
       "gameIds": {
+        "gameid": ["gameid"],
         "OSREL": ["4ziysqXOQ8"],
         "CNREL": ["64kMb5iAWu"]
       },
@@ -40,6 +42,7 @@
       "package": "game",
       "region": "CN | OS",
       "gameIds": {
+        "gameid": ["gameid"],
         "OSREL": ["U5hbdsT9W7"],
         "CNREL": ["x6znKlJ0xK"]
       },
@@ -51,6 +54,7 @@
       "package": "game",
       "region": "CN | OS",
       "gameIds": {
+        "gameid": ["gameid"],
         "OSREL": ["yneO4yGc4x"],
         "CNREL": ["m8TGERqknS"],
         "OSBETA": ["4qvmDrMwKS", "IWISpEcDbC"],
@@ -64,6 +68,7 @@
       "package": "game",
       "region": "CN | OS",
       "gameIds": {
+        "gameid": ["gameid"],
         "OSREL": ["viiywh5G2H", "a26PNg1Mgk"],
         "CNREL": ["ERYDdvf0w8"],
         "OSBETA": ["679gqJWz4L"],
@@ -77,6 +82,7 @@
       "package": "game",
       "region": "CN | OS",
       "gameIds": {
+        "gameid": ["gameid"],
         "CNBETA": ["pkMBmK7jxJ"]
       },
       "output": "GameData/TheWeavers"
