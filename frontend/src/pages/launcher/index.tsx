@@ -593,7 +593,7 @@ export default function LauncherPage() {
                                     <button
                                         onClick={() => {
                                             window.open(
-                                                "https://github.com/horoyoi-san/game-Launcher/releases/download/sr/Cyrene-launcher.exe",
+                                                "https://github.com/horoyoi-san/game-Launcher/releases/download/hhkrpg/Cyrene-launcher.exe",
                                                 "_blank"
                                             );
                                         }}
