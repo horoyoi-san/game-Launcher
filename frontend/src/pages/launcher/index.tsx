@@ -27,7 +27,7 @@ export default function LauncherPage() {
         return localStorage.getItem("userName") || "User Name";
     });
 
-    const [videoSrc, setVideoSrc] = useState("/video2.mp4");
+    const [videoSrc, setVideoSrc] = useState("/video3.mp4");
 
     const {
         activeUrl,
@@ -42,7 +42,7 @@ export default function LauncherPage() {
     const [bgType, setBgType] = useState<"video" | "image">("video");
 
     // Default ของ Launcher (พื้นหลังที่ Launcher เซ็ตไว้ตอนเปิดครั้งแรก)
-    const launcherDefaultVideos = ["/video2.mp4"];
+    const launcherDefaultVideos = ["/video3.mp4"];
     const launcherDefaultImages = ["/bg1.jpg"]; // ถ้ามี background เป็น image
     const [defaultIndex] = useState(0); // index ของ default
     const [defaultBgType] = useState<"video" | "image">("video");
@@ -126,6 +126,7 @@ export default function LauncherPage() {
     const videos = [
         { name: "Background 1", src: "/video1.mp4", icon: "https://launcher-webstatic.hoyoverse.com/launcher-public/2025/09/22/4cc51f558225dba65cc875ecd642cfe2_6726801704251292131.png" },
         { name: "Background 2", src: "/video2.mp4", icon: "https://raw.githubusercontent.com/horoyoi-san/Hoyo/refs/heads/launcher-sr/frontend/public/icon.png" },
+        { name: "Background 3", src: "/video3.mp4", icon: "https://raw.githubusercontent.com/horoyoi-san/Hoyo/refs/heads/launcher-sr/frontend/public/icon.png" },
     ];
 
     // 🎬 News Video (ไม่มีข้อความ)
@@ -373,8 +374,8 @@ export default function LauncherPage() {
                     onCanPlayThrough={() => setIsVideoLoading(false)}
                     onError={() => {
                         console.log("video load failed");
-                        if (videoSrc !== "/video2.mp4") {
-                            setVideoSrc("/video2.mp4");
+                        if (videoSrc !== "/video3.mp4") {
+                            setVideoSrc("/video3.mp4");
                         }
                     }}
                 >

@@ -12,7 +12,7 @@ export default function ZipPatchPage() {
   const [isSelectingPatch, setIsSelectingPatch] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [folderValid, setFolderValid] = useState(Boolean(gameDir));
-  const [bgUrl, setBgUrl] = useState("/video2.mp4");
+  const [bgUrl, setBgUrl] = useState("/video3.mp4");
   const [bgType, setBgType] = useState<"video" | "image">("video");
 
   useEffect(() => {

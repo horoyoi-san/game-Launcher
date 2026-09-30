@@ -44,7 +44,7 @@ export default function DiffPage() {
             setBgType(savedType);
         } else {
             // ถ้าไม่เคยตั้งค่า ให้ใช้ default ของ Launcher
-            setBgUrl("/video2.mp4"); // หรือ videos[0].src ของ Launcher
+            setBgUrl("/video3.mp4"); // หรือ videos[0].src ของ Launcher
             setBgType("video");
         }
 

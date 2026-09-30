@@ -87,7 +87,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
   return (
     <div className="fixed inset-0 z-0 overflow-hidden text-white">
       <video className="absolute inset-0 h-full w-full object-cover" autoPlay loop muted playsInline>
-        <source src="/video2.mp4" type="video/mp4" />
+        <source src="/video3.mp4" type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-black/65" />
       <main className="relative z-10 ml-24 flex min-h-full flex-col justify-end px-8 pb-10 pt-24">
