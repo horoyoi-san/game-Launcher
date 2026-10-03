@@ -7,12 +7,12 @@ import (
 )
 
 type FileEntry struct {
-	NameHash       int32
-	FileByteName   string
-	Size           int64
-	DataCount      int32
-	DataEntries    []DataEntry
-	Unk            uint8
+	NameHash     int32
+	FileByteName string
+	Size         int64
+	DataCount    int32
+	DataEntries  []DataEntry
+	Unk          uint8
 }
 
 func FileEntryFromBytes(r io.Reader) (*FileEntry, error) {
@@ -45,8 +45,8 @@ func FileEntryFromBytes(r io.Reader) (*FileEntry, error) {
 	}
 
 	// read 1 byte
-	b := make([]byte, 1)
-	if _, err := r.Read(b); err != nil {
+	var b [1]byte
+	if _, err := io.ReadFull(r, b[:]); err != nil {
 		return nil, err
 	}
 	f.Unk = b[0]

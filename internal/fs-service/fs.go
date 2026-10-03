@@ -17,17 +17,14 @@ type FSService struct{}
 func (f *FSService) PickFolder() (string, error) {
 	dialog := application.Get().Dialog.OpenFile().
 		CanChooseDirectories(true).
-		CanCreateDirectories(true).
+		CanChooseFiles(false).
 		ResolvesAliases(true)
 	if runtime.GOOS == "darwin" {
-		dialog.SetMessage("Select a file/directory")
+		dialog.SetMessage("Select the game folder")
 	} else {
-		dialog.SetTitle("Select a file/directory")
+		dialog.SetTitle("Select the game folder")
 	}
-	if path, err := dialog.PromptForSingleSelection(); err == nil {
-		return path, nil
-	}
-	return "", nil
+	return dialog.PromptForSingleSelection()
 }
 
 func (f *FSService) PickFile(filter string) (string, error) {

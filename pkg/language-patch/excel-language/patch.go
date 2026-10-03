@@ -3,6 +3,7 @@ package excelLanguage
 import (
 	assetMeta "Cyrene-launcher/pkg/language-patch/asset-meta"
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -44,6 +45,10 @@ func (a *ExcelLanguage) Unmarshal(rows []LanguageRow) ([]byte, error) {
 }
 
 func (a *ExcelLanguage) Parse() ([]LanguageRow, error) {
+	if a.ExcelDataEntry.Offset < 0 || a.ExcelDataEntry.Size <= 0 || a.ExcelDataEntry.Size > int64(int(^uint(0)>>1)) {
+		return nil, fmt.Errorf("invalid language data range: offset %d, size %d", a.ExcelDataEntry.Offset, a.ExcelDataEntry.Size)
+	}
+
 	excelPath := filepath.Join(a.AssetFolder, a.ExcelFileEntry.FileByteName+".bytes")
 
 	f, err := os.Open(excelPath)
@@ -56,7 +61,7 @@ func (a *ExcelLanguage) Parse() ([]LanguageRow, error) {
 		return nil, err
 	}
 
-	buffer := make([]byte, a.ExcelDataEntry.Size)
+	buffer := make([]byte, int(a.ExcelDataEntry.Size))
 	if _, err := io.ReadFull(f, buffer); err != nil {
 		return nil, err
 	}

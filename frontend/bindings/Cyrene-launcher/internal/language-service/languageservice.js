@@ -15,6 +15,15 @@ export function GetLanguage(path) {
 }
 
 /**
+ * @param {string} gameRoot
+ * @param {string} packageRoot
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function InstallThaiPatch(gameRoot, packageRoot) {
+    return $Call.ByID(2582310097, gameRoot, packageRoot);
+}
+
+/**
  * @param {string} path
  * @param {string} text
  * @param {string} voice

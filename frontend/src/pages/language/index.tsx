@@ -17,6 +17,7 @@ export default function LanguagePage() {
 
     const [isLoading, setIsLoading] = useState(false)
     const [isSettingLanguage, setIsSettingLanguage] = useState(false)
+    const [isInstallingThaiPatch, setIsInstallingThaiPatch] = useState(false)
 
     const languageOptions = [
         { value: 'en', label: 'English', flag: '🇺🇸' },
@@ -58,14 +59,16 @@ export default function LanguagePage() {
     }, []);
 
     useEffect(() => {
-        const getLanguage = async () => {
-            if (!gameDir) return
+        if (!gameDir) return
 
-            const subPath = "StarRail_Data/StreamingAssets"
-            const fullPath = `${gameDir}/${subPath}`
+        let cancelled = false
 
-            const exists = await FSService.DirExists(fullPath)
+        const loadLanguage = async () => {
+            const streamingAssetsPath = `${gameDir}/StarRail_Data/StreamingAssets`
+            const designDataPath = `${streamingAssetsPath}/DesignData/Windows`
+            const exists = await FSService.DirExists(designDataPath)
             if (!exists) {
+                if (cancelled) return
                 setTextLang("")
                 setVoiceLang("")
                 setSelectedTextLang("")
@@ -75,27 +78,45 @@ export default function LanguagePage() {
                 return
             }
 
-            const [ok, textLang, voiceLang, err] = await LanguageService.GetLanguage(fullPath)
-            if (!ok) {
-                setTextLang("")
-                setVoiceLang("")
-                setSelectedTextLang("")
-                setSelectedVoiceLang("")
-                setFolderCheckResult("error")
-                setGameDir("")
-                toast.error(err)
-                return
-            }
-
-            // success
-            setTextLang(textLang)
-            setVoiceLang(voiceLang)
+            if (cancelled) return
             setFolderCheckResult("success")
-            setSelectedTextLang(textLang)
-            setSelectedVoiceLang(voiceLang)
+
+            try {
+                const [ok, textLang, voiceLang, err] = await LanguageService.GetLanguage(streamingAssetsPath)
+                if (cancelled) return
+                if (!ok) {
+                    setTextLang("")
+                    setVoiceLang("")
+                    setSelectedTextLang("")
+                    setSelectedVoiceLang("")
+                    toast.error(`Game folder found, but language settings could not be read: ${err}`)
+                    return
+                }
+
+                setTextLang(textLang)
+                setVoiceLang(voiceLang)
+                setSelectedTextLang(textLang)
+                setSelectedVoiceLang(voiceLang)
+            } catch (err: unknown) {
+                if (cancelled) return
+                setTextLang("")
+                setVoiceLang("")
+                setSelectedTextLang("")
+                setSelectedVoiceLang("")
+                toast.error(`Game folder found, but language settings could not be read: ${err instanceof Error ? err.message : String(err)}`)
+            }
         }
 
-        getLanguage()
+        loadLanguage().catch((err: unknown) => {
+            if (!cancelled) {
+                toast.error(`Could not validate game folder: ${err instanceof Error ? err.message : String(err)}`)
+                setFolderCheckResult("error")
+            }
+        })
+
+        return () => {
+            cancelled = true
+        }
     }, [gameDir])
 
     const handlePickFolder = async () => {
@@ -103,13 +124,14 @@ export default function LanguagePage() {
             setIsLoading(true)
             const basePath = await FSService.PickFolder()
             if (basePath) {
-                setGameDir(basePath)
                 const subPath = 'StarRail_Data/StreamingAssets/DesignData/Windows'
                 const fullPath = `${basePath}/${subPath}`
                 const exists = await FSService.DirExists(fullPath)
                 setFolderCheckResult(exists ? 'success' : 'error')
-                setGameDir(exists ? basePath : "")
-                if (!exists) {
+                if (exists) {
+                    setGameDir(basePath)
+                } else {
+                    setGameDir("")
                     toast.error('Game directory not found. Please select the correct folder.')
                 }
             } else {
@@ -117,8 +139,8 @@ export default function LanguagePage() {
                 setFolderCheckResult('error')
                 setGameDir('')
             }
-        } catch (err: any) {
-            toast.error('PickFolder error:', err)
+        } catch (err: unknown) {
+            toast.error(`PickFolder error: ${err instanceof Error ? err.message : String(err)}`)
             setFolderCheckResult('error')
         } finally {
             setIsLoading(false)
@@ -146,10 +168,47 @@ export default function LanguagePage() {
                 toast.error(err)
             }
 
-        } catch (err: any) {
-            toast.error('SetLanguage error:', err)
+        } catch (err: unknown) {
+            toast.error(`SetLanguage error: ${err instanceof Error ? err.message : String(err)}`)
         } finally {
             setIsSettingLanguage(false)
+        }
+    }
+
+    const handleInstallThaiPatch = async () => {
+        if (!gameDir) {
+            toast.error('Select the Beta game folder first')
+            return
+        }
+        try {
+            setIsInstallingThaiPatch(true)
+            const packageDir = await FSService.PickFolder()
+            if (!packageDir) {
+                toast.error('No Thai patch package folder selected')
+                return
+            }
+
+            const [ok, message] = await LanguageService.InstallThaiPatch(gameDir, packageDir)
+            if (!ok) {
+                toast.error(message)
+                return
+            }
+
+            toast.success(message)
+            const streamingAssetsPath = `${gameDir}/StarRail_Data/StreamingAssets`
+            const [languageOk, text, voice, error] = await LanguageService.GetLanguage(streamingAssetsPath)
+            if (languageOk) {
+                setTextLang(text)
+                setVoiceLang(voice)
+                setSelectedTextLang(current => current || text)
+                setSelectedVoiceLang(current => current || voice)
+            } else {
+                toast.error(`Thai patch installed, but could not reload language settings: ${error}`)
+            }
+        } catch (err: unknown) {
+            toast.error(`Thai patch install error: ${err instanceof Error ? err.message : String(err)}`)
+        } finally {
+            setIsInstallingThaiPatch(false)
         }
     }
 
@@ -251,6 +310,23 @@ relative z-60">
                                         )}
                                     </div>
                                 )}
+                                {gameDir && (
+                                    <div className="mt-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleInstallThaiPatch}
+                                            disabled={isInstallingThaiPatch}
+                                            className="btn btn-secondary"
+                                        >
+                                            <Folder size={18} />
+                                            {isInstallingThaiPatch ? 'Installing Thai patch...' : 'Install Thai Beta Patch'}
+                                        </button>
+                                        <p className="mt-1 text-sm opacity-80">
+                                            Select the extracted Thai patch package folder containing the assets folder.
+                                            Close the game first. Changed files are backed up; Registry and server settings are not changed.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -327,7 +403,7 @@ relative z-60">
                                         className="w-full select select-warning"
                                     >
                                         <option value="">Select voice language...</option>
-                                        {languageOptions.map(lang => (
+                                        {languageOptions.filter(lang => lang.value !== 'th').map(lang => (
                                             <option key={lang.value} value={lang.value}>
                                                 {lang.flag} {lang.label}
                                             </option>
