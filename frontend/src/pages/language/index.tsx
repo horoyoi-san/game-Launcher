@@ -28,36 +28,6 @@ export default function LanguagePage() {
     ];
 
 
-    const [bgUrl, setBgUrl] = useState("");
-    const [bgType, setBgType] = useState<"video" | "image">("image");
-
-    useEffect(() => {
-        // 1️⃣ โหลดค่าจาก localStorage (ค่าที่ Launcher ตั้งไว้ล่าสุด)
-        const savedUrl = localStorage.getItem("customBgUrl");
-        const savedType = localStorage.getItem("customBgType") as "video" | "image";
-
-        if (savedUrl && savedType) {
-            setBgUrl(savedUrl);
-            setBgType(savedType);
-        } else {
-            // ถ้าไม่เคยตั้งค่า ให้ใช้ default ของ Launcher
-            setBgUrl("/video2.mp4"); // หรือ videos[0].src ของ Launcher
-            setBgType("video");
-        }
-
-        // 2️⃣ ฟัง event จาก Launcher
-        const handleLauncherBgChange = (event: Event) => {
-            const e = event as CustomEvent<{ url: string; type: "video" | "image" }>;
-            if (e.detail?.url && e.detail?.type) {
-                setBgUrl(e.detail.url);
-                setBgType(e.detail.type);
-            }
-        };
-
-        window.addEventListener("launcherBgChanged", handleLauncherBgChange);
-        return () => window.removeEventListener("launcherBgChanged", handleLauncherBgChange);
-    }, []);
-
     useEffect(() => {
         if (!gameDir) return
 
@@ -218,234 +188,145 @@ export default function LanguagePage() {
     }
 
     return (
-        <>
-            {/* 🔥 Background */}
-            {bgUrl && (
-                bgType === "video" ? (
-                    <video
-                        className="fixed inset-0 z-0 w-full h-full object-cover"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                    >
-                        <source src={bgUrl} type="video/mp4" />
-                    </video>
-                ) : (
-                    <img
-                        src={bgUrl}
-                        className="fixed inset-0 z-0 w-full h-full object-cover"
-                    />
-                )
-            )}
-
-            <div className="min-h-screen
-w-full
-
-p-4 md:p-6
-flex justify-center items-start
-
-bg-gradient-to-br from-purple-900/30 via-black/50 to-indigo-900/30
-backdrop-blur-xl
-
-text-white
-relative z-60">
-                <div className="max-w-4xl mx-auto">
-                    {/* Header */}
-                    <div className="text-center mb-2">
-                        <h1 className="text-4xl font-bold mb-2">
-                            🎮 Game Language Manager
-                        </h1>
-                        <p className="">Manage text and voice language settings for your game</p>
-                    </div>
-
-                    {/* Main Content */}
-                    <div className="rounded-2xl p-2 space-y-4">
-
-                        {/* Folder Selection Section */}
-                        <div className="pb-2">
-                            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                                <Folder className="text-primary" size={24} />
-                                Game Directory
-                            </h2>
-
-                            <div className="space-y-1">
-                                <div className='btn btn-accent btn-xl font-bold bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-pink-400/40 transition'>
-                                    <button
-                                        onClick={handlePickFolder}
-                                        disabled={isLoading}
-                                        className="btn bg-black/30 backdrop-blur-md
-           border border-purple-400/30 text-white
-           hover:bg-purple-500/30 hover:border-purple-300
-           transition"
-
-                                    >
-                                        <Folder size={20} />
-                                        {isLoading ? 'Selecting...' : 'Select Game Folder'}
-                                    </button>
-
-                                    {gameDir && (
-                                        <div className="rounded-lg p-2">
-                                            <p className="font-mono text-sm px-3 py-2 rounded border truncate max-w-full overflow-hidden whitespace-nowrap">
-                                                {gameDir}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                                {folderCheckResult && (
-                                    <div className={`flex items-center gap-2 p-3 rounded-lg ${folderCheckResult === 'success'
-                                        ? 'bg-success/5 text-success border border-success'
-                                        : 'bg-error/5 text-error border border-error'
-                                        }`}>
-                                        {folderCheckResult === 'success' ? (
-                                            <>
-                                                <Check size={20} />
-                                                <span>Valid game directory found!</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <X size={20} />
-                                                <span>Game directory not found. Please select the correct folder.</span>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                                {gameDir && (
-                                    <div className="mt-2">
-                                        <button
-                                            type="button"
-                                            onClick={handleInstallThaiPatch}
-                                            disabled={isInstallingThaiPatch}
-                                            className="btn btn-secondary"
-                                        >
-                                            <Folder size={18} />
-                                            {isInstallingThaiPatch ? 'Installing Thai patch...' : 'Install Thai Beta Patch'}
-                                        </button>
-                                        <p className="mt-1 text-sm opacity-80">
-                                            Select the extracted Thai patch package folder containing the assets folder.
-                                            Close the game first. Changed files are backed up; Registry and server settings are not changed.
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
+        <main className="tool-page tool-page--language">
+            <div className="tool-page__content">
+                <header className="tool-heading">
+                    <div className="tool-heading__eyebrow">GAME SETTINGS <span> / </span> LANGUAGE</div>
+                    <div className="tool-heading__row">
+                        <div>
+                            <h1>Language studio</h1>
+                            <p>Choose the voice and text language for your game client.</p>
                         </div>
+                        <div className={`tool-state ${folderCheckResult === 'success' ? 'is-ready' : ''}`}>
+                            <span />
+                            {folderCheckResult === 'success' ? 'Game detected' : gameDir ? 'Checking game' : 'Setup required'}
+                        </div>
+                    </div>
+                </header>
 
-                        {/* Current Language Display */}
-                        {(textLang && voiceLang) && (
-                            <div className="pb-2">
-                                <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                                    <Globe className="text-primary" size={24} />
-                                    Current Languages
-                                </h2>
-
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="bg-success/5 rounded-lg p-2 border border-success/30">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <Globe size={20} className="text-success" />
-                                            <span className="font-bold text-success">Text Language</span>
-                                        </div>
-                                        <p className="text-2xl font-bold text-success">
-                                            {getLanguageLabel(textLang)}
-                                        </p>
-                                    </div>
-
-                                    <div className="bg-warning/5 rounded-lg p-2 border border-warning/30">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <Mic size={20} className="text-warning" />
-                                            <span className="font-bold text-warning">Voice Language</span>
-                                        </div>
-                                        <p className="text-2xl font-bold text-warning">
-                                            {getLanguageLabel(voiceLang)}
-                                        </p>
-                                    </div>
+                <div className="language-layout">
+                    <div className="language-workflow">
+                        <section className="studio-panel game-location">
+                            <div className="studio-panel__top">
+                                <div className="studio-panel__number">01</div>
+                                <div>
+                                    <h2>Game location</h2>
+                                    <p>Connect the launcher to your Star Rail installation.</p>
                                 </div>
                             </div>
-                        )}
+                            <div className="location-control">
+                                <div className={`location-control__icon ${folderCheckResult === 'success' ? 'is-ready' : ''}`}>
+                                    {folderCheckResult === 'success' ? <Check size={21} /> : <Folder size={21} />}
+                                </div>
+                                <div className="location-control__path">
+                                    <strong>{gameDir ? 'Game directory selected' : 'No game directory selected'}</strong>
+                                    <span title={gameDir}>{gameDir || 'Select the folder that contains StarRail_Data'}</span>
+                                </div>
+                                <button type="button" onClick={handlePickFolder} disabled={isLoading} className="btn location-control__button">
+                                    {isLoading ? 'Selecting…' : gameDir ? 'Change folder' : 'Browse folder'}
+                                </button>
+                            </div>
+                            {folderCheckResult === 'error' && (
+                                <div className="inline-status is-error"><X size={16} /> Game directory not found. Select the correct folder.</div>
+                            )}
+                            {folderCheckResult === 'success' && (
+                                <div className="inline-status is-success"><Check size={16} /> Game installation verified</div>
+                            )}
+                            {gameDir && (
+                                <div className="thai-patch">
+                                    <div>
+                                        <strong>Thai beta patch</strong>
+                                        <p>Install the Thai language asset package. Existing changed files are backed up.</p>
+                                    </div>
+                                    <button type="button" onClick={handleInstallThaiPatch} disabled={isInstallingThaiPatch} className="btn">
+                                        {isInstallingThaiPatch ? 'Installing…' : 'Install patch'}
+                                    </button>
+                                </div>
+                            )}
+                        </section>
 
-                        {/* Language Selection */}
-                        <div className={`transition-opacity duration-300 ${gameDir === "" ? 'opacity-50 pointer-events-none' : ''
-                            }`}>
-                            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                                <Settings className="text-primary" size={24} />
-                                Language Settings
-                            </h2>
-
-                            <div className="grid md:grid-cols-2 gap-6">
-                                {/* Text Language */}
-                                <div className="space-y-3">
-                                    <label className="flex text-sm font-medium text-success items-center gap-2">
-                                        <Globe size={16} />
-                                        Text Language
-                                    </label>
+                        <section className={`studio-panel language-choice ${gameDir ? '' : 'is-locked'}`}>
+                            <div className="studio-panel__top">
+                                <div className="studio-panel__number">02</div>
+                                <div>
+                                    <h2>Language preferences</h2>
+                                    <p>Text and voice can be configured independently.</p>
+                                </div>
+                            </div>
+                            <div className="language-select-grid">
+                                <label className="language-select">
+                                    <span className="language-select__icon"><Globe size={18} /></span>
+                                    <span className="language-select__label">Interface & subtitles</span>
                                     <select
                                         value={selectedTextLang}
                                         onChange={(e) => setSelectedTextLang(e.target.value)}
-                                        className="w-full select select-success"
+                                        disabled={!gameDir}
                                     >
-                                        <option value="">Select text language...</option>
+                                        <option value="">Choose text language</option>
                                         {languageOptions.map(lang => (
-                                            <option key={lang.value} value={lang.value}>
-                                                {lang.flag} {lang.label}
-                                            </option>
+                                            <option key={lang.value} value={lang.value}>{lang.flag} {lang.label}</option>
                                         ))}
                                     </select>
-                                </div>
-
-                                {/* Voice Language */}
-                                <div className="space-y-3">
-                                    <label className="flex text-sm font-medium text-warning items-center gap-2">
-                                        <Mic size={16} />
-                                        Voice Language
-                                    </label>
+                                </label>
+                                <label className="language-select">
+                                    <span className="language-select__icon"><Mic size={18} /></span>
+                                    <span className="language-select__label">Character voices</span>
                                     <select
                                         value={selectedVoiceLang}
                                         onChange={(e) => setSelectedVoiceLang(e.target.value)}
-                                        className="w-full select select-warning"
+                                        disabled={!gameDir}
                                     >
-                                        <option value="">Select voice language...</option>
+                                        <option value="">Choose voice language</option>
                                         {languageOptions.filter(lang => lang.value !== 'th').map(lang => (
-                                            <option key={lang.value} value={lang.value}>
-                                                {lang.flag} {lang.label}
-                                            </option>
+                                            <option key={lang.value} value={lang.value}>{lang.flag} {lang.label}</option>
                                         ))}
                                     </select>
-                                </div>
+                                </label>
                             </div>
-
-                            {/* Apply Button */}
-                            <div className="mt-6 flex justify-center">
+                            <div className="language-choice__footer">
+                                <span>Voice language requires an available in-game audio package.</span>
                                 <button
+                                    type="button"
                                     onClick={handleSetLanguage}
-                                    disabled={!selectedTextLang || !selectedVoiceLang || isSettingLanguage}
-                                    className="bg-gradient-to-r from-indigo-500/70 to-purple-600/70
-           backdrop-blur-md
-           hover:from-indigo-600/70 hover:to-purple-700/70
-           disabled:from-gray-400/50 disabled:to-gray-500/50
-           text-white px-8 py-3 rounded-lg font-medium
-           transition-all duration-200 flex items-center gap-2
-           shadow-lg hover:shadow-xl
-           border border-white/20
-           disabled:cursor-not-allowed cursor-pointer"
+                                    disabled={!selectedTextLang || !selectedVoiceLang || isSettingLanguage || !gameDir}
+                                    className="btn btn-primary apply-language"
                                 >
-                                    <Settings size={20} />
-                                    {isSettingLanguage ? 'Applying...' : 'Apply Language Settings'}
+                                    <Settings size={17} />
+                                    {isSettingLanguage ? 'Applying settings…' : 'Apply languages'}
                                 </button>
                             </div>
+                        </section>
+                    </div>
+
+                    <aside className="language-summary">
+                        <div className="language-summary__header">
+                            <span className="language-summary__orb"><Globe size={20} /></span>
+                            <div>
+                                <span className="eyebrow">CURRENT CONFIGURATION</span>
+                                <h2>Language setup</h2>
+                            </div>
                         </div>
 
-                        {/* คำแนะนำ */}
-                        <div className="bg-info/5 rounded-lg p-4 border border-info/30 mt-6">
-                            <h3 className="font-medium text-error mb-2">📋 คำแนะนำ:</h3>
-                            <ol className="text-sm text-error space-y-1">
-                                <li>1. คลิก "เลือกโฟลเดอร์เกม" และเลือกไดเร็กทอรีหลักของเกม</li>
-                                <li>2. รอให้ระบบตรวจสอบความถูกต้องของไดเร็กทอรีเกม</li>
-                                <li>3. เลือกภาษาข้อความและเสียงที่คุณต้องการ</li>
-                                <li>4. คลิก "ใช้การตั้งค่าภาษา" เพื่อบันทึกการเปลี่ยนแปลงของคุณ</li>
-                            </ol>
+                        <div className="language-summary__item">
+                            <span>TEXT & UI</span>
+                            <strong>{textLang ? getLanguageLabel(textLang) : 'Not detected'}</strong>
+                            <small>{textLang ? 'Currently active' : 'Select a game folder to read settings'}</small>
                         </div>
-                    </div>
+                        <div className="language-summary__item">
+                            <span>VOICE OVER</span>
+                            <strong>{voiceLang ? getLanguageLabel(voiceLang) : 'Not detected'}</strong>
+                            <small>{voiceLang ? 'Currently active' : 'Voice packs are managed by the game'}</small>
+                        </div>
+
+                        <div className="language-summary__steps">
+                            <span className="eyebrow">QUICK GUIDE</span>
+                            <div><b>1</b><span>Select your game directory</span></div>
+                            <div><b>2</b><span>Choose text and voice</span></div>
+                            <div><b>3</b><span>Apply your preferences</span></div>
+                        </div>
+                    </aside>
                 </div>
             </div>
-        </>
+        </main>
     )
 }

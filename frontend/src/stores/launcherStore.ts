@@ -27,7 +27,7 @@ interface LauncherState {
 }
 
 const useLauncherStore = create<LauncherState>((set, get) => ({
-    isLoading: true,
+    isLoading: false,
     downloadType: "",
     serverReady: true,
     proxyReady: true,

@@ -14,7 +14,7 @@ export default function CloseModal({
     const { closingOption, setClosingOption } = useSettingStore()
 
     return (
-        <div className="fixed inset-0 z-50 h-full flex items-center justify-center bg-black/30 backdrop-blur-md">        <div className="relative w-[90%] max-w-2xl bg-base-100 text-base-content rounded-xl border border-purple-500/50 shadow-lg shadow-purple-500/20">
+        <div className="fixed inset-0 z-50 h-full flex items-center justify-center bg-black/55 backdrop-blur-md">        <div className="app-modal relative w-[90%] max-w-2xl rounded-xl">
             <div className="border-b border-purple-500/30 px-6 py-4 mb-4 flex justify-between items-center">
                 <h3 className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-cyan-600">
                     Confirm Action

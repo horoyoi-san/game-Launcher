@@ -1,156 +1,138 @@
 import { Link } from "@tanstack/react-router";
 import useModalStore from "@/stores/modalStore";
-import { Blend, BookOpen, GitCompareArrows, Home, Info, Images, Languages, Minus, Settings, TrendingUpDown, X } from "lucide-react";
+import { BookOpen, GitCompareArrows, Home, Image, Info, Languages, Minus, Settings, X } from "lucide-react";
 import { AppService } from "@bindings/Cyrene-launcher/internal/app-service";
 import { motion } from "motion/react";
 import usePanelStore from "@/stores/panelStore";
+
+const webLinks = [
+    {
+        label: "HoYoLAB",
+        url: "https://hoyoplay.hoyoverse.com",
+        image: "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/hoyoverse-icon.png",
+    },
+    {
+        label: "HoYoverse Games",
+        url: "https://hoyoverse-game.vercel.app",
+        image: "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/hoyo-game-logo.png",
+    },
+    { label: "Nanoka", url: "https://nanoka.cc", image: "https://nanoka.cc/logo.svg" },
+    {
+        label: "SR Tools",
+        url: "https://srtools.neonteam.dev",
+        image: "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/AvatarIcon.webp",
+    },
+];
 
 export default function Header() {
     const { setIsOpenSettingModal } = useModalStore();
     const { setActiveUrl, setShowPanel, setIsMinimized } = usePanelStore();
 
+    const openWebPanel = (url: string) => {
+        setActiveUrl(url);
+        setShowPanel(true);
+        setIsMinimized(false);
+    };
 
     const controlButtons = [
         {
-            icon: <Settings className="w-5 h-5 text-white" />,
+            icon: <Settings className="h-4 w-4" />,
             action: () => setIsOpenSettingModal(true),
             tip: "Settings",
-            hover: { rotate: 20, color: "#e343e9" },
         },
         {
-            icon: <Minus className="w-5 h-5 text-white" />,
+            icon: <Minus className="h-4 w-4" />,
             action: () => AppService.MinimizeApp(),
             tip: "Minimize",
-            hover: { rotate: 20, color: "#e343e9" },
         },
         {
-            icon: <X className="w-5 h-5 text-white" />,
+            icon: <X className="h-4 w-4" />,
             action: () => AppService.CloseApp(),
             tip: "Close",
-            hover: { color: "#e343e9", rotate: -10 },
         },
     ];
 
     return (
         <>
-            {/* Sidebar ด้านซ้าย */}
-            <div className="fixed left-0 top-0 h-full w-18 bg-black/30 backdrop-blur-md shadow-lg z-70 flex flex-col items-center py-6 justify-between">
-                <div className="flex flex-col items-center gap-2">
-                    <Link to="/" className="flex flex-col items-center hover:scale-105 transition-transform">
-                        <img src="/appicon.png" alt="Logo" className="w-14 h-14 rounded-lg z-70" />
-                        <h1 className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 via-pink-500 to-pink-500 drop-shadow-[0_0_8px_rgba(255,192,203,0.4)]">Cyrene</h1>
+            <aside className="app-sidebar">
+                <Link to="/" className="app-sidebar__brand" activeOptions={{ exact: true }} title="Cyrene Launcher">
+                    <img src="/appicon.png" alt="Cyrene Launcher" className="h-11 w-11 rounded-xl" />
+                    <div className="app-sidebar__brand-name">
+                        <div className="text-[15px] font-bold tracking-wide text-white">CYRENE</div>
+                        <div className="mt-0.5 text-[10px] tracking-[0.16em] text-violet-200/60">GAME LAUNCHER</div>
+                    </div>
+                </Link>
+
+                <nav className="app-sidebar__nav" aria-label="Main navigation">
+                    <div className="app-sidebar__label">Library</div>
+                    <Link
+                        to="/"
+                        activeOptions={{ exact: true }}
+                        className="sidebar-link"
+                        activeProps={{ className: "sidebar-link is-active" }}
+                        title="Home"
+                        aria-label="Home"
+                    >
+                        <Home size={18} />
+                        <span>Home</span>
                     </Link>
-                </div>
 
-                <div className="flex flex-col items-center gap-5 mt-8 text-white">
-                    <Link to="/" className="hover:text-cyan-300"><Home size={20} /></Link>
+                    <div className="app-sidebar__label">Tools</div>
+                    <Link to="/language" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Language" aria-label="Language">
+                        <Languages size={18} />
+                        <span>Language</span>
+                    </Link>
+                    <Link to="/diff" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Game Patcher" aria-label="Game Patcher">
+                        <GitCompareArrows size={18} />
+                        <span>Game Patcher</span>
+                    </Link>
+                    <Link to="/howto" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Guides" aria-label="Guides">
+                        <BookOpen size={18} />
+                        <span>Guides</span>
+                    </Link>
+                    <Link to="/about" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="About" aria-label="About">
+                        <Info size={18} />
+                        <span>About</span>
+                    </Link>
 
+                    <div className="app-sidebar__label">Web shortcuts</div>
+                    {webLinks.map((item) => (
+                        <button
+                            key={item.label}
+                            type="button"
+                            className="sidebar-link w-full text-left"
+                            onClick={() => openWebPanel(item.url)}
+                            title={item.label}
+                            aria-label={item.label}
+                        >
+                            <img src={item.image} alt="" />
+                            <span>{item.label}</span>
+                        </button>
+                    ))}
                     <button
-                        onClick={() => {
-                            setActiveUrl("https://hoyoplay.hoyoverse.com");
-                            setShowPanel(true);
-                            setIsMinimized(false);
-                        }}
-                        className="hover:scale-110 transition"
+                        type="button"
+                        className="sidebar-link w-full text-left"
+                        onClick={() => openWebPanel("https://hoyogame-background.vercel.app")}
+                        title="Background Gallery"
+                        aria-label="Background Gallery"
                     >
-                        <img
-                            src="https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/hoyoverse-icon.png"
-                            alt="bg"
-                            className="w-5 h-5 object-cover rounded"
-                        />
+                        <Image size={18} />
+                        <span>Background Gallery</span>
                     </button>
+                </nav>
+            </aside>
 
-                    <button
-                        onClick={() => {
-                            setActiveUrl("https://hoyoverse-game.vercel.app");
-                            setShowPanel(true);
-                            setIsMinimized(false);
-                        }}
-                        className="hover:scale-110 transition"
-                    >
-                        <img
-                            src="https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/hoyo-game-logo.png"
-                            alt="bg"
-                            className="w-5 h-5 object-cover rounded"
-                        />
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            setActiveUrl("https://nanoka.cc");
-                            setShowPanel(true);
-                            setIsMinimized(false);
-                        }}
-                        className="hover:scale-110 transition"
-                    >
-                        <img
-                            src="https://nanoka.cc/logo.svg"
-                            alt="bg"
-                            className="w-5 h-5 object-cover rounded"
-                        />
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            setActiveUrl("https://srtools.neonteam.dev");
-                            setShowPanel(true);
-                            setIsMinimized(false);
-                        }}
-                        className="hover:scale-110 transition"
-                    >
-                        <img
-                            src="https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/AvatarIcon.webp"
-                            alt="bg"
-                            className="w-5 h-5 object-cover rounded"
-                        />
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            setActiveUrl("https://hoyo-swart.vercel.app");
-                            setShowPanel(true);
-                            setIsMinimized(false);
-                        }}
-                        className="hover:scale-110 transition"
-                    >
-                        <img
-                            src="https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/pompom.png"
-                            alt="bg"
-                            className="w-5 h-5 object-cover rounded"
-                        />
-                    </button>
-
-                    <Link to="/language" className="hover:text-cyan-300"><Languages size={20} /></Link>
-                    <Link to="/diff" className="hover:text-cyan-300"><GitCompareArrows size={20} /></Link>
-                    <Link to="/analysis" className="hover:text-cyan-300"><TrendingUpDown size={20} /></Link>
-                    <Link to="/srtools" className="hover:text-cyan-300"><Blend size={20} /></Link>
-                    <Link to="/howto" className="hover:text-cyan-300"><BookOpen size={20} /></Link>
-                    <Link to="/about" className="hover:text-cyan-300"><Info size={20} /></Link>
-
-                    <button
-                        onClick={() => {
-                            setActiveUrl("https://hoyogame-background.vercel.app");
-                            setShowPanel(true);
-                            setIsMinimized(false);
-                        }}
-                        className="hover:text-cyan-300"
-                    >
-                        <Images size={20} />
-                    </button>
-
-                </div>
-            </div>
-
-            {/* ปุ่มควบคุมด้านขวาบน */}
-            <div className="fixed top-0 right-0 z-50 flex items-center gap-2 px-3 py-2 rounded-bl-xl">
-                {controlButtons.map((btn, i) => (
+            <div className="app-window-controls">
+                {controlButtons.map((btn) => (
                     <motion.button
-                        key={i}
-                        whileHover={btn.hover}
-                        transition={{ type: "spring" }}
+                        key={btn.tip}
+                        type="button"
+                        whileHover={{ scale: 1.08 }}
+                        whileTap={{ scale: 0.94 }}
                         onClick={btn.action}
-                        className="btn btn-ghost btn-circle bg-transparent border-none flex items-center justify-center"
+                        className="btn btn-ghost btn-circle border-none"
                         title={btn.tip}
+                        aria-label={btn.tip}
                     >
                         {btn.icon}
                     </motion.button>

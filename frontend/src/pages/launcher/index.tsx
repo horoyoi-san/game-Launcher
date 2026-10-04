@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Play, Menu, FolderOpen, Minus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Play, Menu, Minus, FolderOpen } from 'lucide-react';
 import { AppService } from '@bindings/Cyrene-launcher/internal/app-service';
 import { FSService } from '@bindings/Cyrene-launcher/internal/fs-service';
 import { toast } from 'react-toastify';
@@ -22,6 +22,7 @@ type CombinedLink = {
 };
 
 export default function LauncherPage() {
+    const gameSelectionChanged = useRef(false);
 
     const [userName, setUserName] = useState<string>(() => {
         // โหลดจาก localStorage หรือ fallback เป็น default
@@ -254,18 +255,34 @@ export default function LauncherPage() {
 
     useEffect(() => {
         const checkStartUp = async (): Promise<void> => {
+            const restoreGameSelection = async () => {
+                const [savedGamePath, savedGameDir] = await FSService.GetSavedGameSelection()
+                if (savedGamePath && !gameSelectionChanged.current) {
+                    const restoredGameDir = savedGameDir || path.dirname(savedGamePath.replace(/\\/g, '/'))
+                    setGamePath(savedGamePath)
+                    setGameDir(restoredGameDir)
+                    return
+                }
+
+                if (!gamePath) return
+
+                const legacyGameDir = gameDir || path.dirname(gamePath.replace(/\\/g, '/'))
+                setGameDir(legacyGameDir)
+                await FSService.SaveGameSelection(gamePath, legacyGameDir)
+            }
+
+            try {
+                await restoreGameSelection()
+            } catch (err: unknown) {
+                toast.error(`Could not restore saved game location: ${err instanceof Error ? err.message : String(err)}`)
+            }
+
             const proxyData = await CheckUpdateProxy(proxyPath, proxyVersion)
             setUpdateData({
                 server: { isUpdate: false, isExists: true, version: "" },
                 proxy: proxyData,
                 launcher: { isUpdate: false, isExists: true, version: "" }
             })
-            const exitGame = await FSService.FileExists(gamePath)
-            if (!exitGame) {
-                setGameRunning(false)
-                setGamePath("")
-                setGameDir("")
-            }
 
             if (!proxyData.isExists) {
                 setProxyReady(false)
@@ -282,6 +299,8 @@ export default function LauncherPage() {
         try {
             setIsLoading(true)
             const basePath = await FSService.PickFile("exe")
+            if (!basePath) return
+
             if (basePath.endsWith("StarRail.exe") || basePath.endsWith("launcher.exe")) {
                 const normalized = basePath.replace(/\\/g, '/')
                 const folderPath = path.dirname(normalized)
@@ -290,15 +309,21 @@ export default function LauncherPage() {
                 if (!exists) {
                     toast.error('Game directory not found. Please select the correct folder.')
                 } else {
+                    gameSelectionChanged.current = true
                     setGamePath(basePath)
                     setGameDir(folderPath)
-                    toast.success('Game path set successfully')
+                    try {
+                        await FSService.SaveGameSelection(basePath, folderPath)
+                        toast.success('Game path saved successfully')
+                    } catch (err: unknown) {
+                        toast.error(`Game path selected but could not sync to app settings: ${err instanceof Error ? err.message : String(err)}`)
+                    }
                 }
             } else {
                 toast.error('Not valid file type')
             }
-        } catch (err: any) {
-            toast.error('PickFolder error:', err)
+        } catch (err: unknown) {
+            toast.error(`Could not save selected game location: ${err instanceof Error ? err.message : String(err)}`)
         } finally {
             setIsLoading(false)
         }
@@ -335,6 +360,12 @@ export default function LauncherPage() {
         }
         try {
             setIsLoading(true)
+            const gameExists = await FSService.FileExists(gamePath)
+            if (!gameExists) {
+                toast.error('Selected game file could not be found. Please choose the game file again.')
+                return
+            }
+
             const activeServerPath = serverPath || "./server/firefly-go_win.exe"
             const activeProxyPath = proxyPath || "./proxy/Proxy.exe"
             const proxyData = await CheckUpdateProxy(proxyPath, proxyVersion)
@@ -456,9 +487,6 @@ export default function LauncherPage() {
                 />
             )}
 
-
-
-
             {/* Footer / Version */}
             <div className="fixed select-none bottom-2 right-10 text-xs text-gray-400 z-60 flex gap-1 backdrop-blur-sm bg-black/30 px-3 py-1.5 rounded-lg shadow-md">
                 <span className="text-cyan-400 font-semibold drop-shadow-[0_0_6px_rgba(0,255,255,0.8)] hover:drop-shadow-[0_0_12px_rgba(0,255,255,1)] transition">
@@ -536,44 +564,30 @@ export default function LauncherPage() {
 
                     <div className="flex flex-wrap items-center justify-center gap-2">
 
-                        {(
+                        <button
+                            // The primary action selects the game before a path is configured.
+                            className="btn btn-secondary btn-xl font-bold relative overflow-hidden"
+                            onClick={gamePath ? handleStartGame : handlePickFile}
+                            disabled={isLoading || gameRunning}
+                            style={{
+                                // กำหนดรูปภาพพื้นหลัง
+                                //  backgroundImage: "url('https://act-webstatic.hoyoverse.com/puzzle/hk4e/pz_df1bhOOLAB/resource/puzzle/2025/09/22/294b38ce0a4a1cbe94d10dd5082af4fe_5739821151544819626.png')",
+                                //  backgroundSize: "cover",
+                                // backgroundPosition: "center",
 
-                            <button
-                                // ปุ่ม Select Game file: คงเดิม
-                                className="btn btn-accent btn-xl font-bold bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-pink-400/40 transition"
-                                onClick={handlePickFile}
-                            >
-                                <FolderOpen className="w-5 h-5" />
-                                {isLoading ? 'Selecting...' : gamePath ? 'Change Game Path' : 'Select Game file'}
-                            </button>
+                                // **คำสั่งที่ทำให้เกิดการเรืองแสง (Glow Effect)**
+                                boxShadow: "0 0 15px rgb(255, 0, 242), 0 0 25px rgb(162, 0, 255) inset", // Glow สีชมพู/ม่วง
 
-                        )}
-                        {(
-
-                            <button
-                                // ปุ่ม Start Game: เป็นสี่เหลี่ยมมุมโค้ง มีรูปภาพพื้นหลัง และ **เรืองแสง (Glow)**
-                                className="btn btn-secondary btn-xl font-bold relative overflow-hidden"
-                                onClick={handleStartGame}
-                                disabled={!gamePath || isLoading || gameRunning}
-                                style={{
-                                    // กำหนดรูปภาพพื้นหลัง
-                                    //  backgroundImage: "url('https://act-webstatic.hoyoverse.com/puzzle/hk4e/pz_df1bhOOLAB/resource/puzzle/2025/09/22/294b38ce0a4a1cbe94d10dd5082af4fe_5739821151544819626.png')",
-                                    //  backgroundSize: "cover",
-                                    // backgroundPosition: "center",
-
-                                    // **คำสั่งที่ทำให้เกิดการเรืองแสง (Glow Effect)**
-                                    boxShadow: "0 0 15px rgb(255, 0, 242), 0 0 25px rgb(162, 0, 255) inset", // Glow สีชมพู/ม่วง
-
-                                    // ปรับข้อความให้อ่านง่าย
-                                    color: "white",
-                                    textShadow: "0 0 5px rgba(0, 0, 0, 0.93)"
-                                }}
-                            >
-                                <Play className="w-5 h-5" />
-                                {isLoading ? 'Starting...' : gameRunning ? 'Game is running' : 'Start Game'}
-                            </button>
-
-                        )}
+                                // ปรับข้อความให้อ่านง่าย
+                                color: "white",
+                                textShadow: "0 0 5px rgba(0, 0, 0, 0.93)"
+                            }}
+                        >
+                            {gamePath ? <Play className="w-5 h-5" /> : <FolderOpen className="w-5 h-5" />}
+                            {isLoading
+                                ? gamePath ? 'Starting...' : 'Selecting...'
+                                : gameRunning ? 'Game is running' : gamePath ? 'Start Game' : 'Select Game File'}
+                        </button>
 
                         <div className="dropdown dropdown-top dropdown-end">
                             <div
@@ -641,7 +655,6 @@ export default function LauncherPage() {
                                     <button onClick={handleResetBackground}>Reset to Default Background</button>
                                 </li>
 
-                                <li><button onClick={handlePickFile}>Change Game Path</button></li>
                                 <li>
                                     <button
                                         onClick={async () => {

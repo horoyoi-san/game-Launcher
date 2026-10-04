@@ -1,76 +1,12 @@
 import { Link } from '@tanstack/react-router';
-import { useEffect, useState } from "react";
 
 export default function HowToPage() {
 
-    // ✅ background state
-    const [bgUrl, setBgUrl] = useState("");
-    const [bgType, setBgType] = useState<"video" | "image">("image");
-
-    useEffect(() => {
-        // 1️⃣ โหลดค่าจาก localStorage (ค่าที่ Launcher ตั้งไว้ล่าสุด)
-        const savedUrl = localStorage.getItem("customBgUrl");
-        const savedType = localStorage.getItem("customBgType") as "video" | "image";
-
-        if (savedUrl && savedType) {
-            setBgUrl(savedUrl);
-            setBgType(savedType);
-        } else {
-            // ถ้าไม่เคยตั้งค่า ให้ใช้ default ของ Launcher
-            setBgUrl("/video2.mp4"); // หรือ videos[0].src ของ Launcher
-            setBgType("video");
-        }
-
-        // 2️⃣ ฟัง event จาก Launcher
-        const handleLauncherBgChange = (event: Event) => {
-            const e = event as CustomEvent<{ url: string; type: "video" | "image" }>;
-            if (e.detail?.url && e.detail?.type) {
-                setBgUrl(e.detail.url);
-                setBgType(e.detail.type);
-            }
-        };
-
-        window.addEventListener("launcherBgChanged", handleLauncherBgChange);
-        return () => window.removeEventListener("launcherBgChanged", handleLauncherBgChange);
-    }, []);
-
     return (
-        <div className="fixed inset-0 z-60 overflow-y-auto">
-
-            {/* 🔥 Background */}
-            {bgType === "video" ? (
-                <video
-                    className="fixed inset-0 z-0 w-full h-full object-cover"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                >
-                    <source src={bgUrl} type="video/mp4" />
-                </video>
-            ) : (
-                <img
-                    src={bgUrl}
-                    className="fixed inset-0 z-0 w-full h-full object-cover"
-                />
-            )}
-
-            {/* 🔥 overlay */}
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-60" />
+        <div className="tool-page tool-page--guide">
 
             {/* 🔥 content */}
-            <div className="  relative z-60
-  w-full max-w-6xl
-  ml-24
-  mt-10
-  bg-white/10 backdrop-blur-2xl
-  shadow-[0_0_40px_rgba(0,0,0,0.6)]
-  rounded-3xl
-  p-6 md:p-10
-  space-y-8
-  border border-white/20
-  text-white
-  transition-all duration-300">
+            <div className="tool-page__content space-y-8">
 
                 <h1 className="
                 text-4xl font-bold text-center
@@ -162,77 +98,6 @@ export default function HowToPage() {
                         </div>
 
                     </div>
-                    <div className="bg-white border border-blue-200 rounded-lg p-4">
-
-                        <div className="flex items-start gap-3">
-                            <div className="text-blue-600 text-lg">✨</div>
-                            <div className="flex-1">
-                                <h4 className="font-semibold text-blue-800 mb-1">การตั้งค่าเพิ่มเติม</h4>
-
-                                <div className="space-y-4 text-blue-700 text-sm">
-
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-
-                                        <h5 className="font-semibold text-blue-800 flex items-center gap-2">
-
-                                            🎭 UI ที่ซ่อนอยู่
-
-                                        </h5>
-
-                                        <p className="mt-1">
-                                            ซ่อน UI ของเกมทั้งหมดทันที — มักใช้ในวิดีโอสาธิตของ DIM
-
-                                        </p>
-
-                                    </div>
-
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-
-                                        <h5 className="font-semibold text-blue-800 flex items-center gap-2">
-
-                                            🚫 ปิดการเซ็นเซอร์
-                                        </h5>
-
-                                        <p className="mt-1">
-                                            ลบเอฟเฟกต์เซ็นเซอร์ Lens Flare 💀 เพื่อประสบการณ์ที่สะอาดตาขึ้น
-
-                                        </p>
-                                    </div>
-
-                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-
-                                        <h5 className="font-semibold text-blue-800 flex items-center gap-2">
-
-                                            🧪 โหมด Theorycraft
-
-                                        </h5>
-
-                                        <p className="mt-1">
-                                            ไม่จำเป็นต้องพิมพ์คำสั่งแชทอีกต่อไป — กำหนดค่าทุกอย่างผ่าน
-                                            เว็บ: ปรับ HP ของมอนสเตอร์ ตั้งรอบ ดูบันทึก และอื่นๆ
-
-                                        </p>
-                                    </div>
-                                </div>
-
-
-                                <div className="mt-4 aspect-w-16 aspect-h-9">
-
-                                    <iframe
-                                        src="https://www.youtube.com/embed/uiKdFrvn9NQ"
-                                        title="บทช่วยสอนการตั้งค่าเพิ่มเติม"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                        className="rounded-lg w-full h-[300px]"
-
-                                    ></iframe>
-
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
                     {/* รายการคำสั่ง */}
                     <div className="space-y-4 mt-4">
 

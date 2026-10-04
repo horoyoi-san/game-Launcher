@@ -1,6 +1,6 @@
 import useSettingStore from "@/stores/settingStore"
 import { Check, Folder, File, X, Settings } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { toast } from "react-toastify"
 import { DiffService } from "@bindings/Cyrene-launcher/internal/diff-service"
 import { FSService } from "@bindings/Cyrene-launcher/internal/fs-service"
@@ -29,37 +29,6 @@ export default function DiffPage() {
         messageUpdate,
         setMessageUpdate
     } = useDiffStore()
-
-    const [bgUrl, setBgUrl] = useState("");
-    const [bgType, setBgType] = useState<"video" | "image">("image");
-
-
-    useEffect(() => {
-        // 1️⃣ โหลดค่าจาก localStorage (ค่าที่ Launcher ตั้งไว้ล่าสุด)
-        const savedUrl = localStorage.getItem("customBgUrl");
-        const savedType = localStorage.getItem("customBgType") as "video" | "image";
-
-        if (savedUrl && savedType) {
-            setBgUrl(savedUrl);
-            setBgType(savedType);
-        } else {
-            // ถ้าไม่เคยตั้งค่า ให้ใช้ default ของ Launcher
-            setBgUrl("/video2.mp4"); // หรือ videos[0].src ของ Launcher
-            setBgType("video");
-        }
-
-        // 2️⃣ ฟัง event จาก Launcher
-        const handleLauncherBgChange = (event: Event) => {
-            const e = event as CustomEvent<{ url: string; type: "video" | "image" }>;
-            if (e.detail?.url && e.detail?.type) {
-                setBgUrl(e.detail.url);
-                setBgType(e.detail.type);
-            }
-        };
-
-        window.addEventListener("launcherBgChanged", handleLauncherBgChange);
-        return () => window.removeEventListener("launcherBgChanged", handleLauncherBgChange);
-    }, []);
 
     useEffect(() => {
         const getLanguage = async () => {
@@ -209,230 +178,141 @@ export default function DiffPage() {
 
 
     return (
-        <>
-            {/* 🔥 Background */}
-            {bgUrl && (
-                bgType === "video" ? (
-                    <video
-                        className="fixed inset-0 z-0 w-full h-full object-cover"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                    >
-                        <source src={bgUrl} type="video/mp4" />
-                    </video>
-                ) : (
-                    <img
-                        src={bgUrl}
-                        className="fixed inset-0 z-0 w-full h-full object-cover"
-                    />
-                )
-            )}
-
-            {/* 🔥 ของเดิมทั้งหมด */}
-            <div className="min-h-screen
-w-full
-
-p-4 md:p-6
-flex justify-center items-start
-
-bg-gradient-to-br from-purple-900/30 via-black/50 to-indigo-900/30
-backdrop-blur-xl
-
-text-white
-relative z-60">
-                <div className="max-w-4xl mx-auto">
-                    {/* Header */}
-                    <div className="text-center mb-2">
-                        <h1 className="text-4xl font-bold mb-2">
-                            🎮 Game Update by Hdiffz
-                        </h1>
-                        <p className="">Help you update game with hdiffz</p>
+        <main className="tool-page tool-page--patch">
+            <div className="tool-page__content">
+                <header className="tool-heading">
+                    <div className="tool-heading__eyebrow">GAME TOOLS <span> / </span> PATCH CENTER</div>
+                    <div className="tool-heading__row">
+                        <div>
+                            <h1>Game patcher</h1>
+                            <p>Apply an update archive to your local game installation.</p>
+                        </div>
+                        <div className="tool-state"><span /> HDIFFPATCH</div>
                     </div>
+                </header>
 
-                    {/* Main Content */}
-                    <div className="rounded-2xl p-2 space-y-4">
-
-                        {/* Folder Selection Section */}
-                        <div className="pb-2">
-                            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                                <Folder className="text-primary" size={24} />
-                                Game Directory
-                            </h2>
-
-                            <div className="space-y-1">
-                                <div className='btn btn-accent btn-xl font-bold bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-pink-400/40 transition'>
-                                    <button
-                                        onClick={handlePickGameFolder}
-                                        disabled={isLoading.game}
-                                        className="btn bg-black/30 backdrop-blur-md
-           border border-purple-400/30 text-white
-           hover:bg-purple-500/30 hover:border-purple-300
-           transition"
-
-                                    >
-                                        <Folder size={20} />
-                                        {isLoading.game ? 'Selecting...' : 'Select Game Folder'}
+                <div className="patch-layout">
+                    <div className="patch-workflow">
+                        <section className="studio-panel patch-step">
+                            <div className="patch-step__index">01</div>
+                            <div className="patch-step__body">
+                                <div className="patch-step__heading">
+                                    <div>
+                                        <span className="eyebrow">TARGET INSTALLATION</span>
+                                        <h2>Choose your game folder</h2>
+                                    </div>
+                                    <Folder size={20} />
+                                </div>
+                                <p>Pick the main directory containing the game data.</p>
+                                <div className="file-picker-row">
+                                    <div className="file-picker-row__value">
+                                        <span className="file-picker-row__icon"><Folder size={18} /></span>
+                                        <span title={gameDir}>{gameDir || 'No game folder selected'}</span>
+                                    </div>
+                                    <button type="button" onClick={handlePickGameFolder} disabled={isLoading.game} className="btn">
+                                        {isLoading.game ? 'Selecting…' : 'Browse'}
                                     </button>
-
-                                    {gameDir && (
-                                        <div className="rounded-lg p-2">
-                                            <p className="font-mono text-sm px-3 py-2 rounded border truncate max-w-full overflow-hidden whitespace-nowrap">
-                                                {gameDir}
-                                            </p>
-                                        </div>
-                                    )}
                                 </div>
                                 {folderCheckResult && (
-                                    <div className={`flex items-center gap-2 p-3 rounded-lg ${folderCheckResult === 'success'
-                                        ? 'bg-success/5 text-success border border-success'
-                                        : 'bg-error/5 text-error border border-error'
-                                        }`}>
-                                        {folderCheckResult === 'success' ? (
-                                            <>
-                                                <Check size={20} />
-                                                <span>Valid game directory found!</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <X size={20} />
-                                                <span>Game directory not found. Please select the correct folder.</span>
-                                            </>
-                                        )}
+                                    <div className={`inline-status ${folderCheckResult === 'success' ? 'is-success' : 'is-error'}`}>
+                                        {folderCheckResult === 'success' ? <Check size={16} /> : <X size={16} />}
+                                        {folderCheckResult === 'success' ? 'Game folder verified' : 'Game directory not found'}
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </section>
 
-                        {/* Folder Selection Section */}
-                        <div className="pb-2">
-                            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                                <File className="text-primary" size={24} />
-                                Diff file Directory
-                            </h2>
+                        <div className="patch-connector"><span /></div>
 
-                            <div className="space-y-1">
-                                <div className='btn btn-accent btn-xl font-bold bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-pink-400/40 transition'>
-                                    <button
-                                        onClick={handlePickDiffFile}
-                                        disabled={isLoading.diff}
-                                        className="btn bg-black/30 backdrop-blur-md
-           border border-purple-400/30 text-white
-           hover:bg-purple-500/30 hover:border-purple-300
-           transition"
-
-                                    >
-                                        <File size={20} />
-                                        {isLoading.diff ? 'Selecting...' : 'Select Diff file Folder'}
-                                    </button>
-
-                                    {diffDir && (
-                                        <div className="rounded-lg p-2">
-                                            <p className="font-mono text-sm px-3 py-2 rounded border truncate max-w-full overflow-hidden whitespace-nowrap">
-                                                {diffDir}
-                                            </p>
-                                        </div>
-                                    )}
+                        <section className="studio-panel patch-step">
+                            <div className="patch-step__index">02</div>
+                            <div className="patch-step__body">
+                                <div className="patch-step__heading">
+                                    <div>
+                                        <span className="eyebrow">UPDATE ARCHIVE</span>
+                                        <h2>Select patch package</h2>
+                                    </div>
+                                    <File size={20} />
                                 </div>
-                                {diffCheckResult && (
-                                    <div className={`flex items-center gap-2 p-3 mt-2 rounded-lg ${diffCheckResult === 'success'
-                                        ? 'bg-success/5 text-success border border-success'
-                                        : 'bg-error/5 text-error border border-error'
-                                        }`}>
-                                        {diffCheckResult === 'success' ? (
-                                            <>
-                                                <Check size={20} />
-                                                <span>Valid diff file found!</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <X size={20} />
-                                                <span>Diff file not found. Please select the correct file.</span>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Apply Button */}
-                            <div className="mt-6 flex justify-center">
+                                <p>Supported packages: .7z, .zip, and .rar.</p>
                                 <button
-                                    onClick={handleUpdateGame}
-                                    disabled={!diffDir || !gameDir || isLoading.game || isLoading.diff}
-                                    className="bg-gradient-to-r from-indigo-500/70 to-purple-600/70
-           backdrop-blur-md
-           hover:from-indigo-600/70 hover:to-purple-700/70
-           disabled:from-gray-400/50 disabled:to-gray-500/50
-           text-white px-8 py-3 rounded-lg font-medium
-           transition-all duration-200 flex items-center gap-2
-           shadow-lg hover:shadow-xl
-           border border-white/20
-           disabled:cursor-not-allowed cursor-pointer"
+                                    type="button"
+                                    onClick={handlePickDiffFile}
+                                    disabled={isLoading.diff}
+                                    className={`archive-drop ${diffDir ? 'has-file' : ''}`}
                                 >
-                                    <Settings size={20} />
-                                    {isDiffLoading ? 'Updating...' : 'Update Game'}
+                                    <span className="archive-drop__icon"><File size={23} /></span>
+                                    <span className="archive-drop__text">
+                                        <strong>{diffDir ? 'Patch archive selected' : 'Browse for a patch archive'}</strong>
+                                        <small title={diffDir}>{diffDir || 'Choose an update file from your computer'}</small>
+                                    </span>
+                                    <span className="archive-drop__action">{isLoading.diff ? 'Opening…' : 'Browse files'}</span>
                                 </button>
-                            </div>
-                        </div>
-
-                        {isDiffLoading && (
-                            <div className="fixed inset-0 z-60 h-full flex items-center justify-center bg-black/30 backdrop-blur-md">                            <div className="relative w-[90%] max-w-5xl 
-bg-base-100/20 backdrop-blur-lg 
-text-base-content 
-rounded-xl 
-border border-white/20 
-shadow-xl shadow-purple-500/10
-">
-                                <div className="border-b border-purple-500/30 px-6 py-4 mb-4 text-center">
-                                    <h3 className="font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-cyan-400">
-                                        Update Game
-                                    </h3>
-                                </div>
-
-                                <div className="px-6 pb-6">
-                                    <div className="w-full p-4">
-                                        <div className="space-y-3">
-                                            <div className="flex justify-center items-center text-sm text-white/80">
-                                                <span className="font-bold text-lg text-accent">{stageType}:</span>
-                                                <div className="flex items-center gap-4 ml-2">
-                                                    {stageType !== 'Cut Data' && <span className="text-white font-bold">{progressUpdate.toFixed(0)} / {maxProgressUpdate.toFixed(0)}</span>}
-                                                    {stageType === 'Cut Data' && <span className="text-white font-bold truncate max-w-full overflow-hidden whitespace-nowrap">{messageUpdate}</span>}
-                                                </div>
-                                            </div>
-                                            <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
-                                                <motion.div
-                                                    className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: `${(progressUpdate / maxProgressUpdate) * 100}%` }}
-                                                    transition={{ duration: 0.3 }}
-                                                />
-                                            </div>
-                                            <div className="text-center text-lg text-white/60">
-                                                Please wait...
-                                            </div>
-                                        </div>
+                                {diffCheckResult && (
+                                    <div className={`inline-status ${diffCheckResult === 'success' ? 'is-success' : 'is-error'}`}>
+                                        {diffCheckResult === 'success' ? <Check size={16} /> : <X size={16} />}
+                                        {diffCheckResult === 'success' ? 'Patch archive selected' : 'Unsupported or missing patch archive'}
                                     </div>
-
-                                </div>
+                                )}
                             </div>
-                            </div>
-                        )}
+                        </section>
 
-                        {/* คำแนะนำ */}
-                        <div className="bg-info/5 rounded-lg p-4 border border-info/30 mt-6">
-                            <h3 className="font-medium text-error mb-2">📋 คำแนะนำ:</h3>
-                            <ol className="text-sm text-error space-y-1">
-                                <li>1. คลิก "เลือกโฟลเดอร์เกม" และเลือกไดเร็กทอรีหลักของเกมของคุณ</li>
-                                <li>2. รอให้ระบบตรวจสอบความถูกต้องของไดเร็กทอรีเกม</li>
-                                <li>3. คลิก "เลือกโฟลเดอร์ไฟล์ Diff" และเลือกไดเร็กทอรีหลักของไฟล์ Diff ของคุณ</li>
-                                <li>4. รอให้ระบบตรวจสอบความถูกต้องของไดเร็กทอรีไฟล์ Diff</li>
-                                <li>5. คลิก "อัปเดตเกม" เพื่อบันทึกการเปลี่ยนแปลงของคุณ</li>
-                            </ol>
+                        <div className="patch-apply">
+                            <div>
+                                <span className="eyebrow">READY TO PATCH?</span>
+                                <p>{gameDir && diffDir ? 'Both required files are ready.' : 'Select a game folder and patch archive to continue.'}</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleUpdateGame}
+                                disabled={!diffDir || !gameDir || isLoading.game || isLoading.diff || isDiffLoading}
+                                className="btn btn-primary"
+                            >
+                                <Settings size={18} />
+                                {isDiffLoading ? 'Patching…' : 'Start update'}
+                            </button>
                         </div>
                     </div>
+
+                    <aside className="patch-aside">
+                        <div className="patch-aside__art"><File size={32} /></div>
+                        <span className="eyebrow">SAFE UPDATE FLOW</span>
+                        <h2>Patch your game</h2>
+                        <p>Choose the target installation and update archive. The launcher validates the patch type and game version before applying changes.</p>
+                        <div className="patch-aside__checklist">
+                            <div><span className={gameDir ? 'is-complete' : ''}>{gameDir ? <Check size={13} /> : '1'}</span>Game directory</div>
+                            <div><span className={diffDir ? 'is-complete' : ''}>{diffDir ? <Check size={13} /> : '2'}</span>Patch archive</div>
+                            <div><span className={gameDir && diffDir ? 'is-complete' : ''}>{gameDir && diffDir ? <Check size={13} /> : '3'}</span>Apply update</div>
+                        </div>
+                        <div className="patch-aside__note">Do not close the launcher while the patch is being applied.</div>
+                    </aside>
                 </div>
+
+                {isDiffLoading && (
+                    <div className="patch-progress-overlay">
+                        <section className="patch-progress">
+                            <div className="patch-progress__header">
+                                <span className="patch-progress__spinner" />
+                                <div>
+                                    <span className="eyebrow">UPDATE IN PROGRESS</span>
+                                    <h2>{stageType || 'Preparing update'}</h2>
+                                </div>
+                            </div>
+                            <div className="patch-progress__detail">
+                                {stageType === 'Cut Data' ? messageUpdate : `${progressUpdate.toFixed(0)} / ${maxProgressUpdate.toFixed(0)}`}
+                            </div>
+                            <div className="patch-progress__track">
+                                <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${Math.min(100, Math.max(0, (progressUpdate / maxProgressUpdate) * 100))}%` }}
+                                    transition={{ duration: 0.3 }}
+                                />
+                            </div>
+                            <p>Please keep the launcher open until the update finishes.</p>
+                        </section>
+                    </div>
+                )}
             </div>
-        </>
+        </main>
     )
 }

@@ -40,6 +40,13 @@ export function GetDir(path) {
 }
 
 /**
+ * @returns {$CancellablePromise<[string, string]>}
+ */
+export function GetSavedGameSelection() {
+    return $Call.ByID(3714295579);
+}
+
+/**
  * @param {string[]} paths
  * @returns {$CancellablePromise<string>}
  */
@@ -76,6 +83,15 @@ export function PickFolder() {
  */
 export function RemoveFile(path) {
     return $Call.ByID(665541824, path);
+}
+
+/**
+ * @param {string} gamePath
+ * @param {string} gameDir
+ * @returns {$CancellablePromise<void>}
+ */
+export function SaveGameSelection(gamePath, gameDir) {
+    return $Call.ByID(1396931989, gamePath, gameDir);
 }
 
 /**
