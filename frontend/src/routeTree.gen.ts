@@ -16,6 +16,7 @@ import { Route as HygRouteImport } from './routes/hyg'
 import { Route as HowtoRouteImport } from './routes/howto'
 import { Route as HkrpgRouteImport } from './routes/hkrpg'
 import { Route as Hk4eRouteImport } from './routes/hk4e'
+import { Route as GamesRouteImport } from './routes/games'
 import { Route as DiffRouteImport } from './routes/diff'
 import { Route as Bh3RouteImport } from './routes/bh3'
 import { Route as AbcRouteImport } from './routes/abc'
@@ -56,6 +57,11 @@ const Hk4eRoute = Hk4eRouteImport.update({
   path: '/hk4e',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GamesRoute = GamesRouteImport.update({
+  id: '/games',
+  path: '/games',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DiffRoute = DiffRouteImport.update({
   id: '/diff',
   path: '/diff',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/abc': typeof AbcRoute
   '/bh3': typeof Bh3Route
   '/diff': typeof DiffRoute
+  '/games': typeof GamesRoute
   '/hk4e': typeof Hk4eRoute
   '/hkrpg': typeof HkrpgRoute
   '/howto': typeof HowtoRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/abc': typeof AbcRoute
   '/bh3': typeof Bh3Route
   '/diff': typeof DiffRoute
+  '/games': typeof GamesRoute
   '/hk4e': typeof Hk4eRoute
   '/hkrpg': typeof HkrpgRoute
   '/howto': typeof HowtoRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/abc': typeof AbcRoute
   '/bh3': typeof Bh3Route
   '/diff': typeof DiffRoute
+  '/games': typeof GamesRoute
   '/hk4e': typeof Hk4eRoute
   '/hkrpg': typeof HkrpgRoute
   '/howto': typeof HowtoRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/abc'
     | '/bh3'
     | '/diff'
+    | '/games'
     | '/hk4e'
     | '/hkrpg'
     | '/howto'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/abc'
     | '/bh3'
     | '/diff'
+    | '/games'
     | '/hk4e'
     | '/hkrpg'
     | '/howto'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/abc'
     | '/bh3'
     | '/diff'
+    | '/games'
     | '/hk4e'
     | '/hkrpg'
     | '/howto'
@@ -164,6 +176,7 @@ export interface RootRouteChildren {
   AbcRoute: typeof AbcRoute
   Bh3Route: typeof Bh3Route
   DiffRoute: typeof DiffRoute
+  GamesRoute: typeof GamesRoute
   Hk4eRoute: typeof Hk4eRoute
   HkrpgRoute: typeof HkrpgRoute
   HowtoRoute: typeof HowtoRoute
@@ -224,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Hk4eRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/games': {
+      id: '/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof GamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/diff': {
       id: '/diff'
       path: '/diff'
@@ -260,6 +280,7 @@ const rootRouteChildren: RootRouteChildren = {
   AbcRoute: AbcRoute,
   Bh3Route: Bh3Route,
   DiffRoute: DiffRoute,
+  GamesRoute: GamesRoute,
   Hk4eRoute: Hk4eRoute,
   HkrpgRoute: HkrpgRoute,
   HowtoRoute: HowtoRoute,

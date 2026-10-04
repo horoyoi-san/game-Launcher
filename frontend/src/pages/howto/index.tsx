@@ -1,144 +1,158 @@
-import { Link } from '@tanstack/react-router';
+import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import {
+  ArrowDownToLine,
+  CheckCircle2,
+  FolderOpen,
+  Gamepad2,
+  HardDrive,
+  Info,
+  Pause,
+  ShieldCheck,
+  Volume2,
+} from "lucide-react";
+
+const downloadSteps = [
+  {
+    icon: Gamepad2,
+    title: "Choose a game",
+    description: "Open Game Library from the left menu and select the game you want to install or update.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Select region and version",
+    description: "Choose a supported region. The launcher checks the available game versions automatically.",
+  },
+  {
+    icon: FolderOpen,
+    title: "Choose an install location",
+    description: "Press Download, confirm the destination folder, then browse to another folder if needed.",
+  },
+  {
+    icon: ArrowDownToLine,
+    title: "Start and track the download",
+    description: "The progress panel shows downloaded data and speed. Use Pause/Resume or Cancel when needed.",
+  },
+];
 
 export default function HowToPage() {
+  const [bgUrl, setBgUrl] = useState("/video3.mp4");
+  const [bgType, setBgType] = useState<"video" | "image">("video");
 
-    // ✅ background state
-    const [bgUrl, setBgUrl] = useState("");
-    const [bgType, setBgType] = useState<"video" | "image">("image");
+  useEffect(() => {
+    const savedUrl = localStorage.getItem("customBgUrl");
+    const savedType = localStorage.getItem("customBgType") as "video" | "image" | null;
+    if (savedUrl && savedType) {
+      setBgUrl(savedUrl);
+      setBgType(savedType);
+    }
 
-    useEffect(() => {
-        // 1️⃣ โหลดค่าจาก localStorage (ค่าที่ Launcher ตั้งไว้ล่าสุด)
-        const savedUrl = localStorage.getItem("customBgUrl");
-        const savedType = localStorage.getItem("customBgType") as "video" | "image";
+    const handleBackgroundChange = (event: Event) => {
+      const detail = (event as CustomEvent<{ url: string; type: "video" | "image" }>).detail;
+      if (detail?.url && detail.type) {
+        setBgUrl(detail.url);
+        setBgType(detail.type);
+      }
+    };
 
-        if (savedUrl && savedType) {
-            setBgUrl(savedUrl);
-            setBgType(savedType);
-        } else {
-            // ถ้าไม่เคยตั้งค่า ให้ใช้ default ของ Launcher
-            setBgUrl("/video3.mp4"); // หรือ videos[0].src ของ Launcher
-            setBgType("video");
-        }
+    window.addEventListener("launcherBgChanged", handleBackgroundChange);
+    return () => window.removeEventListener("launcherBgChanged", handleBackgroundChange);
+  }, []);
 
-        // 2️⃣ ฟัง event จาก Launcher
-        const handleLauncherBgChange = (event: Event) => {
-            const e = event as CustomEvent<{ url: string; type: "video" | "image" }>;
-            if (e.detail?.url && e.detail?.type) {
-                setBgUrl(e.detail.url);
-                setBgType(e.detail.type);
-            }
-        };
+  return (
+    <div className="fixed inset-0 z-0 overflow-hidden text-white">
+      {bgType === "video" ? (
+        <video className="absolute inset-0 h-full w-full object-cover" autoPlay loop muted playsInline>
+          <source src={bgUrl} type="video/mp4" />
+        </video>
+      ) : (
+        <img src={bgUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/75 to-indigo-950/80" />
 
-        window.addEventListener("launcherBgChanged", handleLauncherBgChange);
-        return () => window.removeEventListener("launcherBgChanged", handleLauncherBgChange);
-    }, []);
+      <main className="absolute inset-0 overflow-y-auto pl-20 sm:pl-24">
+        <div className="mx-auto w-full max-w-5xl px-5 pb-10 pt-20 sm:px-8 sm:pt-24">
+          <header className="mb-7">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-200/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100">
+              <Info size={14} />
+              Launcher Guide
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">How to use the launcher</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60 sm:text-base">
+              Follow these steps to download game files and manage your installation.
+            </p>
+          </header>
 
-return (
-  <div className="fixed inset-0 z-60 overflow-y-auto">
+          <section className="rounded-2xl border border-white/12 bg-slate-950/55 p-5 shadow-xl backdrop-blur-xl sm:p-7">
+            <div className="mb-6 flex items-center gap-3">
+              <span className="grid size-11 place-items-center rounded-xl border border-cyan-200/15 bg-cyan-200/10 text-cyan-100">
+                <ArrowDownToLine size={20} />
+              </span>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Game files</p>
+                <h2 className="mt-1 text-xl font-semibold">Download or update a game</h2>
+              </div>
+            </div>
 
-    {/* 🔥 Background */}
-    {bgType === "video" ? (
-      <video
-        className="fixed inset-0 z-0 w-full h-full object-cover"
-        autoPlay
-        loop
-        muted
-        playsInline
-      >
-        <source src={bgUrl} type="video/mp4" />
-      </video>
-    ) : (
-      <img
-        src={bgUrl}
-        className="fixed inset-0 z-0 w-full h-full object-cover"
-      />
-    )}
+            <ol className="grid gap-3 md:grid-cols-2">
+              {downloadSteps.map((step, index) => {
+                const StepIcon = step.icon;
+                return (
+                  <li key={step.title} className="flex gap-4 rounded-xl border border-white/10 bg-black/20 p-4">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-white/5 text-cyan-100">
+                      <StepIcon size={19} />
+                    </span>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-cyan-200/75">Step 0{index + 1}</p>
+                      <h3 className="mt-1 font-semibold">{step.title}</h3>
+                      <p className="mt-1 text-sm leading-relaxed text-white/55">{step.description}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </section>
 
-    {/* 🔥 overlay */}
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-60" />
+          <section className="mt-4 grid gap-4 md:grid-cols-2">
+            <article className="rounded-2xl border border-white/12 bg-slate-950/55 p-5 shadow-xl backdrop-blur-xl sm:p-6">
+              <span className="mb-4 grid size-10 place-items-center rounded-xl bg-violet-200/10 text-violet-100">
+                <Volume2 size={19} />
+              </span>
+              <h2 className="text-lg font-semibold">Voice packs</h2>
+              <p className="mt-2 text-sm leading-relaxed text-white/55">
+                Choose a voice language on the game page, press Voice pack, and confirm the destination folder before starting.
+              </p>
+            </article>
 
-    {/* 🔥 content */}
-    <div className="
-      relative z-60
-      w-full max-w-6xl
-      ml-24 mt-10
-      bg-white/10 backdrop-blur-2xl
-      shadow-[0_0_40px_rgba(0,0,0,0.6)]
-      rounded-3xl
-      p-6 md:p-10
-      space-y-8
-      border border-white/20
-      text-white
-    ">
+            <article className="rounded-2xl border border-white/12 bg-slate-950/55 p-5 shadow-xl backdrop-blur-xl sm:p-6">
+              <span className="mb-4 grid size-10 place-items-center rounded-xl bg-amber-200/10 text-amber-100">
+                <Pause size={19} />
+              </span>
+              <h2 className="text-lg font-semibold">Pause or cancel</h2>
+              <p className="mt-2 text-sm leading-relaxed text-white/55">
+                Use Pause to temporarily suspend a download and Resume to continue. Cancel stops it; files already downloaded may remain in the selected folder.
+              </p>
+            </article>
+          </section>
 
-      <h1 className="text-4xl font-bold text-center text-purple-300">
-        How to Use
-      </h1>
+          <aside className="mt-4 flex gap-3 rounded-2xl border border-cyan-100/10 bg-cyan-100/5 p-4 text-sm text-cyan-50/75">
+            <HardDrive size={18} className="mt-0.5 shrink-0 text-cyan-200" />
+            <p className="leading-relaxed">
+              Check that the destination drive has enough free space. Keep the launcher open while a download or patch operation is running.
+            </p>
+          </aside>
 
-{/* 📥 Sophon */}
-<div className="bg-indigo-500/10 border border-indigo-400/30 p-6 rounded-xl">
-  <h2 className="text-xl font-bold text-indigo-300 mb-4 flex items-center gap-2">
-    📥 ดาวน์โหลดไฟล์เกม
-  </h2>
-
-      <div className="space-y-2 text-sm text-indigo-200">
-        <p>
-          1. ดาวน์โหลด{" "}
-          <a
-            href="https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/Sophon.Downloader.zip"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-blue-400 underline hover:text-blue-300"
-          >
-            Sophon Downloader
-          </a>{" "}
-          หรือโหลดได้ที่หน้า Home ตรงขีด 3 ขีด
-        </p>
-
-        <p>2. แตกไฟล์ลงใน:</p>
-        <code className="block bg-black/40 px-2 py-1 rounded text-xs">
-          /Sophon ต้องอยู่ด้วยกันกับ Silwerwolf-launcher.exe
-        </code>
-
-        <p>ในโฟลเดอร์ควรมี:</p>
-        <pre className="block bg-black/40 px-2 py-2 rounded text-xs text-indigo-200">
-        {` 
-        ├── Silwerwolf-launcher.exe
-        └── Sophon
-            └── net9.0
-                └── sophon.download.exe
-        `}
-        </pre>
-
-        <p>3. ตรวจสอบไฟล์:</p>
-        <code className="block bg-black/40 px-2 py-1 rounded text-xs">
-          sophon.downloader.exe
-        </code>
-
-        <p>
-          4. เปิด Launcher แล้วกด{" "}
-          <span className="font-semibold">Download Game</span>
-        </p>
-      </div>
-
-      <div className="mt-3 text-xs text-indigo-400">
-        ⚠️ Sophon ต้องอยู่ด้วยกันกับ Silwerwolf-launcher.exe เท่านั้น
-      </div>
+          <div className="mt-6 flex justify-center">
+            <Link
+              to="/games"
+              className="inline-flex items-center gap-2 rounded-xl bg-cyan-300 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-200"
+            >
+              <CheckCircle2 size={18} />
+              Open Game Library
+            </Link>
+          </div>
+        </div>
+      </main>
     </div>
-
-
-      {/* 🔙 Back */}
-      <div className="text-center pt-4">
-        <Link
-          to="/"
-          className="btn btn-wide bg-black/30 border border-purple-400/30 text-white hover:bg-purple-500/30"
-        >
-          Back to Home
-        </Link>
-      </div>
-
-    </div>
-  </div>
-);
+  );
 }

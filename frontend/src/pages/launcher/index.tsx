@@ -696,7 +696,6 @@ export default function LauncherPage() {
 
             </div>
 
-
             {showPanel && (
                 <div className="fixed inset-0 z-70">
 

@@ -13,13 +13,21 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
+	"syscall"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"golang.org/x/sys/windows"
 )
 
-type FSService struct{}
+type FSService struct {
+	downloadMu              sync.Mutex
+	downloadStarting        bool
+	downloadCmd             *exec.Cmd
+	downloadPaused          bool
+	downloadCancelRequested bool
+}
 type ProgressWriter struct{}
 
 func (f *FSService) PickFolder() (string, error) {
@@ -264,6 +272,23 @@ func (f *FSService) GetLauncherDir() (string, error) {
 }
 
 func (f *FSService) RunDownloader(gameID string, pkg string, version string, output string, region string, branch string, launcherID string) (bool, error) {
+	f.downloadMu.Lock()
+	if f.downloadStarting || f.downloadCmd != nil {
+		f.downloadMu.Unlock()
+		return false, fmt.Errorf("a download is already running")
+	}
+	f.downloadStarting = true
+	f.downloadCancelRequested = false
+	f.downloadPaused = false
+	f.downloadMu.Unlock()
+	defer func() {
+		f.downloadMu.Lock()
+		f.downloadStarting = false
+		f.downloadCmd = nil
+		f.downloadPaused = false
+		f.downloadMu.Unlock()
+	}()
+
 	launcherDir, err := f.GetLauncherDir()
 	if err != nil {
 		return false, err
@@ -305,6 +330,10 @@ func (f *FSService) RunDownloader(gameID string, pkg string, version string, out
 		fmt.Sprintf("--branch=%s", branchOption),
 		fmt.Sprintf("--launcherId=%s", launcherID),
 	)
+	cmd.SysProcAttr = &windows.SysProcAttr{
+		HideWindow:    true,
+		CreationFlags: windows.CREATE_NO_WINDOW,
+	}
 
 	cmd.Dir = filepath.Dir(exePath)
 
@@ -320,6 +349,10 @@ func (f *FSService) RunDownloader(gameID string, pkg string, version string, out
 	if err := cmd.Start(); err != nil {
 		return false, err
 	}
+	f.downloadMu.Lock()
+	f.downloadCmd = cmd
+	f.downloadMu.Unlock()
+	application.Get().Event.Emit("download:started")
 
 	if _, err := io.WriteString(stdin, "y\n"); err != nil {
 		_ = stdin.Close()
@@ -350,11 +383,86 @@ func (f *FSService) RunDownloader(gameID string, pkg string, version string, out
 	}
 
 	err = cmd.Wait()
+	f.downloadMu.Lock()
+	cancelled := f.downloadCancelRequested
+	f.downloadMu.Unlock()
+	if cancelled {
+		return false, nil
+	}
 	if err != nil {
 		return false, err
 	}
 
 	return true, nil
+}
+
+func (f *FSService) PauseDownloader() (bool, error) {
+	f.downloadMu.Lock()
+	defer f.downloadMu.Unlock()
+	if f.downloadCmd == nil || f.downloadCmd.Process == nil {
+		return false, fmt.Errorf("no active download to pause")
+	}
+	if f.downloadPaused {
+		return true, nil
+	}
+	if err := suspendProcess(f.downloadCmd.Process.Pid); err != nil {
+		return false, err
+	}
+	f.downloadPaused = true
+	return true, nil
+}
+
+func (f *FSService) ResumeDownloader() (bool, error) {
+	f.downloadMu.Lock()
+	defer f.downloadMu.Unlock()
+	if f.downloadCmd == nil || f.downloadCmd.Process == nil {
+		return false, fmt.Errorf("no active download to resume")
+	}
+	if !f.downloadPaused {
+		return true, nil
+	}
+	if err := resumeProcess(f.downloadCmd.Process.Pid); err != nil {
+		return false, err
+	}
+	f.downloadPaused = false
+	return true, nil
+}
+
+func (f *FSService) CancelDownloader() (bool, error) {
+	f.downloadMu.Lock()
+	defer f.downloadMu.Unlock()
+	if f.downloadCmd == nil || f.downloadCmd.Process == nil {
+		return false, fmt.Errorf("no active download to cancel")
+	}
+	f.downloadCancelRequested = true
+	if err := f.downloadCmd.Process.Kill(); err != nil {
+		f.downloadCancelRequested = false
+		return false, fmt.Errorf("cancel download: %w", err)
+	}
+	return true, nil
+}
+
+func suspendProcess(pid int) error {
+	return setProcessSuspended(pid, "NtSuspendProcess")
+}
+
+func resumeProcess(pid int) error {
+	return setProcessSuspended(pid, "NtResumeProcess")
+}
+
+func setProcessSuspended(pid int, operation string) error {
+	process, err := windows.OpenProcess(windows.PROCESS_SUSPEND_RESUME, false, uint32(pid))
+	if err != nil {
+		return fmt.Errorf("open downloader process: %w", err)
+	}
+	defer windows.CloseHandle(process)
+
+	procedure := syscall.NewLazyDLL("ntdll.dll").NewProc(operation)
+	status, _, _ := procedure.Call(uintptr(process))
+	if status != 0 {
+		return fmt.Errorf("%s failed with NTSTATUS 0x%08X", operation, status)
+	}
+	return nil
 }
 
 func (w *ProgressWriter) Write(p []byte) (n int, err error) {

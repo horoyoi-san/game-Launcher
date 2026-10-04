@@ -6,12 +6,12 @@ import { GitService } from "@bindings/SilwerWolf999-launcher/internal/git-servic
 export async function CheckUpdateLauncher(): Promise<{ isUpdate: boolean; isExists: boolean; version: string }> {
     const [currentOk, currentVersion] = await AppService.GetCurrentLauncherVersion()
     if (!currentOk) {
-        return { isUpdate: false, isExists: true, version: "" }
+        throw new Error("Unable to read the current launcher version")
     }
 
-    const [latestOk, latestVersion] = await GitService.GetLatestLauncherVersion()
+    const [latestOk, latestVersion, latestError] = await GitService.GetLatestLauncherVersion()
     if (!latestOk) {
-        return { isUpdate: false, isExists: true, version: currentVersion }
+        throw new Error(latestError || "Unable to check for launcher updates")
     }
 
     const isUpdate = latestVersion !== currentVersion

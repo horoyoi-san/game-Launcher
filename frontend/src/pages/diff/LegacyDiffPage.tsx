@@ -1,5 +1,5 @@
 import useSettingStore from "@/stores/settingStore"
-import { Check, Folder, File, X, Settings } from "lucide-react"
+import { ArrowRight, Check, FileArchive, Folder, HardDrive, Info, LoaderCircle, ShieldCheck, Wrench, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "react-toastify"
 import { DiffService } from "@bindings/SilwerWolf999-launcher/internal/diff-service"
@@ -208,231 +208,224 @@ export default function DiffPage() {
 
 
 
+    const progressPercent = maxProgressUpdate > 0
+        ? Math.min(100, Math.max(0, (progressUpdate / maxProgressUpdate) * 100))
+        : 0
+
+    const renderStatus = (status: 'success' | 'error' | null) => {
+        if (status === 'success') {
+            return (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-xs font-medium text-emerald-200">
+                    <Check size={14} /> Verified
+                </span>
+            )
+        }
+        if (status === 'error') {
+            return (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-300/20 bg-rose-300/10 px-2.5 py-1 text-xs font-medium text-rose-200">
+                    <X size={14} /> Invalid
+                </span>
+            )
+        }
+        return (
+            <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/50">
+                Waiting
+            </span>
+        )
+    }
+
     return (
-        <>
-            {/* 🔥 Background */}
+        <div className="fixed inset-0 z-0 overflow-hidden text-white">
             {bgUrl && (
                 bgType === "video" ? (
-                    <video
-                        className="fixed inset-0 z-0 w-full h-full object-cover"
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                    >
+                    <video className="absolute inset-0 h-full w-full object-cover" autoPlay loop muted playsInline>
                         <source src={bgUrl} type="video/mp4" />
                     </video>
                 ) : (
-                    <img
-                        src={bgUrl}
-                        className="fixed inset-0 z-0 w-full h-full object-cover"
-                    />
+                    <img src={bgUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
                 )
             )}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/75 to-indigo-950/80" />
 
-            {/* 🔥 ของเดิมทั้งหมด */}
-            <div className="min-h-screen
-w-full
+            <main className="absolute inset-0 overflow-y-auto pl-20 sm:pl-24">
+                <div className="mx-auto w-full max-w-5xl px-5 pb-10 pt-20 sm:px-8 sm:pt-24">
+                    <header className="mb-7">
+                        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-200/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100">
+                            <Wrench size={14} />
+                            Legacy Diff Utility
+                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Update Honkai: Star Rail</h1>
+                        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60 sm:text-base">
+                            Apply a local diff archive to your game installation. Select and verify both paths before starting.
+                        </p>
+                    </header>
 
-p-4 md:p-6
-flex justify-center items-start
-
-bg-gradient-to-br from-purple-900/30 via-black/50 to-indigo-900/30
-backdrop-blur-xl
-
-text-white
-relative z-60">
-                <div className="max-w-4xl mx-auto">
-                    {/* Header */}
-                    <div className="text-center mb-2">
-                        <h1 className="text-4xl font-bold mb-2">
-                            🎮 Game Update HSR BETA by Hdiffz
-                        </h1>
-                        <p className="">Help you update game with hdiffz</p>
-                    </div>
-
-                    {/* Main Content */}
-                    <div className="rounded-2xl p-2 space-y-4">
-
-                        {/* Folder Selection Section */}
-                        <div className="pb-2">
-                            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                                <Folder className="text-primary" size={24} />
-                                Game Directory
-                            </h2>
-
-                            <div className="space-y-1">
-                                <div className='btn btn-accent btn-xl font-bold bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-pink-400/40 transition'>
-                                    <button
-                                        onClick={handlePickGameFolder}
-                                        disabled={isLoading.game}
-                                        className="btn bg-black/30 backdrop-blur-md
-           border border-purple-400/30 text-white
-           hover:bg-purple-500/30 hover:border-purple-300
-           transition"
-
-                                    >
+                    <section className="grid gap-4 lg:grid-cols-2">
+                        <article className="rounded-2xl border border-white/12 bg-slate-950/55 p-5 shadow-xl backdrop-blur-xl sm:p-6">
+                            <div className="mb-5 flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <span className="grid size-11 place-items-center rounded-xl border border-cyan-200/15 bg-cyan-200/10 text-cyan-100">
                                         <Folder size={20} />
-                                        {isLoading.game ? 'Selecting...' : 'Select Game Folder'}
-                                    </button>
-
-                                    {gameDir && (
-                                        <div className="rounded-lg p-2">
-                                            <p className="font-mono text-sm px-3 py-2 rounded border truncate max-w-full overflow-hidden whitespace-nowrap">
-                                                {gameDir}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                                {folderCheckResult && (
-                                    <div className={`flex items-center gap-2 p-3 rounded-lg ${folderCheckResult === 'success'
-                                        ? 'bg-success/5 text-success border border-success'
-                                        : 'bg-error/5 text-error border border-error'
-                                        }`}>
-                                        {folderCheckResult === 'success' ? (
-                                            <>
-                                                <Check size={20} />
-                                                <span>Valid game directory found!</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <X size={20} />
-                                                <span>Game directory not found. Please select the correct folder.</span>
-                                            </>
-                                        )}
+                                    </span>
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Step 01</p>
+                                        <h2 className="mt-1 text-lg font-semibold">Game installation</h2>
                                     </div>
-                                )}
+                                </div>
+                                {renderStatus(folderCheckResult)}
+                            </div>
+
+                            <p className="mb-4 text-sm leading-relaxed text-white/55">
+                                Select the main game folder containing the StarRail_Data directory.
+                            </p>
+                            <button
+                                type="button"
+                                onClick={handlePickGameFolder}
+                                disabled={isLoading.game || isDiffLoading}
+                                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold transition hover:border-cyan-200/40 hover:bg-cyan-200/10 disabled:cursor-wait disabled:opacity-50"
+                            >
+                                {isLoading.game ? <LoaderCircle size={17} className="animate-spin" /> : <Folder size={17} />}
+                                {isLoading.game ? "Selecting folder..." : gameDir ? "Change game folder" : "Choose game folder"}
+                            </button>
+
+                            <div className={`mt-4 flex min-h-[4.5rem] items-start gap-3 rounded-xl border p-3 ${
+                                folderCheckResult === "success"
+                                    ? "border-emerald-300/15 bg-emerald-300/5"
+                                    : folderCheckResult === "error"
+                                        ? "border-rose-300/15 bg-rose-300/5"
+                                        : "border-white/10 bg-black/20"
+                            }`}>
+                                <HardDrive size={16} className="mt-0.5 shrink-0 text-white/45" />
+                                <p className="min-w-0 break-all font-mono text-xs leading-relaxed text-white/70">
+                                    {gameDir || "No game folder selected"}
+                                </p>
+                            </div>
+                            {folderCheckResult === "error" && (
+                                <p className="mt-2 text-xs text-rose-200">Game directory not found. Select the correct game folder.</p>
+                            )}
+                        </article>
+
+                        <article className="rounded-2xl border border-white/12 bg-slate-950/55 p-5 shadow-xl backdrop-blur-xl sm:p-6">
+                            <div className="mb-5 flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <span className="grid size-11 place-items-center rounded-xl border border-violet-200/15 bg-violet-200/10 text-violet-100">
+                                        <FileArchive size={20} />
+                                    </span>
+                                    <div>
+                                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Step 02</p>
+                                        <h2 className="mt-1 text-lg font-semibold">Diff archive</h2>
+                                    </div>
+                                </div>
+                                {renderStatus(diffCheckResult)}
+                            </div>
+
+                            <p className="mb-4 text-sm leading-relaxed text-white/55">
+                                Choose the diff package provided for your target game version (.zip, .7z or .rar).
+                            </p>
+                            <button
+                                type="button"
+                                onClick={handlePickDiffFile}
+                                disabled={isLoading.diff || isDiffLoading}
+                                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold transition hover:border-violet-200/40 hover:bg-violet-200/10 disabled:cursor-wait disabled:opacity-50"
+                            >
+                                {isLoading.diff ? <LoaderCircle size={17} className="animate-spin" /> : <FileArchive size={17} />}
+                                {isLoading.diff ? "Selecting archive..." : diffDir ? "Change diff archive" : "Choose diff archive"}
+                            </button>
+
+                            <div className={`mt-4 flex min-h-[4.5rem] items-start gap-3 rounded-xl border p-3 ${
+                                diffCheckResult === "success"
+                                    ? "border-emerald-300/15 bg-emerald-300/5"
+                                    : diffCheckResult === "error"
+                                        ? "border-rose-300/15 bg-rose-300/5"
+                                        : "border-white/10 bg-black/20"
+                            }`}>
+                                <FileArchive size={16} className="mt-0.5 shrink-0 text-white/45" />
+                                <p className="min-w-0 break-all font-mono text-xs leading-relaxed text-white/70">
+                                    {diffDir || "No diff archive selected"}
+                                </p>
+                            </div>
+                            {diffCheckResult === "error" && (
+                                <p className="mt-2 text-xs text-rose-200">Unsupported archive. Choose a .zip, .7z or .rar file.</p>
+                            )}
+                        </article>
+                    </section>
+
+                    <section className="mt-4 rounded-2xl border border-white/12 bg-slate-950/55 p-5 shadow-xl backdrop-blur-xl sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+                        <div className="mb-4 flex items-start gap-3 sm:mb-0">
+                            <ShieldCheck size={20} className="mt-0.5 shrink-0 text-cyan-200" />
+                            <div>
+                                <h2 className="font-semibold">Ready to update?</h2>
+                                <p className="mt-1 text-sm text-white/55">
+                                    Both folders must be selected. The archive will be validated before changes are applied.
+                                </p>
                             </div>
                         </div>
+                        <button
+                            type="button"
+                            onClick={handleUpdateGame}
+                            disabled={!diffDir || !gameDir || isLoading.game || isLoading.diff || isDiffLoading}
+                            className="flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-blue-300 px-6 py-3.5 font-bold text-slate-950 shadow-lg shadow-cyan-950/30 transition hover:from-cyan-200 hover:to-blue-200 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+                        >
+                            {isDiffLoading ? <LoaderCircle size={18} className="animate-spin" /> : <Wrench size={18} />}
+                            {isDiffLoading ? "Updating game..." : "Start update"}
+                            {!isDiffLoading && <ArrowRight size={17} />}
+                        </button>
+                    </section>
 
-                        {/* Folder Selection Section */}
-                        <div className="pb-2">
-                            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
-                                <File className="text-primary" size={24} />
-                                Diff file Directory
-                            </h2>
-
-                            <div className="space-y-1">
-                                <div className='btn btn-accent btn-xl font-bold bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-pink-400/40 transition'>
-                                    <button
-                                        onClick={handlePickDiffFile}
-                                        disabled={isLoading.diff}
-                                        className="btn bg-black/30 backdrop-blur-md
-           border border-purple-400/30 text-white
-           hover:bg-purple-500/30 hover:border-purple-300
-           transition"
-
-                                    >
-                                        <File size={20} />
-                                        {isLoading.diff ? 'Selecting...' : 'Select Diff file Folder'}
-                                    </button>
-
-                                    {diffDir && (
-                                        <div className="rounded-lg p-2">
-                                            <p className="font-mono text-sm px-3 py-2 rounded border truncate max-w-full overflow-hidden whitespace-nowrap">
-                                                {diffDir}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                                {diffCheckResult && (
-                                    <div className={`flex items-center gap-2 p-3 mt-2 rounded-lg ${diffCheckResult === 'success'
-                                        ? 'bg-success/5 text-success border border-success'
-                                        : 'bg-error/5 text-error border border-error'
-                                        }`}>
-                                        {diffCheckResult === 'success' ? (
-                                            <>
-                                                <Check size={20} />
-                                                <span>Valid diff file found!</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <X size={20} />
-                                                <span>Diff file not found. Please select the correct file.</span>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Apply Button */}
-                            <div className="mt-6 flex justify-center">
-                                <button
-                                    onClick={handleUpdateGame}
-                                    disabled={!diffDir || !gameDir || isLoading.game || isLoading.diff}
-                                    className="bg-gradient-to-r from-indigo-500/70 to-purple-600/70
-           backdrop-blur-md
-           hover:from-indigo-600/70 hover:to-purple-700/70
-           disabled:from-gray-400/50 disabled:to-gray-500/50
-           text-white px-8 py-3 rounded-lg font-medium
-           transition-all duration-200 flex items-center gap-2
-           shadow-lg hover:shadow-xl
-           border border-white/20
-           disabled:cursor-not-allowed cursor-pointer"
-                                >
-                                    <Settings size={20} />
-                                    {isDiffLoading ? 'Updating...' : 'Update Game'}
-                                </button>
-                            </div>
-                        </div>
-
-                        {isDiffLoading && (
-                            <div className="fixed inset-0 z-60 h-full flex items-center justify-center bg-black/30 backdrop-blur-md">                            <div className="relative w-[90%] max-w-5xl 
-bg-base-100/20 backdrop-blur-lg 
-text-base-content 
-rounded-xl 
-border border-white/20 
-shadow-xl shadow-purple-500/10
-">
-                                <div className="border-b border-purple-500/30 px-6 py-4 mb-4 text-center">
-                                    <h3 className="font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-cyan-400">
-                                        Update Game
-                                    </h3>
-                                </div>
-
-                                <div className="px-6 pb-6">
-                                    <div className="w-full p-4">
-                                        <div className="space-y-3">
-                                            <div className="flex justify-center items-center text-sm text-white/80">
-                                                <span className="font-bold text-lg text-accent">{stageType}:</span>
-                                                <div className="flex items-center gap-4 ml-2">
-                                                    {stageType !== 'Cut Data' && <span className="text-white font-bold">{progressUpdate.toFixed(0)} / {maxProgressUpdate.toFixed(0)}</span>}
-                                                    {stageType === 'Cut Data' && <span className="text-white font-bold truncate max-w-full overflow-hidden whitespace-nowrap">{messageUpdate}</span>}
-                                                </div>
-                                            </div>
-                                            <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
-                                                <motion.div
-                                                    className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
-                                                    initial={{ width: 0 }}
-                                                    animate={{ width: `${(progressUpdate / maxProgressUpdate) * 100}%` }}
-                                                    transition={{ duration: 0.3 }}
-                                                />
-                                            </div>
-                                            <div className="text-center text-lg text-white/60">
-                                                Please wait...
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                            </div>
-                        )}
-
-                        {/* คำแนะนำ */}
-                        <div className="bg-info/5 rounded-lg p-4 border border-info/30 mt-6">
-                            <h3 className="font-medium text-error mb-2">📋 คำแนะนำ:</h3>
-                            <ol className="text-sm text-error space-y-1">
-                                <li>1. คลิก "เลือกโฟลเดอร์เกม" และเลือกไดเร็กทอรีหลักของเกมของคุณ</li>
-                                <li>2. รอให้ระบบตรวจสอบความถูกต้องของไดเร็กทอรีเกม</li>
-                                <li>3. คลิก "เลือกโฟลเดอร์ไฟล์ Diff" และเลือกไดเร็กทอรีหลักของไฟล์ Diff ของคุณ</li>
-                                <li>4. รอให้ระบบตรวจสอบความถูกต้องของไดเร็กทอรีไฟล์ Diff</li>
-                                <li>5. คลิก "อัปเดตเกม" เพื่อบันทึกการเปลี่ยนแปลงของคุณ</li>
-                            </ol>
-                        </div>
-                    </div>
+                    <aside className="mt-4 flex gap-3 rounded-2xl border border-cyan-100/10 bg-cyan-100/5 p-4 text-sm text-cyan-50/75">
+                        <Info size={18} className="mt-0.5 shrink-0 text-cyan-200" />
+                        <p className="leading-relaxed">
+                            Make sure the game is closed and the diff archive matches your installed version. Do not close the launcher while an update is running.
+                        </p>
+                    </aside>
                 </div>
-            </div>
-        </>
+            </main>
+
+            {isDiffLoading && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md">
+                    <section
+                        role="status"
+                        aria-live="polite"
+                        className="w-full max-w-xl rounded-2xl border border-white/15 bg-slate-950/90 p-6 text-white shadow-2xl backdrop-blur-xl sm:p-8"
+                    >
+                        <div className="mb-6 flex items-center gap-4">
+                            <span className="grid size-12 place-items-center rounded-xl bg-cyan-300/10 text-cyan-200">
+                                <LoaderCircle size={23} className="animate-spin" />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200">Legacy Diff Update</p>
+                                <h2 className="mt-1 truncate text-xl font-bold">{stageType || "Preparing update"}</h2>
+                            </div>
+                            <span className="text-lg font-bold tabular-nums text-cyan-100">{progressPercent.toFixed(0)}%</span>
+                        </div>
+
+                        <div
+                            role="progressbar"
+                            aria-valuenow={progressPercent}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            className="mb-4 h-2 overflow-hidden rounded-full bg-white/10"
+                        >
+                            <motion.div
+                                className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-blue-400"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${progressPercent}%` }}
+                                transition={{ duration: 0.3 }}
+                            />
+                        </div>
+
+                        <div className="flex min-h-12 items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm">
+                            <span className="text-white/55">{stageType === "Cut Data" ? "Current file" : "Stage progress"}</span>
+                            <span className="max-w-[65%] truncate text-right font-medium text-white/85">
+                                {stageType === "Cut Data"
+                                    ? messageUpdate || "Preparing files..."
+                                    : `${progressUpdate.toFixed(0)} / ${maxProgressUpdate.toFixed(0)}`}
+                            </span>
+                        </div>
+                        <p className="mt-4 text-center text-xs text-white/45">Please keep the launcher open until the update completes.</p>
+                    </section>
+                </div>
+            )}
+        </div>
     )
 }

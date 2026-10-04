@@ -11,6 +11,13 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 import * as $models from "./models.js";
 
 /**
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function CancelDownloader() {
+    return $Call.ByID(697520046);
+}
+
+/**
  * @param {string} path
  * @returns {$CancellablePromise<boolean>}
  */
@@ -78,6 +85,13 @@ export function OpenFolder(path) {
 }
 
 /**
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function PauseDownloader() {
+    return $Call.ByID(2061348624);
+}
+
+/**
  * @param {string} filter
  * @returns {$CancellablePromise<string>}
  */
@@ -98,6 +112,13 @@ export function PickFolder() {
  */
 export function RemoveFile(path) {
     return $Call.ByID(2233966485, path);
+}
+
+/**
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function ResumeDownloader() {
+    return $Call.ByID(3796624739);
 }
 
 /**

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, FileArchive, Folder, LoaderCircle, Play, X } from "lucide-react";
+import { ArrowRight, Check, FileArchive, Folder, HardDrive, Info, LoaderCircle, Play, ShieldCheck, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { FSService } from "@bindings/SilwerWolf999-launcher/internal/fs-service";
 import { DiffService } from "@bindings/SilwerWolf999-launcher/internal/diff-service";
@@ -92,62 +92,149 @@ export default function ZipPatchPage() {
       ) : (
         <img src={bgUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
       )}
-      <div className="absolute inset-0 bg-black/70" />
-      <main className="relative z-10 ml-24 flex min-h-full flex-col justify-end px-8 pb-10 pt-24">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">Patch utility</p>
-        <h1 className="mb-6 text-4xl font-bold">Apply game diff</h1>
-
-        <section className="w-full max-w-xl space-y-5 border border-white/20 bg-black/45 p-5 backdrop-blur-md">
-          <div>
-            <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
-              <Folder size={18} className="text-cyan-200" />
-              Game folder
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-950/90 via-slate-950/75 to-indigo-950/80" />
+      <main className="absolute inset-0 overflow-y-auto pl-20 sm:pl-24">
+        <div className="mx-auto w-full max-w-5xl px-5 pb-10 pt-20 sm:px-8 sm:pt-24">
+          <header className="mb-7">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-200/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-100">
+              <FileArchive size={14} />
+              ZIP Patch Utility
             </div>
-            <button
-              type="button"
-              onClick={pickGameFolder}
-              disabled={isSelectingFolder || isApplying}
-              className="flex w-full items-center justify-center gap-2 border border-white/25 bg-white/10 px-4 py-3 text-sm hover:bg-white/20 disabled:opacity-50"
-            >
-              {isSelectingFolder ? <LoaderCircle size={17} className="animate-spin" /> : <Folder size={17} />}
-              {isSelectingFolder ? "Selecting folder..." : "Choose game folder"}
-            </button>
-            {gameDir && (
-              <div className="mt-2 flex items-center gap-2 text-xs text-white/75">
-                {folderValid ? <Check size={15} className="shrink-0 text-emerald-300" /> : <X size={15} className="shrink-0 text-red-300" />}
-                <span className="truncate" title={gameDir}>{gameDir}</span>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Apply game patch</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/60 sm:text-base">
+              Choose the game installation and patch archive to update your local game files.
+            </p>
+          </header>
+
+          <section className="grid gap-4 lg:grid-cols-2">
+            <article className="rounded-2xl border border-white/12 bg-slate-950/55 p-5 shadow-xl backdrop-blur-xl sm:p-6">
+              <div className="mb-5 flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="grid size-11 place-items-center rounded-xl border border-cyan-200/15 bg-cyan-200/10 text-cyan-100">
+                    <Folder size={20} />
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Step 01</p>
+                    <h2 className="mt-1 text-lg font-semibold">Game installation</h2>
+                  </div>
+                </div>
+                {gameDir && folderValid ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-xs text-emerald-200">
+                    <Check size={14} /> Selected
+                  </span>
+                ) : (
+                  <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/50">Required</span>
+                )}
               </div>
-            )}
-          </div>
+              <p className="mb-4 text-sm leading-relaxed text-white/55">
+                Select the main folder where the target game is installed.
+              </p>
+              <button
+                type="button"
+                onClick={pickGameFolder}
+                disabled={isSelectingFolder || isApplying}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold transition hover:border-cyan-200/40 hover:bg-cyan-200/10 disabled:cursor-wait disabled:opacity-50"
+              >
+                {isSelectingFolder ? <LoaderCircle size={17} className="animate-spin" /> : <Folder size={17} />}
+                {isSelectingFolder ? "Selecting folder..." : gameDir ? "Change game folder" : "Choose game folder"}
+              </button>
+              <div className={`mt-4 flex min-h-[4.5rem] items-start gap-3 rounded-xl border p-3 ${
+                gameDir
+                  ? folderValid ? "border-emerald-300/15 bg-emerald-300/5" : "border-rose-300/15 bg-rose-300/5"
+                  : "border-white/10 bg-black/20"
+              }`}>
+                <HardDrive size={16} className="mt-0.5 shrink-0 text-white/45" />
+                <p className="min-w-0 break-all font-mono text-xs leading-relaxed text-white/70">
+                  {gameDir || "No game folder selected"}
+                </p>
+                {gameDir && (folderValid
+                  ? <Check size={15} className="mt-0.5 shrink-0 text-emerald-300" />
+                  : <X size={15} className="mt-0.5 shrink-0 text-rose-300" />)}
+              </div>
+            </article>
 
-          <div>
-            <div className="mb-2 flex items-center gap-2 text-sm font-semibold">
-              <FileArchive size={18} className="text-cyan-200" />
-              Diff patch archive
+            <article className="rounded-2xl border border-white/12 bg-slate-950/55 p-5 shadow-xl backdrop-blur-xl sm:p-6">
+              <div className="mb-5 flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="grid size-11 place-items-center rounded-xl border border-violet-200/15 bg-violet-200/10 text-violet-100">
+                    <FileArchive size={20} />
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">Step 02</p>
+                    <h2 className="mt-1 text-lg font-semibold">Patch archive</h2>
+                  </div>
+                </div>
+                {patchFile ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2.5 py-1 text-xs text-emerald-200">
+                    <Check size={14} /> Selected
+                  </span>
+                ) : (
+                  <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/50">Required</span>
+                )}
+              </div>
+              <p className="mb-4 text-sm leading-relaxed text-white/55">
+                Choose the patch archive you want to apply (.zip, .7z or .rar).
+              </p>
+              <button
+                type="button"
+                onClick={pickPatchFile}
+                disabled={isSelectingPatch || isApplying}
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold transition hover:border-violet-200/40 hover:bg-violet-200/10 disabled:cursor-wait disabled:opacity-50"
+              >
+                {isSelectingPatch ? <LoaderCircle size={17} className="animate-spin" /> : <FileArchive size={17} />}
+                {isSelectingPatch ? "Selecting archive..." : patchFile ? "Change patch archive" : "Choose patch archive"}
+              </button>
+              <div className={`mt-4 flex min-h-[4.5rem] items-start gap-3 rounded-xl border p-3 ${
+                patchFile ? "border-emerald-300/15 bg-emerald-300/5" : "border-white/10 bg-black/20"
+              }`}>
+                <FileArchive size={16} className="mt-0.5 shrink-0 text-white/45" />
+                <p className="min-w-0 break-all font-mono text-xs leading-relaxed text-white/70">
+                  {patchFile || "No patch archive selected"}
+                </p>
+              </div>
+            </article>
+          </section>
+
+          <section className="mt-4 rounded-2xl border border-white/12 bg-slate-950/55 p-5 shadow-xl backdrop-blur-xl sm:flex sm:items-center sm:justify-between sm:gap-6 sm:p-6">
+            <div className="mb-4 flex items-start gap-3 sm:mb-0">
+              <ShieldCheck size={20} className="mt-0.5 shrink-0 text-cyan-200" />
+              <div>
+                <h2 className="font-semibold">Ready to apply?</h2>
+                <p className="mt-1 text-sm text-white/55">Select both the game folder and patch archive to continue.</p>
+              </div>
             </div>
             <button
               type="button"
-              onClick={pickPatchFile}
-              disabled={isSelectingPatch || isApplying}
-              className="flex w-full items-center justify-center gap-2 border border-white/25 bg-white/10 px-4 py-3 text-sm hover:bg-white/20 disabled:opacity-50"
+              onClick={applyPatch}
+              disabled={!gameDir || !folderValid || !patchFile || isApplying}
+              className="flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-300 to-blue-300 px-6 py-3.5 font-bold text-slate-950 shadow-lg shadow-cyan-950/30 transition hover:from-cyan-200 hover:to-blue-200 disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
             >
-              {isSelectingPatch ? <LoaderCircle size={17} className="animate-spin" /> : <FileArchive size={17} />}
-              {isSelectingPatch ? "Selecting patch..." : "Choose .zip or .7z patch"}
+              {isApplying ? <LoaderCircle size={18} className="animate-spin" /> : <Play size={18} />}
+              {isApplying ? "Applying patch..." : "Apply patch"}
+              {!isApplying && <ArrowRight size={17} />}
             </button>
-            {patchFile && <p className="mt-2 truncate text-xs text-white/75" title={patchFile}>{patchFile}</p>}
-          </div>
+          </section>
 
-          <button
-            type="button"
-            onClick={applyPatch}
-            disabled={!gameDir || !patchFile || isApplying}
-            className="flex w-full items-center justify-center gap-2 bg-cyan-300 px-5 py-3 font-semibold text-black transition-colors hover:bg-cyan-200 disabled:cursor-wait disabled:opacity-50"
-          >
-            {isApplying ? <LoaderCircle size={18} className="animate-spin" /> : <Play size={18} />}
-            {isApplying ? "Applying patch..." : "Apply diff patch"}
-          </button>
-        </section>
+          <aside className="mt-4 flex gap-3 rounded-2xl border border-cyan-100/10 bg-cyan-100/5 p-4 text-sm text-cyan-50/75">
+            <Info size={18} className="mt-0.5 shrink-0 text-cyan-200" />
+            <p className="leading-relaxed">
+              Make sure the game is closed and the patch matches your installed version. Keep the launcher open while files are being updated.
+            </p>
+          </aside>
+        </div>
       </main>
+
+      {isApplying && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md">
+          <section role="status" aria-live="polite" className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-950/90 p-7 text-center shadow-2xl">
+            <span className="mx-auto mb-4 grid size-12 place-items-center rounded-xl bg-cyan-300/10 text-cyan-200">
+              <LoaderCircle size={24} className="animate-spin" />
+            </span>
+            <h2 className="text-xl font-bold">Applying patch</h2>
+            <p className="mt-2 text-sm text-white/55">Please keep the launcher open until the operation completes.</p>
+          </section>
+        </div>
+      )}
     </div>
   );
 }

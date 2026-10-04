@@ -67,3 +67,27 @@ func TestUnzipRejectsPathTraversal(t *testing.T) {
 		t.Fatalf("path-traversal file status = %v, want not exists", err)
 	}
 }
+
+func TestDownloaderControlsRequireActiveDownload(t *testing.T) {
+	service := &FSService{}
+	controls := []struct {
+		name string
+		call func() (bool, error)
+	}{
+		{name: "pause", call: service.PauseDownloader},
+		{name: "resume", call: service.ResumeDownloader},
+		{name: "cancel", call: service.CancelDownloader},
+	}
+
+	for _, control := range controls {
+		t.Run(control.name, func(t *testing.T) {
+			success, err := control.call()
+			if err == nil {
+				t.Fatal("control succeeded without an active download")
+			}
+			if success {
+				t.Fatal("control reported success without an active download")
+			}
+		})
+	}
+}
