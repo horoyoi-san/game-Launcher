@@ -22,6 +22,7 @@ type CombinedLink = {
 
 export default function LauncherPage() {
 
+    const [launcherVersion, setLauncherVersion] = useState("...");
     const [userName, setUserName] = useState<string>(() => {
         // โหลดจาก localStorage หรือ fallback เป็น default
         return localStorage.getItem("userName") || "User Name";
@@ -70,6 +71,22 @@ export default function LauncherPage() {
         setIsUserNameDialogOpen(false);
         toast.success(`User name updated: ${name}`);
     };
+
+    useEffect(() => {
+        let active = true;
+        AppService.GetCurrentLauncherVersion()
+            .then(([ok, version]) => {
+                if (active) setLauncherVersion(ok ? version : "Unknown");
+            })
+            .catch((error) => {
+                console.error("Could not read launcher version", error);
+                if (active) setLauncherVersion("Unknown");
+            });
+
+        return () => {
+            active = false;
+        };
+    }, []);
 
     function getRandomColor() {
         const letters = '0123456789ABCDEF';
@@ -409,7 +426,7 @@ export default function LauncherPage() {
                     BETA
                 </span>|
                 <span className="font-bold text-fuchsia-200">
-                    Silwer Wolf 999 Launcher Version: 1.0.0
+                    Silwer Wolf 999 Launcher Version: {launcherVersion}
                 </span>|
                 <span className="font-bold text-rose-300">
                     By Horoyoi-san
