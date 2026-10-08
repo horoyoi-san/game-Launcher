@@ -14,23 +14,25 @@ export default function CloseModal({
     const { closingOption, setClosingOption } = useSettingStore()
 
     return (
-        <div className="fixed inset-0 z-50 h-full flex items-center justify-center bg-black/30 backdrop-blur-md">        <div className="relative w-[90%] max-w-2xl bg-base-100 text-base-content rounded-xl border border-purple-500/50 shadow-lg shadow-purple-500/20">
-            <div className="border-b border-purple-500/30 px-6 py-4 mb-4 flex justify-between items-center">
-                <h3 className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-cyan-600">
+        <div className="fixed inset-0 z-[100] flex h-full items-center justify-center bg-[#05060c]/85 p-4 backdrop-blur-md">
+            <div className="arcade-frame relative w-[90%] max-w-2xl text-white">
+            <div className="mb-4 flex items-center justify-between border-b border-cyan-300/25 px-6 py-4">
+                <h3 className="font-black uppercase tracking-wider text-cyan-100">
                     Confirm Action
                 </h3>
                 <motion.button
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     transition={{ duration: 0.2 }}
-                    className="btn btn-circle btn-md btn-error absolute right-3 top-3"
+                    aria-label="Close confirmation"
+                    className="arcade-button arcade-button--danger grid size-9 place-items-center"
                     onClick={onClose}
                 >
                     ✕
                 </motion.button>
             </div>
 
-            <div className="px-6 pt-2 pb-6">
-                <p className="mb-4 text-lg">
+            <div className="px-6 pb-6 pt-2">
+                <p className="mb-4 text-base leading-relaxed text-white/80">
                     Do you want to minimize the application to the system tray or close the application?
                 </p>
 
@@ -42,14 +44,14 @@ export default function CloseModal({
                         checked={!closingOption.isAsk}
                         onChange={(e) => setClosingOption({ isMinimize: closingOption.isMinimize, isAsk: !e.target.checked })}
                     />
-                    <label htmlFor="dontAskAgain" className="text-sm font-semibold text-accent">
+                    <label htmlFor="dontAskAgain" className="text-sm font-semibold text-cyan-100">
                         Do not ask me again
                     </label>
                 </div>
 
                 <div className="grid grid-cols-2 justify-end gap-3">
                     <button
-                        className="btn btn-warning"
+                        className="arcade-button arcade-button--primary min-h-11 px-4 text-xs"
                         onClick={async () => {
                             onClose()
                             const [success, message] = await AppService.HideApp()
@@ -62,7 +64,7 @@ export default function CloseModal({
                         Minimize
                     </button>
                     <button
-                        className="btn btn-error btn-outline"
+                        className="arcade-button arcade-button--danger min-h-11 px-4 text-xs"
                         onClick={async () => {
                             onClose()
                             const [success, message] = await AppService.CloseApp()
@@ -74,8 +76,8 @@ export default function CloseModal({
                     >
                         Close
                     </button>
+                    </div>
                 </div>
-            </div>
         </div>
     </div>
     )

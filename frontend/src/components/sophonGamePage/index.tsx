@@ -222,22 +222,22 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
       <video className="absolute inset-0 h-full w-full object-cover" autoPlay loop muted playsInline>
         <source src="/video3.mp4" type="video/mp4" />
       </video>
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/55 to-slate-950/25" />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/20" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#080a12]/95 via-[#111427]/70 to-[#17102c]/40" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#080a12]/90 via-transparent to-[#111427]/30" />
 
       <main className="relative z-10 ml-20 flex min-h-full items-center px-6 pb-16 pt-20 sm:ml-24 sm:px-10">
-        <section className="w-full max-w-xl rounded-3xl border border-white/15 bg-slate-950/55 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+        <section className="arcade-frame w-full max-w-xl p-6 backdrop-blur-xl sm:p-8">
           <div className="mb-6 flex items-center gap-4">
             {gameShortcut && (
-              <img src={gameShortcut.icon} alt="" className="h-14 w-14 rounded-2xl border border-white/20 object-cover shadow-lg" />
+              <img src={gameShortcut.icon} alt="" className="h-14 w-14 border-2 border-cyan-200/70 object-cover shadow-[3px_3px_0_rgba(250,77,255,0.45)] [image-rendering:pixelated]" />
             )}
             <div className="min-w-0">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">{regionLabel}</p>
-              <h1 className="truncate text-3xl font-bold sm:text-4xl">{game?.name ?? "Game unavailable"}</h1>
+              <p className="arcade-kicker mb-1">{regionLabel} · PLAYER SELECT</p>
+              <h1 className="truncate text-2xl font-black uppercase tracking-wide text-white drop-shadow-[3px_3px_0_rgba(250,77,255,0.5)] sm:text-3xl">{game?.name ?? "Game unavailable"}</h1>
             </div>
           </div>
 
-          <div className="mb-6 rounded-2xl border border-white/10 bg-black/25 p-4 sm:p-5">
+          <div className="arcade-card mb-6 p-4 sm:p-5">
             {game ? (
               <SophonBuildSelector
                 key={gameId}
@@ -252,10 +252,10 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
               <p className="text-sm text-rose-200">Game configuration could not be found.</p>
             )}
             <label className="mt-4 block text-sm">
-              <span className="mb-2 block text-white/70">Voice language</span>
+              <span className="arcade-kicker mb-2 block">Voice language</span>
               <select
                 aria-label="Voice language"
-                className="select select-bordered w-full border-white/15 bg-slate-950/70 text-white"
+                className="select select-bordered w-full rounded-none border-cyan-200/25 bg-[#090b15] text-white"
                 value={voiceLanguage}
                 onChange={(event) => setVoiceLanguage(event.target.value)}
                 disabled={downloading}
@@ -273,7 +273,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
               type="button"
               onClick={() => setPendingDownload("game")}
               disabled={!game || downloading || !selectedBuild}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-amber-300 px-5 py-3.5 font-bold text-slate-950 shadow-lg shadow-amber-950/30 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
+              className="arcade-button arcade-button--primary flex min-h-12 flex-1 items-center justify-center gap-2 px-5 py-3 text-xs disabled:cursor-not-allowed"
             >
               <Download size={18} />
               {downloading && downloadKind === "game" ? "Downloading game..." : `Download ${game?.name ?? "Game"}`}
@@ -282,7 +282,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
               type="button"
               onClick={() => setPendingDownload("voice")}
               disabled={!game || downloading || !selectedBuild}
-              className="flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3.5 font-semibold transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="arcade-button flex min-h-12 items-center justify-center gap-2 bg-[#16192b] px-5 py-3 text-xs disabled:cursor-not-allowed"
             >
               <ArrowDownToLine size={18} />
               {downloading && downloadKind === "voice" ? "Downloading voice..." : "Voice pack"}
@@ -295,11 +295,11 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
         <aside
           aria-live="polite"
           aria-label="Download progress"
-          className="fixed bottom-5 right-5 z-50 w-[min(25rem,calc(100vw-6rem))] rounded-2xl border border-white/15 bg-slate-950/85 p-5 text-white shadow-2xl backdrop-blur-xl"
+          className="arcade-frame fixed bottom-5 right-5 z-50 w-[min(25rem,calc(100vw-6rem))] p-5 text-white backdrop-blur-xl"
         >
           <div className="mb-4 flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-amber-300/15 text-amber-200">
+              <div className="grid h-10 w-10 place-items-center border border-cyan-300/40 bg-cyan-300/10 text-cyan-200">
                 <Download size={19} className="animate-bounce" />
               </div>
               <div>
@@ -315,7 +315,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
                 </p>
               </div>
             </div>
-            <span className="text-lg font-bold tabular-nums text-amber-200">{progressPercent}%</span>
+            <span className="text-lg font-black tabular-nums text-lime-200">{progressPercent}%</span>
           </div>
 
           <div
@@ -323,16 +323,16 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
             aria-valuenow={progressPercent}
             aria-valuemin={0}
             aria-valuemax={100}
-            className="mb-4 h-2 overflow-hidden rounded-full bg-white/10"
+            className="mb-4 h-3 overflow-hidden border border-cyan-100/20 bg-black/60"
           >
             <div
-              className="h-full rounded-full bg-gradient-to-r from-amber-300 to-yellow-100 transition-[width] duration-300"
+              className="h-full bg-gradient-to-r from-cyan-300 via-blue-400 to-fuchsia-400 transition-[width] duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="rounded-lg bg-white/5 p-3">
+            <div className="border border-white/10 bg-white/[0.04] p-3">
               <span className="mb-1 flex items-center gap-1.5 text-white/50"><HardDrive size={13} /> Downloaded</span>
               <span className="font-semibold tabular-nums">
                 {downloadProgress?.downloaded && downloadProgress.total
@@ -340,7 +340,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
                   : "Preparing files..."}
               </span>
             </div>
-            <div className="rounded-lg bg-white/5 p-3">
+            <div className="border border-white/10 bg-white/[0.04] p-3">
               <span className="mb-1 flex items-center gap-1.5 text-white/50"><ArrowDownToLine size={13} /> Speed</span>
               <span className="font-semibold tabular-nums">{downloadProgress?.speed || "Calculating..."}</span>
             </div>
@@ -355,7 +355,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
               type="button"
               onClick={toggleDownloadPause}
               disabled={!downloadProcessReady || cancelingDownload}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm font-semibold transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+              className="arcade-button flex flex-1 items-center justify-center gap-2 px-3 py-2 text-xs disabled:cursor-not-allowed"
             >
               {downloadPaused ? <Play size={15} /> : <Pause size={15} />}
               {downloadPaused ? "Resume" : "Pause"}
@@ -364,7 +364,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
               type="button"
               onClick={cancelDownload}
               disabled={!downloadProcessReady || cancelingDownload}
-              className="flex flex-1 items-center justify-center gap-2 rounded-lg border border-rose-300/20 bg-rose-400/10 px-3 py-2 text-sm font-semibold text-rose-100 transition hover:bg-rose-400/20 disabled:cursor-not-allowed disabled:opacity-40"
+              className="arcade-button arcade-button--danger flex flex-1 items-center justify-center gap-2 px-3 py-2 text-xs disabled:cursor-not-allowed"
             >
               {cancelingDownload ? <LoaderCircle size={15} className="animate-spin" /> : <Ban size={15} />}
               {cancelingDownload ? "Canceling..." : "Cancel"}
@@ -379,12 +379,12 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="install-dialog-title"
-            className="w-full max-w-xl overflow-hidden rounded-2xl border border-white/15 bg-[#171b20] text-white shadow-2xl"
+            className="arcade-frame w-full max-w-xl overflow-hidden text-white"
           >
             <header className="flex items-center justify-between border-b border-white/10 px-6 py-5">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-200">Installation setup</p>
-                <h2 id="install-dialog-title" className="mt-1 text-xl font-bold">Choose installation folder</h2>
+                <p className="arcade-kicker">Installation setup · Player config</p>
+                <h2 id="install-dialog-title" className="mt-1 text-lg font-black uppercase">Choose installation folder</h2>
               </div>
               <button
                 type="button"
@@ -409,7 +409,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
                       value={installPath}
                       onChange={(event) => setInstallPath(event.target.value)}
                       disabled={downloading}
-                      className="h-11 w-full rounded-lg border border-white/15 bg-black/25 pl-10 pr-3 text-sm outline-none transition placeholder:text-white/35 focus:border-amber-200/70"
+                      className="h-11 w-full rounded-none border border-cyan-200/25 bg-black/40 pl-10 pr-3 text-sm outline-none transition placeholder:text-white/35 focus:border-cyan-200"
                       placeholder="Select where game files will be installed"
                     />
                   </div>
@@ -417,7 +417,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
                     type="button"
                     onClick={chooseFolder}
                     disabled={selectingFolder || downloading}
-                    className="flex h-11 shrink-0 items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 text-sm font-semibold transition hover:bg-white/10 disabled:opacity-50"
+                    className="arcade-button flex h-11 shrink-0 items-center gap-2 px-3 text-[10px] disabled:opacity-50"
                   >
                     <FolderOpen size={16} />
                     {selectingFolder ? "Opening..." : "Browse"}
@@ -428,7 +428,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
                 </p>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+              <div className="arcade-card p-4">
                 <div className="flex items-start gap-3">
                   <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-emerald-300" />
                   <div className="min-w-0">
@@ -447,7 +447,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
               <button
                 type="button"
                 onClick={() => setPendingDownload(null)}
-                className="rounded-lg px-4 py-2.5 text-sm font-semibold text-white/65 transition hover:bg-white/5 hover:text-white"
+                className="border border-white/15 px-4 py-2.5 text-xs font-bold uppercase text-white/65 transition hover:bg-white/5 hover:text-white"
               >
                 Cancel
               </button>
@@ -455,7 +455,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
                 type="button"
                 onClick={startDownload}
                 disabled={!selectedBuild || !installPath.trim() || downloading}
-                className="flex items-center gap-2 rounded-lg bg-amber-300 px-5 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-45"
+                className="arcade-button arcade-button--primary flex items-center gap-2 px-5 py-2.5 text-[10px] disabled:cursor-not-allowed"
               >
                 <Download size={16} />
                 Start download

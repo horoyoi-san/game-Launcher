@@ -7,8 +7,8 @@ import { AppService } from "@bindings/SilwerWolf999-launcher/internal/app-servic
 
 type UpdateStatus = "idle" | "checking"
 
-const cardClassName = "rounded-2xl border border-white/10 bg-slate-950/75 p-5 shadow-[0_12px_35px_rgba(0,0,0,0.28)] transition-colors hover:border-fuchsia-300/25"
-const iconClassName = "grid size-10 shrink-0 place-items-center rounded-xl border border-cyan-200/15 bg-cyan-300/10 text-cyan-100"
+const cardClassName = "arcade-card p-5 transition-colors hover:border-cyan-200/60"
+const iconClassName = "grid size-10 shrink-0 place-items-center border border-cyan-200/35 bg-cyan-300/10 text-cyan-100"
 
 export default function SettingModal({
     isOpen,
@@ -44,23 +44,23 @@ export default function SettingModal({
 
     return (
         <div
-            className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-950/70 p-4 backdrop-blur-xl"
+            className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-[#05060c]/85 p-4 backdrop-blur-xl"
             role="presentation"
         >
             <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-                <div className="absolute left-1/2 top-1/2 size-[34rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-fuchsia-500/10 blur-[120px]" />
-                <div className="absolute left-[18%] top-[12%] size-56 rounded-full bg-cyan-400/10 blur-[100px]" />
+                <div className="absolute left-1/2 top-1/2 size-[34rem] -translate-x-1/2 -translate-y-1/2 bg-fuchsia-500/10 blur-[120px]" />
+                <div className="absolute left-[18%] top-[12%] size-56 bg-cyan-400/10 blur-[100px]" />
             </div>
 
             <section
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="settings-title"
-                className="relative my-auto flex max-h-[min(780px,calc(100vh-2rem))] w-full max-w-lg flex-col overflow-hidden rounded-[26px] border border-white/15 bg-slate-900/90 text-white shadow-[0_30px_100px_rgba(0,0,0,0.65),0_0_50px_rgba(168,85,247,0.14)]"
+                className="arcade-frame relative my-auto flex max-h-[min(780px,calc(100vh-2rem))] w-full max-w-lg flex-col overflow-hidden text-white"
             >
                 <header className="flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-5">
                     <div className="flex items-center gap-3">
-                        <div className="grid size-11 place-items-center rounded-2xl bg-gradient-to-br from-fuchsia-400/20 to-cyan-300/15 text-cyan-100 ring-1 ring-white/10">
+                        <div className="grid size-11 place-items-center border border-fuchsia-300/50 bg-gradient-to-br from-fuchsia-400/20 to-cyan-300/15 text-cyan-100 ring-1 ring-white/10">
                             <Settings2 size={21} />
                         </div>
                         <div>
@@ -74,7 +74,7 @@ export default function SettingModal({
                         type="button"
                         aria-label="Close settings"
                         onClick={onClose}
-                        className="grid size-9 place-items-center rounded-full bg-rose-600 text-white shadow-lg shadow-rose-950/40 transition hover:scale-105 hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-200"
+                        className="grid size-9 place-items-center border-2 border-rose-200/70 bg-rose-600 text-white shadow-[3px_3px_0_rgba(250,77,255,0.35)] transition hover:scale-105 hover:bg-rose-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-200"
                     >
                         <X size={17} strokeWidth={2.5} />
                     </button>
@@ -93,7 +93,7 @@ export default function SettingModal({
                                     type="button"
                                     disabled={updateStatus === "checking"}
                                     onClick={checkUpdate}
-                                    className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 px-4 text-sm font-bold text-white shadow-lg shadow-rose-950/30 transition hover:brightness-110 disabled:cursor-wait disabled:opacity-60"
+                                    className="arcade-button mt-4 inline-flex min-h-10 items-center justify-center gap-2 bg-gradient-to-r from-fuchsia-600 to-cyan-600 px-4 text-xs text-white shadow-lg disabled:cursor-wait disabled:opacity-60"
                                 >
                                     {updateStatus === "checking"
                                         ? <><LoaderCircle size={16} className="animate-spin" /> Checking...</>
@@ -115,7 +115,7 @@ export default function SettingModal({
                                             key={size.label}
                                             type="button"
                                             onClick={() => handleResize(size.width, size.height)}
-                                            className="min-h-10 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-sm font-semibold text-white/80 transition hover:border-cyan-200/40 hover:bg-cyan-200/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200/60"
+                                            className="arcade-button min-h-10 px-3 text-xs text-white/80"
                                         >
                                             {size.label}
                                         </button>

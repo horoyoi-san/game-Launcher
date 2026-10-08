@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import useModalStore from "@/stores/modalStore";
 import { BookOpen, Diff, GitCompareArrows, Grid2X2, Home, Images, Minus, Settings, X } from "lucide-react";
 import { AppService } from "@bindings/SilwerWolf999-launcher/internal/app-service";
@@ -8,6 +8,7 @@ import usePanelStore from "@/stores/panelStore";
 export default function Header() {
     const { setIsOpenSettingModal } = useModalStore();
     const { setActiveUrl, setShowPanel, setIsMinimized } = usePanelStore();
+    const pathname = useRouterState({ select: (state) => state.location.pathname });
 
     const controlButtons = [
         {
@@ -33,36 +34,29 @@ export default function Header() {
     return (
         <>
             {/* Sidebar ด้านซ้าย */}
-            <div className="fixed left-0 top-0 h-full w-18 bg-black/30 backdrop-blur-md shadow-lg z-70 flex flex-col items-center py-6 justify-between">
+            <div className="fixed left-0 top-0 z-[70] flex h-full w-[76px] flex-col items-center justify-between border-r-2 border-cyan-300/40 bg-[#090b15]/95 py-5 shadow-[4px_0_0_rgba(250,77,255,0.12),0_0_28px_rgba(0,0,0,0.65)] backdrop-blur-xl">
                 <div className="flex flex-col items-center gap-2">
-                    <Link to="/" className="flex flex-col items-center hover:scale-105 transition-transform">
-                        <img src="/appicon.png" alt="Logo" className="w-14 h-14 rounded-lg z-70" />
-                        <h1 className="
-                        text-[10px] font-bold 
-                        bg-clip-text text-transparent
-                        bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500
-                        bg-gradient-to-r
-                        from-cyan-300 via-blue-400 to-purple-500
-                        drop-shadow-[0_0_6px_rgba(0,200,255,0.8)]
-                        drop-shadow-[0_0_16px_rgba(120,0,255,0.6)]">SilwerWolf999</h1>
+                    <Link to="/" className="flex flex-col items-center gap-1 transition-transform hover:-translate-y-0.5">
+                        <img src="/appicon.png" alt="Logo" className="z-[70] h-12 w-12 border-2 border-fuchsia-300/70 bg-black object-cover [image-rendering:pixelated]" />
+                        <h1 className="text-center text-[8px] font-black leading-tight tracking-[0.08em] text-cyan-200 drop-shadow-[2px_2px_0_rgba(250,77,255,0.65)]">SILVER<br />WOLF 999</h1>
                     </Link>
                 </div>
 
-                <div className="flex flex-col items-center gap-5 mt-8 text-white">
-                    <Link to="/" className="hover:text-cyan-300"><Home size={30} /></Link>
+                <div className="mt-8 flex flex-col items-center gap-3 text-white">
+                    <Link to="/" title="Home" aria-label="Home" className={`grid size-11 place-items-center border transition-colors ${pathname === "/" ? "border-cyan-200 bg-cyan-300/15 text-cyan-100 shadow-[2px_2px_0_rgba(250,77,255,0.45)]" : "border-transparent text-white/65 hover:border-white/20 hover:bg-white/5 hover:text-cyan-200"}`}><Home size={22} /></Link>
 
                     <Link
                         to="/games"
                         title="Game library"
                         aria-label="Game library"
-                        className="rounded-lg p-2 transition-colors hover:bg-white/10 hover:text-cyan-300"
+                        className={`grid size-11 place-items-center border transition-colors ${pathname === "/games" ? "border-cyan-200 bg-cyan-300/15 text-cyan-100 shadow-[2px_2px_0_rgba(250,77,255,0.45)]" : "border-transparent text-white/65 hover:border-white/20 hover:bg-white/5 hover:text-cyan-200"}`}
                     >
                         <Grid2X2 size={24} />
                     </Link>
-                    <Link to="/diff" title="Diff Update" aria-label="Diff Update" className="hover:text-cyan-300">
+                    <Link to="/diff" title="Diff Update" aria-label="Diff Update" className={`grid size-11 place-items-center border transition-colors ${pathname === "/diff" ? "border-cyan-200 bg-cyan-300/15 text-cyan-100 shadow-[2px_2px_0_rgba(250,77,255,0.45)]" : "border-transparent text-white/65 hover:border-white/20 hover:bg-white/5 hover:text-cyan-200"}`}>
                         <Diff size={20} />
                     </Link>
-                    <Link to="/legacy-diff" title="Legacy Diff" aria-label="Legacy Diff" className="hover:text-cyan-300">
+                    <Link to="/legacy-diff" title="Legacy Diff" aria-label="Legacy Diff" className={`grid size-11 place-items-center border transition-colors ${pathname === "/legacy-diff" ? "border-cyan-200 bg-cyan-300/15 text-cyan-100 shadow-[2px_2px_0_rgba(250,77,255,0.45)]" : "border-transparent text-white/65 hover:border-white/20 hover:bg-white/5 hover:text-cyan-200"}`}>
                         <GitCompareArrows size={20} />
                     </Link>
                     <button
@@ -71,12 +65,14 @@ export default function Header() {
                             setShowPanel(true);
                             setIsMinimized(false);
                         }}
-                        className="hover:scale-110 transition"
+                        title="Nanoka"
+                        aria-label="Nanoka"
+                        className="grid size-11 place-items-center border border-transparent transition hover:border-white/20 hover:bg-white/5 hover:text-cyan-200"
                     >
                         <img
                             src="https://nanoka.cc/logo.svg"
                             alt="bg"
-                            className="w-7 h-7 object-cover rounded"
+                            className="h-6 w-6 border border-fuchsia-200/30 object-cover"
                         />
                     </button>
 
@@ -86,24 +82,26 @@ export default function Header() {
                             setShowPanel(true);
                             setIsMinimized(false);
                         }}
-                        className="hover:text-cyan-300"
+                        title="Background gallery"
+                        aria-label="Background gallery"
+                        className="grid size-11 place-items-center border border-transparent text-white/65 transition hover:border-white/20 hover:bg-white/5 hover:text-cyan-200"
                     >
                         <Images size={20} />
                     </button>
 
-                    <Link to="/howto" className="hover:text-cyan-300"><BookOpen size={20} /></Link>
+                    <Link to="/howto" title="How to" aria-label="How to" className={`grid size-11 place-items-center border transition-colors ${pathname === "/howto" ? "border-cyan-200 bg-cyan-300/15 text-cyan-100 shadow-[2px_2px_0_rgba(250,77,255,0.45)]" : "border-transparent text-white/65 hover:border-white/20 hover:bg-white/5 hover:text-cyan-200"}`}><BookOpen size={20} /></Link>
                 </div>
             </div>
 
             {/* ปุ่มควบคุมด้านขวาบน */}
-            <div className="fixed top-0 right-0 z-50 flex items-center gap-2 px-3 py-2 rounded-bl-xl">
+            <div className="fixed right-0 top-0 z-[70] flex items-center gap-1 border-b-2 border-l-2 border-cyan-300/40 bg-[#090b15]/90 px-2 py-1.5 shadow-[-3px_3px_0_rgba(250,77,255,0.12)] backdrop-blur-xl">
                 {controlButtons.map((btn, i) => (
                     <motion.button
                         key={i}
                         whileHover={btn.hover}
                         transition={{ type: "spring" }}
                         onClick={btn.action}
-                        className="btn btn-ghost btn-circle bg-transparent border-none flex items-center justify-center"
+                        className="grid size-9 place-items-center border border-transparent bg-transparent transition hover:border-fuchsia-300/50 hover:bg-fuchsia-300/10"
                         title={btn.tip}
                     >
                         {btn.icon}

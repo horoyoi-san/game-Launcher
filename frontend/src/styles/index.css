@@ -3,10 +3,140 @@
     themes: dracula --default;
 }
 
+:root {
+    color-scheme: dark;
+    --arcade-ink: #080a12;
+    --arcade-panel: #101322;
+    --arcade-panel-light: #171b2d;
+    --arcade-cyan: #53f6ff;
+    --arcade-pink: #fa4dff;
+    --arcade-lime: #c5ff4a;
+    --arcade-muted: #9ba5c6;
+    --arcade-line: rgba(83, 246, 255, 0.32);
+}
+
+html,
+body,
+#root {
+    min-height: 100%;
+    background: var(--arcade-ink);
+}
+
 body {
     --wails-draggable: drag;
+    color: #edf2ff;
+    font-family: "Lucida Console", "Cascadia Mono", "Courier New", monospace;
+    letter-spacing: 0.015em;
 }
 
 :where(a, button, input, select, textarea, label, summary, [role="button"], [contenteditable="true"], [data-no-drag]) {
     --wails-draggable: no-drag;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--arcade-cyan);
+    outline-offset: 3px;
+}
+
+.arcade-overlay {
+    position: fixed;
+    z-index: 20;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.16;
+    background-image:
+        linear-gradient(rgba(83, 246, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(83, 246, 255, 0.1) 1px, transparent 1px),
+        repeating-linear-gradient(0deg, transparent 0 3px, rgba(0, 0, 0, 0.23) 3px 4px);
+    background-size: 24px 24px, 24px 24px, 100% 4px;
+}
+
+.arcade-frame {
+    border: 2px solid var(--arcade-line) !important;
+    border-radius: 3px !important;
+    background-color: rgba(10, 12, 23, 0.88);
+    box-shadow:
+        4px 4px 0 rgba(5, 7, 15, 0.9),
+        0 0 0 1px rgba(250, 77, 255, 0.12),
+        0 0 24px rgba(83, 246, 255, 0.08);
+}
+
+.arcade-card {
+    border: 1px solid rgba(250, 77, 255, 0.28) !important;
+    border-radius: 3px !important;
+    background: linear-gradient(135deg, rgba(20, 22, 39, 0.96), rgba(10, 12, 23, 0.96));
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.42);
+}
+
+.arcade-button {
+    border: 2px solid rgba(83, 246, 255, 0.65) !important;
+    border-radius: 2px !important;
+    background: #12182a;
+    color: #eafcff;
+    box-shadow: 3px 3px 0 rgba(83, 246, 255, 0.2);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    transition: transform 120ms steps(2, end), background-color 120ms steps(2, end), box-shadow 120ms steps(2, end);
+}
+
+.arcade-button:hover:not(:disabled) {
+    transform: translate(-1px, -1px);
+    background: rgba(83, 246, 255, 0.14);
+    box-shadow: 4px 4px 0 rgba(250, 77, 255, 0.32);
+}
+
+.arcade-button--primary {
+    background: linear-gradient(90deg, #53f6ff, #9ffbff) !important;
+    color: #080a12 !important;
+}
+
+.arcade-button--danger {
+    border-color: rgba(255, 100, 150, 0.8) !important;
+    background: #311321 !important;
+    color: #ffe5f0 !important;
+    box-shadow: 3px 3px 0 rgba(255, 100, 150, 0.24);
+}
+
+.arcade-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+}
+
+.arcade-kicker {
+    color: var(--arcade-cyan);
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-shadow: 2px 2px 0 rgba(250, 77, 255, 0.5);
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #090b15;
+}
+
+::-webkit-scrollbar-thumb {
+    border: 2px solid #090b15;
+    border-radius: 0;
+    background: #45446f;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--arcade-pink);
 }

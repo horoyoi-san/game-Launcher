@@ -91,10 +91,10 @@ export default function SophonBuildSelector({ gameIds, defaultRegion, onChange }
     <div className="space-y-4 text-sm text-white">
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-white/50">Region</span>
+          <span className="arcade-kicker mb-2 block">Region</span>
           <select
             aria-label="Region"
-            className="select select-bordered h-11 min-h-11 w-full border-white/12 bg-slate-950/70 text-white transition focus:border-cyan-200/60"
+            className="select select-bordered h-11 min-h-11 w-full rounded-none border-cyan-200/25 bg-[#090b15] text-white transition focus:border-cyan-200"
             value={region}
             onChange={(event) => setRegion(event.target.value)}
           >
@@ -102,10 +102,10 @@ export default function SophonBuildSelector({ gameIds, defaultRegion, onChange }
           </select>
         </label>
         <label className="block">
-          <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-white/50">Version / branch</span>
+          <span className="arcade-kicker mb-2 block">Version / branch</span>
           <select
             aria-label="Version and branch"
-            className="select select-bordered h-11 min-h-11 w-full border-white/12 bg-slate-950/70 text-white transition focus:border-cyan-200/60 disabled:text-white/40"
+            className="select select-bordered h-11 min-h-11 w-full rounded-none border-cyan-200/25 bg-[#090b15] text-white transition focus:border-cyan-200 disabled:text-white/40"
             value={selectedKey}
             disabled={loading || versions.length === 0}
             onChange={(event) => {
@@ -123,9 +123,9 @@ export default function SophonBuildSelector({ gameIds, defaultRegion, onChange }
           </select>
         </label>
       </div>
-      <div className="flex min-h-10 items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+      <div className="flex min-h-10 items-center justify-between gap-3 border border-white/10 bg-black/30 px-3 py-2">
         <div className="flex min-w-0 items-center gap-2">
-          <span className={`size-2 shrink-0 rounded-full ${loading ? "animate-pulse bg-amber-200" : error ? "bg-rose-300" : selectedBuild ? "bg-emerald-300" : "bg-white/30"}`} />
+          <span className={`size-2 shrink-0 ${loading ? "animate-pulse bg-lime-200" : error ? "bg-rose-300" : selectedBuild ? "bg-cyan-300" : "bg-white/30"}`} />
           <span className={`truncate text-xs ${error ? "text-rose-200" : "text-white/55"}`} title={statusMessage}>
             {statusMessage}
           </span>

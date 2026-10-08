@@ -18,6 +18,7 @@ function RootLayout() {
 
     return (
         <>
+            <div className="arcade-overlay" aria-hidden="true" />
             <Header />
 
             <div className="min-h-[78vh]">
@@ -26,7 +27,11 @@ function RootLayout() {
 
             <CloseModal isOpen={isOpenCloseModal} onClose={() => setIsOpenCloseModal(false)} />
             <SettingModal isOpen={isOpenSettingModal} onClose={() => setIsOpenSettingModal(false)} />
-            <ToastContainer />
+            <ToastContainer
+                theme="dark"
+                toastClassName="arcade-frame"
+                progressClassName="!bg-cyan-300"
+            />
         </>
     )
 }

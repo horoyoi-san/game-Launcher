@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Play, Menu, FolderOpen, Minus } from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Play, Menu, FolderOpen, Minus, UserRound, X } from 'lucide-react';
 import { AppService } from '@bindings/SilwerWolf999-launcher/internal/app-service';
 import { FSService } from '@bindings/SilwerWolf999-launcher/internal/fs-service';
 import { toast } from 'react-toastify';
@@ -26,6 +26,8 @@ export default function LauncherPage() {
         // โหลดจาก localStorage หรือ fallback เป็น default
         return localStorage.getItem("userName") || "User Name";
     });
+    const [isUserNameDialogOpen, setIsUserNameDialogOpen] = useState(false);
+    const [userNameDraft, setUserNameDraft] = useState(userName);
 
     const [videoSrc, setVideoSrc] = useState("/video3.mp4");
 
@@ -50,15 +52,22 @@ export default function LauncherPage() {
 
 
     const handleSetUserName = () => {
-        const name = prompt("Enter your name", userName);
-        if (!name) return;
+        setUserNameDraft(userName);
+        setIsUserNameDialogOpen(true);
+    };
 
+    const saveUserName = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const name = userNameDraft.trim();
+        if (!name) {
+            toast.error("Enter a user name first");
+            return;
+        }
         setUserName(name);
         localStorage.setItem("userName", name);
-
         const newColor = getRandomColor();
         setUserColor(newColor);
-
+        setIsUserNameDialogOpen(false);
         toast.success(`User name updated: ${name}`);
     };
 
@@ -395,17 +404,17 @@ export default function LauncherPage() {
 
 
             {/* Footer / Version */}
-            <div className="fixed select-none bottom-2 right-10 text-xs text-gray-400 z-60 flex gap-1 backdrop-blur-sm bg-black/30 px-3 py-1.5 rounded-lg shadow-md">
-                <span className="text-cyan-400 font-semibold drop-shadow-[0_0_6px_rgba(0,255,255,0.8)] hover:drop-shadow-[0_0_12px_rgba(0,255,255,1)] transition">
+            <div className="arcade-frame fixed bottom-2 right-3 z-[60] flex max-w-[calc(100vw-6rem)] select-none flex-wrap items-center gap-1 px-2 py-1 text-[9px] text-gray-300 sm:right-10 sm:gap-2 sm:px-3 sm:text-[10px]">
+                <span className="font-black text-cyan-300">
                     BETA
                 </span>|
-                <span className="font-semibold bg-gradient-to-r from-sky-400 via-blue-500 to-purple-500 text-transparent bg-clip-text drop-shadow-[0_0_8px_rgba(99,102,241,0.6)] hover:drop-shadow-[0_0_14px_rgba(168,85,247,0.9)] transition">
+                <span className="font-bold text-fuchsia-200">
                     Silwer Wolf 999 Launcher Version: 1.0.0
                 </span>|
-                <span className="text-red-500 font-semibold drop-shadow-[0_0_6px_rgba(255,0,0,0.8)] hover:drop-shadow-[0_0_12px_rgba(255,0,0,1)] transition">
+                <span className="font-bold text-rose-300">
                     By Horoyoi-san
                 </span>|
-                <div className="text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.8)]">{time}</div>|
+                <div className="font-bold tabular-nums text-white">{time}</div>|
                 <button
                     type="button"
                     onClick={handleSetUserName}
@@ -426,8 +435,17 @@ export default function LauncherPage() {
 
 
 
+            <div className="arcade-frame fixed left-[90px] top-5 z-[30] max-w-[min(390px,calc(100vw-7rem))] px-4 py-3">
+                <div className="arcade-kicker mb-1 text-[9px]">Silver Wolf System · Online</div>
+                <div className="flex items-baseline gap-2">
+                    <span className="text-xs font-black uppercase tracking-[0.18em] text-white">PLAYER</span>
+                    <span className="text-lg font-black uppercase text-fuchsia-200 drop-shadow-[2px_2px_0_rgba(83,246,255,0.45)]">Silver Wolf</span>
+                    <span className="ml-auto border border-lime-300/40 bg-lime-300/10 px-1.5 py-0.5 text-[9px] font-black text-lime-200">LV.999</span>
+                </div>
+            </div>
+
             {visibleLinks.length > 0 && (
-                <div className="fixed top-[90px] right-2 z-50 flex-col space-y-2 bg-white/10 backdrop-blur-md rounded-lg p-3 shadow-md">
+                <div className="arcade-frame fixed right-2 top-[90px] z-50 flex-col space-y-2 p-3">
                     {visibleLinks.map((link, idx) => (
 
                         // {combinedLinks
@@ -467,7 +485,7 @@ export default function LauncherPage() {
             {proxyReady && !isDownloading && (
 
 
-                <div className="fixed bottom-2 right-0 p-8 z-50">
+                <div className="fixed bottom-10 right-0 z-50 p-5 sm:bottom-2 sm:p-8">
 
                     <div className="flex flex-wrap items-center justify-center gap-2">
 
@@ -475,7 +493,7 @@ export default function LauncherPage() {
 
                             <button
                                 // ปุ่ม Select Game file: คงเดิม
-                                className="btn btn-xl font-bold bg-white/5 backdrop-blur-md border border-sky-400/20 hover:bg-gradient-to-r hover:from-sky-500/20 hover:via-blue-500/20 hover:to-purple-500/20 transition rounded-xl"
+                                className="arcade-button btn btn-xl font-bold"
                                 onClick={handlePickFile}
                             >
                                 <FolderOpen className="w-5 h-5" />
@@ -486,7 +504,7 @@ export default function LauncherPage() {
 
                             <button
                                 // ปุ่ม Start Game: เป็นสี่เหลี่ยมมุมโค้ง มีรูปภาพพื้นหลัง และ **เรืองแสง (Glow)**
-                                className="btn btn-secondary btn-xl font-bold relative overflow-hidden"
+                                className="arcade-button btn btn-xl relative overflow-hidden border-fuchsia-300/70 bg-fuchsia-500/20 font-black text-white"
                                 onClick={handleStartGame}
                                 style={{
                                     // กำหนดรูปภาพพื้นหลัง
@@ -495,7 +513,7 @@ export default function LauncherPage() {
                                     // backgroundPosition: "center",
 
                                     // **คำสั่งที่ทำให้เกิดการเรืองแสง (Glow Effect)**
-                                    boxShadow: "0 0 15px rgb(255, 0, 242), 0 0 25px rgb(162, 0, 255) inset", // Glow สีชมพู/ม่วง
+                                    boxShadow: "4px 4px 0 rgba(250, 77, 255, 0.45), 0 0 20px rgba(250, 77, 255, 0.2)",
 
                                     // ปรับข้อความให้อ่านง่าย
                                     color: "white",
@@ -512,14 +530,14 @@ export default function LauncherPage() {
                             <div
                                 tabIndex={0}
                                 role="button"
-                                className="btn btn-circle btn-xl m-1 bg-black/30 backdrop-blur-md border border-white/20 hover:bg-black/50 transition"
+                                className="arcade-button btn btn-xl m-1"
                             >
                                 <Menu className="w-5 h-5 text-white" />
                             </div>
 
 
 
-                            <ul tabIndex={0} className="dropdown-content menu rounded-box z-50 w-52 p-2 bg-black/30 backdrop-blur-md shadow-lg border border-white/10">
+                            <ul tabIndex={0} className="arcade-frame dropdown-content menu z-50 w-56 p-2">
                                 {/* ปุ่ม custom URL */}
 
                                 <li>
@@ -594,7 +612,7 @@ export default function LauncherPage() {
 
             {/* Downloading */}
             {isDownloading && (
-                <div className="fixed bottom-4 left-1/2  transform -translate-x-1/2 z-60 w-[60vw] bg-black/20 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+                <div className="arcade-frame fixed bottom-4 left-1/2 z-[60] w-[min(60vw,48rem)] -translate-x-1/2 p-4">
                     <div className="space-y-3">
                         <div className="flex justify-center items-center text-sm text-white/80">
                             <span>{downloadType}</span>
@@ -603,9 +621,9 @@ export default function LauncherPage() {
                                 <span className="text-white font-bold">{progressDownload.toFixed(1)}%</span>
                             </div>
                         </div>
-                        <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+                        <div className="h-2 w-full overflow-hidden border border-cyan-100/25 bg-black/70">
                             <motion.div
-                                className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
+                                className="h-full bg-gradient-to-r from-cyan-300 via-blue-400 to-fuchsia-400"
                                 initial={{ width: 0 }}
                                 animate={{ width: `${progressDownload}%` }}
                                 transition={{ type: "tween", ease: "linear", duration: 0.03 }}
@@ -619,7 +637,7 @@ export default function LauncherPage() {
             )}
 
             {isDownloading && (
-                <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-60 w-[60vw] bg-black/20 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+                <div className="arcade-frame fixed bottom-4 left-1/2 z-[60] w-[min(60vw,48rem)] -translate-x-1/2 p-4">
                     <div className="space-y-3 text-sm text-white/80 text-center">
                         {["update:launcher:downloading", "update:launcher:success", "update:launcher:failed"].includes(downloadType) && (
                             <div className="flex justify-center items-center gap-4 ml-4">
@@ -662,7 +680,7 @@ export default function LauncherPage() {
             )}
 
             {/* 🎬 Video News Panel */}
-            <div className="fixed bottom-4 left-20 z-50 w-[300px] rounded-xl overflow-hidden bg-black/30 backdrop-blur-md border border-white/10">
+            <div className="arcade-frame fixed bottom-4 left-[90px] z-50 w-[min(300px,calc(100vw-7rem))] overflow-hidden">
 
                 <video
                     key={activeNews}
@@ -687,8 +705,8 @@ export default function LauncherPage() {
                                 e.currentTarget.currentTime = 0;
                             }}
                             onClick={() => setActiveNewsIndex(index)} // ✅ แก้ตรงนี้
-                            className={`w-[100px] h-[50px] object-cover rounded cursor-pointer border
-            ${activeNewsIndex === index ? "border-cyan-400" : "border-transparent"} // ✅ แก้ตรงนี้
+                            className={`h-[50px] w-[100px] cursor-pointer border-2 object-cover
+            ${activeNewsIndex === index ? "border-cyan-300" : "border-transparent"}
         `}
                         />
                     ))}
@@ -744,6 +762,95 @@ export default function LauncherPage() {
                 </div>
             )}
 
+            {isUserNameDialogOpen && (
+                <div
+                    className="fixed inset-0 z-[120] flex items-center justify-center bg-[#05060c]/85 p-4 backdrop-blur-md"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) setIsUserNameDialogOpen(false);
+                    }}
+                >
+                    <section
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="user-name-dialog-title"
+                        aria-describedby="user-name-dialog-description"
+                        className="arcade-frame w-full max-w-md overflow-hidden text-white"
+                        onKeyDown={(event) => {
+                            if (event.key === "Escape") setIsUserNameDialogOpen(false);
+                        }}
+                    >
+                        <header className="flex items-center justify-between border-b border-cyan-300/25 px-5 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="grid size-11 place-items-center border border-fuchsia-300/50 bg-fuchsia-400/10 text-fuchsia-200 shadow-[3px_3px_0_rgba(83,246,255,0.2)]">
+                                    <UserRound size={21} />
+                                </div>
+                                <div>
+                                    <p className="arcade-kicker text-[9px]">Player profile · Lv.999</p>
+                                    <h2 id="user-name-dialog-title" className="mt-1 text-base font-black uppercase tracking-wider">
+                                        Edit user name
+                                    </h2>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                aria-label="Close user name dialog"
+                                onClick={() => setIsUserNameDialogOpen(false)}
+                                className="grid size-8 place-items-center border border-white/15 text-white/60 transition hover:border-rose-300/60 hover:bg-rose-400/10 hover:text-rose-100"
+                            >
+                                <X size={16} />
+                            </button>
+                        </header>
+
+                        <form onSubmit={saveUserName}>
+                            <div className="space-y-4 px-5 py-5">
+                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-lime-200">
+                                    <span className="size-2 animate-pulse bg-lime-300" />
+                                    Profile data unlocked
+                                </div>
+                                <div>
+                                    <label htmlFor="user-name-input" className="arcade-kicker mb-2 block text-[10px]">
+                                        Enter your name
+                                    </label>
+                                    <input
+                                        id="user-name-input"
+                                        autoFocus
+                                        maxLength={32}
+                                        value={userNameDraft}
+                                        onChange={(event) => setUserNameDraft(event.target.value)}
+                                        placeholder="Type a player name..."
+                                        className="h-12 w-full border-2 border-cyan-300/35 bg-[#070912] px-3 text-sm font-bold text-white outline-none placeholder:font-normal placeholder:text-white/30 focus:border-cyan-200 focus:shadow-[0_0_14px_rgba(83,246,255,0.16)]"
+                                    />
+                                    <div className="mt-2 flex items-center justify-between gap-3">
+                                        <p id="user-name-dialog-description" className="text-[10px] leading-relaxed text-white/45">
+                                            This name appears in your launcher status bar.
+                                        </p>
+                                        <span className="shrink-0 text-[10px] tabular-nums text-white/35">
+                                            {userNameDraft.length}/32
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <footer className="flex justify-end gap-2 border-t border-white/10 bg-black/20 px-5 py-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsUserNameDialogOpen(false)}
+                                    className="min-h-10 border border-white/15 px-4 text-[10px] font-black uppercase tracking-wider text-white/65 transition hover:bg-white/5 hover:text-white"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={!userNameDraft.trim()}
+                                    className="arcade-button arcade-button--primary min-h-10 px-4 text-[10px] disabled:cursor-not-allowed"
+                                >
+                                    Save profile
+                                </button>
+                            </footer>
+                        </form>
+                    </section>
+                </div>
+            )}
 
         </div>
     )
