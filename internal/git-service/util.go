@@ -1,9 +1,7 @@
 package gitService
 
 import (
-	"SilwerWolf999-launcher/pkg/models"
 	"archive/zip"
-	"encoding/json"
 	"fmt"
 	"io"
 	"math"
@@ -143,32 +141,6 @@ func (g *GitService) downloadFileParallel(filePath, url string, numParts int, on
 
 	wg.Wait()
 	return tmpPath, nil
-}
-
-// --- Helper getReleaseAsset ---
-func (g *GitService) getReleaseAsset(version, url, fileName string) (models.AssetType, bool) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return models.AssetType{}, false
-	}
-	defer resp.Body.Close()
-
-	body, _ := io.ReadAll(resp.Body)
-	var releases []*models.ReleaseType
-	if err := json.Unmarshal(body, &releases); err != nil || len(releases) == 0 {
-		return models.AssetType{}, false
-	}
-
-	for _, release := range releases {
-		if release.TagName == version {
-			for _, asset := range release.Assets {
-				if asset.Name == fileName {
-					return asset, true
-				}
-			}
-		}
-	}
-	return models.AssetType{}, false
 }
 
 func (g *GitService) unzipParallel(src string, dest string) error {

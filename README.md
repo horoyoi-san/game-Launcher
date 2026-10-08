@@ -56,9 +56,30 @@ wails3 package
 ```
 ---
 
+## Automatic launcher updates
+
+The `Build SilwerWolf999 Launcher` workflow in `horoyoi-san/Hoyo` builds the
+Windows launcher and overwrites these assets on its existing
+`Sophon.Downloader` release:
+
+- `SilwerWolf999-launcher.exe`
+- `latest.json` (version and SHA-256 checksum)
+
+The version is generated from the latest manifest; no versioned release or tag
+is created. The sequence starts at `1.0.1` and rolls over as
+`1.0.9` → `1.1.0` → `1.1.1` → `1.1.9` → `1.2.0` → … → `1.9.9` → `2.0.0`.
+`latest.json` contains the current version and checksum, and the launcher
+verifies that checksum before applying an update.
+
+The workflow needs to read the existing manifest (or use `1.0.0` if none exists),
+pass the generated version as `BUILD_VERSION` while building this source, create
+`latest.json` with the executable's SHA-256, and publish both files. Its existing
+`contents: write` permission is sufficient; no extra token is needed.
+
+---
+
 ## 📄 License
 
 MIT License — feel free to use and contribute.
 
 ---
-

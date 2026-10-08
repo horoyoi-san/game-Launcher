@@ -2,17 +2,17 @@ package constant
 
 const ProxyGitUrl = "https://gist.githubusercontent.com/horoyoi-san/87f26bc84cf32eab93d6f6d08f0d0f43/raw/9bf50c60edf2b527af4ac2bda31e7e0793fb73ff/ps.json"
 const ServerGitUrl = "https://git.kain.io.vn/api/v1/repos/Firefly-Shelter/FireflyGo_Local_Archive/releases"
-const LauncherGitUrl = ""
+const LauncherManifestURL = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/latest.json"
 const SophonGitUrl = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/Sophon.Downloader.zip"
 const DiffUpdaterGitUrl = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/diff.zip"
 const ServerStorageUrl = "./server"
 const SophonStorageUrl = "./Sophon"
 const ServerZipFile = "prebuild_win_x86.zip"
-const LauncherFile = ""
+const LauncherDownloadURL = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/SilwerWolf999-launcher.exe"
 const SophonZipFile = "sophon.Downloader.zip"
 const TempUrl = "./temp"
 
-const CurrentLauncherVersion = "2.1.0"
+var CurrentLauncherVersion = "1.0.0"
 
 type ToolFile string
 
