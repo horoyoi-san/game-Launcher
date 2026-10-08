@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { Play, Menu, Minus, FolderOpen } from 'lucide-react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Play, Menu, Minus, FolderOpen, Sparkles, Crown, X, ExternalLink, Server, ImagePlus, Image, RotateCcw, ShieldCheck, Music2 } from 'lucide-react';
 import { AppService } from '@bindings/Cyrene-launcher/internal/app-service';
 import { FSService } from '@bindings/Cyrene-launcher/internal/fs-service';
 import { toast } from 'react-toastify';
@@ -28,6 +28,8 @@ export default function LauncherPage() {
         // โหลดจาก localStorage หรือ fallback เป็น default
         return localStorage.getItem("userName") || "User Name";
     });
+    const [isUserNameDialogOpen, setIsUserNameDialogOpen] = useState(false);
+    const [userNameDraft, setUserNameDraft] = useState(userName);
 
     const [videoSrc, setVideoSrc] = useState("/video2.mp4");
 
@@ -48,30 +50,26 @@ export default function LauncherPage() {
     const launcherDefaultImages = ["/bg1.jpg"]; // ถ้ามี background เป็น image
     const [defaultIndex] = useState(0); // index ของ default
     const [defaultBgType] = useState<"video" | "image">("video");
-    const [userColor, setUserColor] = useState<string>(() => getRandomColor());
+    const userColor = "#f2d99b";
 
 
     const handleSetUserName = () => {
-        const name = prompt("Enter your name", userName);
-        if (!name) return;
-
-        setUserName(name);
-        localStorage.setItem("userName", name);
-
-        const newColor = getRandomColor();
-        setUserColor(newColor);
-
-        toast.success(`User name updated: ${name}`);
+        setUserNameDraft(userName);
+        setIsUserNameDialogOpen(true);
     };
 
-    function getRandomColor() {
-        const letters = '0123456789ABCDEF';
-        let color = '#';
-        for (let i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)];
+    const saveUserName = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const name = userNameDraft.trim();
+        if (!name) {
+            toast.error("Please enter a name for your profile");
+            return;
         }
-        return color;
-    }
+        setUserName(name);
+        localStorage.setItem("userName", name);
+        setIsUserNameDialogOpen(false);
+        toast.success(`User name updated: ${name}`);
+    };
 
 
 
@@ -234,13 +232,6 @@ export default function LauncherPage() {
 
         toast.success("Background reset to default!");
     };
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setUserColor(getRandomColor());
-        }, 1000); // เปลี่ยนสีทุก 1.0 วินาที
-        return () => clearInterval(interval);
-    }, []);
 
 
     useEffect(() => {
@@ -487,8 +478,15 @@ export default function LauncherPage() {
                 />
             )}
 
+            <section className="cyrene-home-hero" aria-label="Cyrene launcher welcome">
+                <div className="cyrene-home-hero__eyebrow"><Sparkles size={13} /> ASTRAL COMPANION</div>
+                <h1><Crown size={22} aria-hidden="true" /> Cyrene</h1>
+                <p>Let the stars guide your next adventure. Your worlds, tools, and journeys await.</p>
+                <div className="cyrene-home-hero__rule" />
+            </section>
+
             {/* Footer / Version */}
-            <div className="fixed select-none bottom-2 right-10 text-xs text-gray-400 z-60 flex gap-1 backdrop-blur-sm bg-black/30 px-3 py-1.5 rounded-lg shadow-md">
+            <div className="cyrene-statusbar fixed select-none bottom-2 right-10 z-[60] flex max-w-[calc(100vw-7rem)] flex-wrap items-center gap-1 px-3 py-1.5 text-xs text-gray-300">
                 <span className="text-cyan-400 font-semibold drop-shadow-[0_0_6px_rgba(0,255,255,0.8)] hover:drop-shadow-[0_0_12px_rgba(0,255,255,1)] transition">
                     HSR BETA
                 </span>|
@@ -566,7 +564,7 @@ export default function LauncherPage() {
 
                         <button
                             // The primary action selects the game before a path is configured.
-                            className="btn btn-secondary btn-xl font-bold relative overflow-hidden"
+                            className="cyrene-primary-action btn btn-secondary btn-xl relative overflow-hidden font-bold"
                             onClick={gamePath ? handleStartGame : handlePickFile}
                             disabled={isLoading || gameRunning}
                             style={{
@@ -589,20 +587,19 @@ export default function LauncherPage() {
                                 : gameRunning ? 'Game is running' : gamePath ? 'Start Game' : 'Select Game File'}
                         </button>
 
-                        <div className="dropdown dropdown-top dropdown-end">
-                            <div
+                        <div className="dropdown dropdown-top dropdown-end cyrene-quick-menu">
+                            <button
+                                type="button"
                                 tabIndex={0}
-                                role="button"
-                                className="btn btn-circle btn-xl m-1 bg-black/30 backdrop-blur-md border border-white/20 hover:bg-black/50 transition"
+                                aria-label="Open launcher quick menu"
+                                aria-haspopup="true"
+                                className="cyrene-quick-menu__trigger btn btn-circle btn-xl m-1"
                             >
                                 <Menu className="w-5 h-5 text-white" />
-                            </div>
+                            </button>
 
-
-
-                            <ul tabIndex={0} className="dropdown-content menu rounded-box z-50 w-52 p-2 bg-black/30 backdrop-blur-md shadow-lg border border-white/10">
-                                {/* ปุ่ม custom URL */}
-
+                            <ul tabIndex={0} className="dropdown-content menu cyrene-quick-menu__panel rounded-box z-50 w-52 p-2">
+                                <li className="cyrene-quick-menu__heading">Launcher shortcuts</li>
                                 <li>
                                     <button
                                         onClick={() => {
@@ -612,6 +609,7 @@ export default function LauncherPage() {
                                             );
                                         }}
                                     >
+                                        <ExternalLink aria-hidden="true" />
                                         Cyrene Launcher Update
                                     </button>
                                 </li>
@@ -625,18 +623,19 @@ export default function LauncherPage() {
                                             );
                                         }}
                                     >
+                                        <Server aria-hidden="true" />
                                         RobinSR Srever
                                     </button>
                                 </li>
 
-
-
-                                {/* ✅ ปุ่ม reset */}
+                                <li className="cyrene-quick-menu__heading">Background</li>
                                 <li>
-                                    <button onClick={handleSetVideoUrl}>Set Background URL</button>
+                                    <button onClick={handleSetVideoUrl}>
+                                        <ImagePlus aria-hidden="true" />
+                                        Set Background URL
+                                    </button>
                                 </li>
 
-                                {/* ปุ่ม video list */}
                                 {videos.map((v, index) => (
                                     <li key={index}>
                                         <button
@@ -646,15 +645,19 @@ export default function LauncherPage() {
                                                 setVideoSrc(v.src);
                                             }}
                                         >
+                                            <Image aria-hidden="true" />
                                             {v.name}
                                         </button>
                                     </li>
                                 ))}
-                                {/* ✅ ปุ่ม reset */}
                                 <li>
-                                    <button onClick={handleResetBackground}>Reset to Default Background</button>
+                                    <button onClick={handleResetBackground}>
+                                        <RotateCcw aria-hidden="true" />
+                                        Reset to Default Background
+                                    </button>
                                 </li>
 
+                                <li className="cyrene-quick-menu__heading">Utilities</li>
                                 <li>
                                     <button
                                         onClick={async () => {
@@ -671,23 +674,21 @@ export default function LauncherPage() {
                                             }
                                             toast.success("Proxy file is ready")
                                         }}>
+                                        <ShieldCheck aria-hidden="true" />
                                         Check Proxy File
                                     </button>
                                 </li>
-                                <li>
-
-                                </li>
                                 <li><button disabled={!serverPath && !serverReady} onClick={() => {
                                     FSService.OpenFolder("./server")
-                                }}>Open server folder</button></li>
+                                }}><FolderOpen aria-hidden="true" />Open server folder</button></li>
                                 <li><button disabled={!proxyPath && !proxyReady} onClick={() => {
                                     FSService.OpenFolder("./proxy")
-                                }}>Open proxy folder</button></li>
+                                }}><FolderOpen aria-hidden="true" />Open proxy folder</button></li>
                                 <li><button disabled={!gameDir} onClick={() => {
                                     if (gameDir) {
                                         FSService.OpenFolder(gameDir + "/StarRail_Data/Persistent/Audio/AudioPackage/Windows")
                                     }
-                                }}>Open voice folder</button></li>
+                                }}><Music2 aria-hidden="true" />Open voice folder</button></li>
                             </ul>
 
                         </div>
@@ -724,7 +725,7 @@ export default function LauncherPage() {
 
 
             {/* 🎬 Video News Panel */}
-            <div className="fixed bottom-4 left-20 z-50 w-[300px] rounded-xl overflow-hidden bg-black/30 backdrop-blur-md border border-white/10">
+            <div className="cyrene-news-panel fixed bottom-4 left-20 z-50 w-[300px] overflow-hidden">
 
                 <video
                     key={activeNews}
@@ -818,6 +819,67 @@ export default function LauncherPage() {
                             className="w-full h-full border-none bg-black"
                         />
                     </div>
+                </div>
+            )}
+
+            {isUserNameDialogOpen && (
+                <div
+                    className="profile-overlay"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) setIsUserNameDialogOpen(false);
+                    }}
+                >
+                    <section
+                        className="profile-dialog"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="profile-dialog-title"
+                        onKeyDown={(event) => {
+                            if (event.key === "Escape") setIsUserNameDialogOpen(false);
+                        }}
+                    >
+                        <header className="profile-dialog__header">
+                            <span className="profile-dialog__crest"><Crown size={20} /></span>
+                            <div>
+                                <span className="eyebrow">YOUR CELESTIAL PROFILE</span>
+                                <h2 id="profile-dialog-title">Traveler name</h2>
+                            </div>
+                            <button
+                                type="button"
+                                className="profile-dialog__close"
+                                onClick={() => setIsUserNameDialogOpen(false)}
+                                aria-label="Close profile editor"
+                            >
+                                <X size={17} />
+                            </button>
+                        </header>
+                        <form onSubmit={saveUserName}>
+                            <div className="profile-dialog__body">
+                                <p>Choose the name that will accompany you across the stars.</p>
+                                <label htmlFor="profile-name" className="profile-dialog__label">DISPLAY NAME</label>
+                                <input
+                                    id="profile-name"
+                                    autoFocus
+                                    maxLength={32}
+                                    value={userNameDraft}
+                                    onChange={(event) => setUserNameDraft(event.target.value)}
+                                    placeholder="Enter your name"
+                                />
+                                <div className="profile-dialog__hint">
+                                    <span>Visible in your launcher status bar</span>
+                                    <span>{userNameDraft.length}/32</span>
+                                </div>
+                            </div>
+                            <footer className="profile-dialog__footer">
+                                <button type="button" className="profile-dialog__cancel" onClick={() => setIsUserNameDialogOpen(false)}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="profile-dialog__save" disabled={!userNameDraft.trim()}>
+                                    <Sparkles size={15} /> Save name
+                                </button>
+                            </footer>
+                        </form>
+                    </section>
                 </div>
             )}
 
