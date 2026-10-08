@@ -12,12 +12,25 @@ export type SophonBuild = {
   gameId: string;
   launcherId: string;
   region: string;
+  regionLabel?: string;
   version: string;
   branch: string;
 };
 
 function buildKey(build: SophonBuild) {
   return [build.gameId, build.launcherId, build.version, build.branch].join(":");
+}
+
+function getSophonRegion(regionLabel: string) {
+  const match = regionLabel.match(/^(OSREL|CNREL|OSBETA|CNBETA)(?:\s|$)/i);
+  return match?.[1].toUpperCase() ?? regionLabel;
+}
+
+function formatRegionLabel(region: string) {
+  if (/^(OSREL|CNREL|OSBETA|CNBETA)$/i.test(region)) {
+    return region.replace("REL", " Release").replace("BETA", " Beta");
+  }
+  return region;
 }
 
 export default function SophonBuildSelector({ gameIds, defaultRegion, onChange }: SophonBuildSelectorProps) {
@@ -54,10 +67,13 @@ export default function SophonBuildSelector({ gameIds, defaultRegion, onChange }
       };
     }
 
-    FSService.GetSophonVersions(ids, region)
+    FSService.GetSophonVersions(ids, getSophonRegion(region))
       .then((result) => {
         if (!active) return;
-        const available = result as unknown as SophonBuild[];
+        const available = (result as unknown as SophonBuild[]).map((build) => ({
+          ...build,
+          regionLabel: region,
+        }));
         setVersions(available);
         if (available.length === 0) {
           setError("No versions found");
@@ -98,7 +114,7 @@ export default function SophonBuildSelector({ gameIds, defaultRegion, onChange }
             value={region}
             onChange={(event) => setRegion(event.target.value)}
           >
-            {regions.map((item) => <option key={item} value={item}>{item.replace("REL", " Release").replace("BETA", " Beta")}</option>)}
+            {regions.map((item) => <option key={item} value={item}>{formatRegionLabel(item)}</option>)}
           </select>
         </label>
         <label className="block">

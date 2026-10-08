@@ -7,7 +7,11 @@
       "region": "CN | OS",
       "gameIds": {
         "gameid": ["gameid"],
-        "OSREL": ["5TIVvvcwtM"],
+        "OSREL Europe & Americas Servers": ["5TIVvvcwtM"],
+        "OSREL JP Server": ["g0mMIvshDb"],
+        "OSREL KR Server": ["uxB4MC7nzC"],
+        "OSREL SEA Server": ["bxPTXSET5t"],
+        "OSREL Asia (Traditional Chinese)": ["wkE5P5WsIf"],
         "CNREL": ["osvnlOc0S8"]
       },
       "output": "GameData/HonkaiImpact3rd"

@@ -213,7 +213,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
     }
   };
 
-  const activeRegion = selectedBuild?.region ?? game?.region ?? "";
+  const activeRegion = selectedBuild?.regionLabel ?? selectedBuild?.region ?? game?.region ?? "";
   const regionLabel = activeRegion.endsWith("BETA") ? `${activeRegion.slice(0, -4)} Beta` : activeRegion;
   const progressPercent = downloadProgress?.percent ?? 0;
 
