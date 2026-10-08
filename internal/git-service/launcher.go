@@ -36,6 +36,10 @@ func (g *GitService) GetLatestLauncherVersion() (bool, string, string) {
 }
 
 func (g *GitService) UpdateLauncherProgress(version string) (bool, string) {
+	if !constant.LauncherUpdatesEnabled {
+		return false, "launcher updates are disabled in development builds"
+	}
+
 	manifest, err := fetchLauncherManifest(constant.LauncherManifestURL)
 	if err != nil {
 		return false, err.Error()

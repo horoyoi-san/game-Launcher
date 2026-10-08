@@ -1,6 +1,7 @@
 package gitService
 
 import (
+	"SilwerWolf999-launcher/pkg/constant"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -47,5 +48,15 @@ func TestFetchLauncherManifestRejectsInvalidFields(t *testing.T) {
 				t.Fatal("fetchLauncherManifest() succeeded; want an error")
 			}
 		})
+	}
+}
+
+func TestUpdateLauncherProgressDisabledInDevelopmentBuild(t *testing.T) {
+	if constant.LauncherUpdatesEnabled {
+		t.Skip("launcher updates are enabled in production builds")
+	}
+
+	if ok, err := (&GitService{}).UpdateLauncherProgress("1.0.1"); ok || err != "launcher updates are disabled in development builds" {
+		t.Fatalf("UpdateLauncherProgress() = (%t, %q), want (false, development-build error)", ok, err)
 	}
 }

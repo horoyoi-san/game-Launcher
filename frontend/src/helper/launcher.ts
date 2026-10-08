@@ -8,6 +8,9 @@ export async function CheckUpdateLauncher(): Promise<{ isUpdate: boolean; isExis
     if (!currentOk) {
         throw new Error("Unable to read the current launcher version")
     }
+    if (currentVersion === "Development") {
+        return { isUpdate: false, isExists: false, version: currentVersion }
+    }
 
     const [latestOk, latestVersion, latestError] = await GitService.GetLatestLauncherVersion()
     if (!latestOk) {

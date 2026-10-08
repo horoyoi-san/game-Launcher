@@ -426,7 +426,7 @@ export default function LauncherPage() {
                     BETA
                 </span>|
                 <span className="font-bold text-fuchsia-200">
-                    Silwer Wolf 999 Launcher Version: {launcherVersion}
+                    Silver Wolf 999 Launcher Version: {launcherVersion}
                 </span>|
                 <span className="font-bold text-rose-300">
                     By Horoyoi-san

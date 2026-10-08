@@ -28,6 +28,10 @@ export default function SettingModal({
         setUpdateError("")
         try {
             const launcherData = await CheckUpdateLauncher()
+            if (!launcherData.isExists) {
+                toast.info("Launcher updates are disabled in development builds")
+                return
+            }
             if (!launcherData.isUpdate) {
                 toast.success("Launcher is already up to date")
                 return
