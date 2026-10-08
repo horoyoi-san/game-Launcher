@@ -2540,6 +2540,181 @@ body::before {
     box-shadow: 0 16px 40px rgba(208, 156, 212, 0.4), inset 0 1px rgba(255, 255, 255, 0.7) !important;
 }
 
+.cyrene-dialog-overlay {
+    position: fixed;
+    z-index: 120;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow-y: auto;
+    background: rgba(11, 7, 18, 0.69);
+    padding: 22px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.cyrene-dialog {
+    width: min(100%, 500px);
+    overflow: hidden;
+    border: 1px solid rgba(242, 217, 155, 0.35);
+    border-radius: 23px;
+    background:
+        radial-gradient(circle at 100% 0, rgba(226, 167, 215, 0.18), transparent 42%),
+        linear-gradient(145deg, rgba(37, 24, 47, 0.98), rgba(18, 16, 34, 0.98));
+    color: #fff6fc;
+    box-shadow: 0 30px 90px rgba(5, 3, 14, 0.64), 0 0 55px rgba(205, 152, 210, 0.14), inset 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.cyrene-dialog__header {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    border-bottom: 1px solid rgba(242, 217, 155, 0.16);
+    padding: 20px 22px;
+}
+
+.cyrene-dialog__icon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    flex: none;
+    place-items: center;
+    border: 1px solid rgba(242, 217, 155, 0.36);
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(231, 181, 220, 0.2), rgba(164, 157, 221, 0.18));
+    color: var(--cyrene-gold);
+}
+
+.cyrene-dialog__header .eyebrow {
+    color: #c7b7d2;
+    font-size: 8px;
+    letter-spacing: 0.17em;
+}
+
+.cyrene-dialog__header h2 {
+    margin: 3px 0 0;
+    color: #fff5fb;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.cyrene-dialog__close {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: none;
+    place-items: center;
+    margin-left: auto;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.045);
+    color: #cfc1d7;
+    cursor: pointer;
+}
+
+.cyrene-dialog__close:hover {
+    border-color: rgba(242, 169, 210, 0.44);
+    background: rgba(242, 169, 210, 0.12);
+    color: white;
+}
+
+.cyrene-dialog__body {
+    padding: 20px 22px 22px;
+}
+
+.cyrene-dialog__body > p {
+    margin: 0;
+    color: #d1c6d7;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.cyrene-dialog__remember {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 16px;
+    color: #d8c4a5;
+    font-size: 11px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.cyrene-dialog__remember input {
+    width: 15px;
+    height: 15px;
+    margin: 0;
+    accent-color: #dfbd83;
+}
+
+.cyrene-dialog__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 9px;
+    margin-top: 20px;
+}
+
+.cyrene-dialog__actions--split > button {
+    flex: 1;
+}
+
+.cyrene-dialog__button {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid transparent;
+    border-radius: 11px;
+    padding: 0 16px;
+    font-size: 11px;
+    font-weight: 720;
+    cursor: pointer;
+}
+
+.cyrene-dialog__button--primary {
+    border-color: rgba(255, 235, 198, 0.55);
+    background: linear-gradient(110deg, #edc4de, #d0c0f3);
+    color: #281a31;
+    box-shadow: 0 6px 20px rgba(186, 132, 197, 0.19);
+}
+
+.cyrene-dialog__button--primary:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.cyrene-dialog__button--danger {
+    border-color: rgba(239, 120, 145, 0.55);
+    background: rgba(111, 39, 63, 0.2);
+    color: #ffb0bd;
+}
+
+.cyrene-dialog__button--danger:hover {
+    border-color: rgba(255, 145, 163, 0.78);
+    background: rgba(143, 49, 75, 0.32);
+    color: #ffe4e9;
+}
+
+.cyrene-dialog__button--outline {
+    border-color: rgba(242, 217, 155, 0.3);
+    background: rgba(255, 255, 255, 0.04);
+    color: #e9dce9;
+}
+
+.cyrene-dialog__button--outline:hover {
+    border-color: rgba(242, 217, 155, 0.55);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.cyrene-dialog__close:focus-visible,
+.cyrene-dialog__button:focus-visible,
+.cyrene-dialog__remember input:focus-visible {
+    outline: 2px solid #f2d99b;
+    outline-offset: 3px;
+}
+
 .profile-overlay {
     position: fixed;
     z-index: 120;
@@ -2550,6 +2725,22 @@ body::before {
     background: rgba(11, 7, 18, 0.69);
     padding: 22px;
     backdrop-filter: blur(12px);
+}
+
+@media (max-width: 480px) {
+    .cyrene-dialog-overlay {
+        padding: 14px;
+    }
+
+    .cyrene-dialog__header,
+    .cyrene-dialog__body {
+        padding-right: 17px;
+        padding-left: 17px;
+    }
+
+    .cyrene-dialog__actions--split {
+        flex-direction: column;
+    }
 }
 
 .profile-dialog {

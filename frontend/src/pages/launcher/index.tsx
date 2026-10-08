@@ -33,6 +33,8 @@ export default function LauncherPage() {
     const [userNameDraft, setUserNameDraft] = useState(userName);
 
     const [videoSrc, setVideoSrc] = useState("/video2.mp4");
+    const [isBackgroundDialogOpen, setIsBackgroundDialogOpen] = useState(false);
+    const [backgroundUrlDraft, setBackgroundUrlDraft] = useState("");
 
     const {
         activeUrl,
@@ -90,33 +92,46 @@ export default function LauncherPage() {
 
 
     const handleSetVideoUrl = () => {
-        const url = prompt("Enter video or image URL");
-        if (!url) return;
+        setBackgroundUrlDraft(localStorage.getItem("customBgUrl") || videoSrc);
+        setIsBackgroundDialogOpen(true);
+    };
 
-        let type: "video" | "image";
+    const saveBackgroundUrl = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const url = backgroundUrlDraft.trim();
+        let parsedUrl: URL;
 
-        if (url.endsWith(".mp4") || url.endsWith(".webm")) {
-            type = "video";
-            setBgType(type);
-            setVideoSrc(url);
-        } else if (
-            url.endsWith(".jpg") ||
-            url.endsWith(".png") ||
-            url.endsWith(".jpeg") ||
-            url.endsWith(".webp")
-        ) {
-            type = "image";
-            setBgType(type);
-            setVideoSrc(url);
-        } else {
-            toast.error("Only .mp4 / .webm / .jpg / .png allowed");
+        try {
+            parsedUrl = new URL(url);
+        } catch {
+            toast.error("Enter a valid URL starting with http:// or https://");
             return;
         }
 
+        if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+            toast.error("Background URL must use http:// or https://");
+            return;
+        }
+
+        const extension = path.extname(parsedUrl.pathname).toLowerCase();
+        const type = extension === ".mp4" || extension === ".webm"
+            ? "video"
+            : [".jpg", ".jpeg", ".png", ".webp"].includes(extension)
+                ? "image"
+                : null;
+
+        if (!type) {
+            toast.error("Supported formats: .mp4, .webm, .jpg, .jpeg, .png, .webp");
+            return;
+        }
+
+        setIsVideoLoading(true);
+        setBgType(type);
+        setVideoSrc(url);
         localStorage.setItem("customBgUrl", url);
         localStorage.setItem("customBgType", type);
-
         setIsVideoLoading(false);
+        setIsBackgroundDialogOpen(false);
         toast.success("Background updated!");
     };
 
@@ -899,6 +914,66 @@ export default function LauncherPage() {
                 </div>
             )}
 
+            {isBackgroundDialogOpen && (
+                <div
+                    className="profile-overlay"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) setIsBackgroundDialogOpen(false);
+                    }}
+                >
+                    <section
+                        className="profile-dialog"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="background-dialog-title"
+                        onKeyDown={(event) => {
+                            if (event.key === "Escape") setIsBackgroundDialogOpen(false);
+                        }}
+                    >
+                        <header className="profile-dialog__header">
+                            <span className="profile-dialog__crest"><ImagePlus size={20} /></span>
+                            <div>
+                                <span className="eyebrow">PERSONALIZE YOUR LAUNCHER</span>
+                                <h2 id="background-dialog-title">Background URL</h2>
+                            </div>
+                            <button
+                                type="button"
+                                className="profile-dialog__close"
+                                onClick={() => setIsBackgroundDialogOpen(false)}
+                                aria-label="Close background settings"
+                            >
+                                <X size={17} />
+                            </button>
+                        </header>
+                        <form onSubmit={saveBackgroundUrl}>
+                            <div className="profile-dialog__body">
+                                <p>Use a direct link to an image or video to personalize your launcher background.</p>
+                                <label htmlFor="background-url" className="profile-dialog__label">IMAGE OR VIDEO URL</label>
+                                <input
+                                    id="background-url"
+                                    autoFocus
+                                    type="text"
+                                    inputMode="url"
+                                    value={backgroundUrlDraft}
+                                    onChange={(event) => setBackgroundUrlDraft(event.target.value)}
+                                    placeholder="https://example.com/background.webp"
+                                />
+                                <div className="profile-dialog__hint">
+                                    <span>MP4, WEBM, JPG, JPEG, PNG, or WEBP</span>
+                                </div>
+                            </div>
+                            <footer className="profile-dialog__footer">
+                                <button type="button" className="profile-dialog__cancel" onClick={() => setIsBackgroundDialogOpen(false)}>
+                                    Cancel
+                                </button>
+                                <button type="submit" className="profile-dialog__save" disabled={!backgroundUrlDraft.trim()}>
+                                    <Sparkles size={15} /> Apply background
+                                </button>
+                            </footer>
+                        </form>
+                    </section>
+                </div>
+            )}
 
         </div>
     )

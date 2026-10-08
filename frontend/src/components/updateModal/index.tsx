@@ -1,4 +1,4 @@
-import { motion } from "framer-motion"
+import { Download, X } from "lucide-react"
 
 interface UpdateModalProps {
   isOpen: boolean
@@ -16,54 +16,62 @@ export default function UpdateModal({ isOpen, title, message, buttons, onClose }
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="relative w-[90%] max-w-5xl 
-bg-base-100/20 backdrop-blur-lg 
-text-base-content 
-rounded-xl 
-border border-white/20 
-shadow-xl shadow-purple-500/10
-">
-        <motion.button
-          whileHover={{ scale: 1.1, rotate: 90 }}
-          transition={{ duration: 0.2 }}
-          className="btn btn-circle btn-md btn-error absolute right-3 top-3"
-          onClick={onClose}
-        >
-          ✕
-        </motion.button>
-
-        <div className="border-b border-purple-500/30 px-6 py-4 mb-4">
-          <h3 className="font-bold text-2xl text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-cyan-400">
-            {title}
-          </h3>
-        </div>
-
-        <div className="px-6 pb-6">
-          <div className="mb-6">
-            <p className="text-accent text-lg">{message}</p>
+    <div
+      className="cyrene-dialog-overlay"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
+    >
+      <section
+        className="cyrene-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="update-dialog-title"
+        aria-describedby="update-dialog-message"
+        tabIndex={-1}
+        autoFocus
+        onKeyDown={(event) => {
+          if (event.key === "Escape") onClose()
+        }}
+      >
+        <header className="cyrene-dialog__header">
+          <span className="cyrene-dialog__icon"><Download size={19} /></span>
+          <div>
+            <span className="eyebrow">CYRENE LAUNCHER</span>
+            <h2 id="update-dialog-title">{title}</h2>
           </div>
+          <button
+            type="button"
+            className="cyrene-dialog__close"
+            onClick={onClose}
+            aria-label="Close dialog"
+          >
+            <X size={17} />
+          </button>
+        </header>
 
-          <div className="flex justify-end gap-3">
-            {buttons.map((btn, idx) => (
-              <motion.button
-                key={idx}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className={`btn ${btn.variant === "primary"
-                    ? "btn-primary bg-gradient-to-r from-orange-200 to-red-400 border-none"
+        <div className="cyrene-dialog__body">
+          <p id="update-dialog-message">{message}</p>
+          <div className="cyrene-dialog__actions">
+            {buttons.map((btn, index) => (
+              <button
+                key={`${btn.text}-${index}`}
+                type="button"
+                className={`cyrene-dialog__button ${
+                  btn.variant === "primary"
+                    ? "cyrene-dialog__button--primary"
                     : btn.variant === "error"
-                      ? "btn-error"
-                      : "btn-outline btn-error"
-                  }`}
+                      ? "cyrene-dialog__button--danger"
+                      : "cyrene-dialog__button--outline"
+                }`}
                 onClick={btn.onClick}
               >
                 {btn.text}
-              </motion.button>
+              </button>
             ))}
           </div>
         </div>
-      </div>
+      </section>
     </div>
   )
 }
