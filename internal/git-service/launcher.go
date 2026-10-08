@@ -1,0 +1,133 @@
+package gitService
+
+import (
+	"Cyrene-launcher/pkg/constant"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"regexp"
+	"strings"
+	"time"
+
+	"github.com/minio/selfupdate"
+)
+
+type launcherManifest struct {
+	Version string `json:"version"`
+	SHA256  string `json:"sha256"`
+}
+
+var launcherVersionPattern = regexp.MustCompile(`^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$`)
+
+func (g *GitService) GetLatestLauncherVersion() (bool, string, string) {
+	manifest, err := fetchLauncherManifest(constant.LauncherManifestURL)
+	if err != nil {
+		return false, "", err.Error()
+	}
+	return true, manifest.Version, ""
+}
+
+func (g *GitService) UpdateLauncherProgress(version string) (bool, string) {
+	if !constant.LauncherUpdatesEnabled {
+		return false, "launcher updates are disabled in development builds"
+	}
+
+	manifest, err := fetchLauncherManifest(constant.LauncherManifestURL)
+	if err != nil {
+		return false, err.Error()
+	}
+	if manifest.Version != version {
+		return false, fmt.Sprintf("launcher update changed from %s to %s; check again", version, manifest.Version)
+	}
+
+	client := &http.Client{Timeout: 10 * time.Minute}
+	response, err := client.Get(constant.LauncherDownloadURL)
+	if err != nil {
+		return false, fmt.Errorf("download launcher update: %w", err).Error()
+	}
+	defer response.Body.Close()
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		return false, fmt.Sprintf("download launcher update: server returned %s", response.Status)
+	}
+
+	temporaryFile, err := os.CreateTemp("", "cyrene-launcher-update-*.exe")
+	if err != nil {
+		return false, fmt.Errorf("create temporary launcher update: %w", err).Error()
+	}
+	temporaryPath := temporaryFile.Name()
+	defer os.Remove(temporaryPath)
+
+	hash := sha256.New()
+	if _, err := io.Copy(io.MultiWriter(temporaryFile, hash), response.Body); err != nil {
+		temporaryFile.Close()
+		return false, fmt.Errorf("save launcher update: %w", err).Error()
+	}
+	if err := temporaryFile.Close(); err != nil {
+		return false, fmt.Errorf("close launcher update: %w", err).Error()
+	}
+
+	expectedHash, err := hex.DecodeString(manifest.SHA256)
+	if err != nil || subtle.ConstantTimeCompare(hash.Sum(nil), expectedHash) != 1 {
+		return false, "launcher update checksum mismatch"
+	}
+
+	updateFile, err := os.Open(temporaryPath)
+	if err != nil {
+		return false, fmt.Errorf("open launcher update: %w", err).Error()
+	}
+	defer updateFile.Close()
+	if err := selfupdate.Apply(updateFile, selfupdate.Options{}); err != nil {
+		return false, fmt.Errorf("apply launcher update: %w", err).Error()
+	}
+
+	return true, ""
+}
+
+func fetchLauncherManifest(manifestURL string) (launcherManifest, error) {
+	parsedURL, err := url.Parse(manifestURL)
+	if err != nil || (parsedURL.Scheme != "https" && parsedURL.Scheme != "http") {
+		return launcherManifest{}, fmt.Errorf("invalid launcher manifest URL")
+	}
+	query := parsedURL.Query()
+	query.Set("_", fmt.Sprintf("%d", time.Now().UnixNano()))
+	parsedURL.RawQuery = query.Encode()
+
+	request, err := http.NewRequest(http.MethodGet, parsedURL.String(), nil)
+	if err != nil {
+		return launcherManifest{}, fmt.Errorf("create launcher manifest request: %w", err)
+	}
+	request.Header.Set("Cache-Control", "no-cache")
+
+	client := &http.Client{Timeout: 20 * time.Second}
+	response, err := client.Do(request)
+	if err != nil {
+		return launcherManifest{}, fmt.Errorf("check launcher updates: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		return launcherManifest{}, fmt.Errorf("check launcher updates: server returned %s", response.Status)
+	}
+
+	var manifest launcherManifest
+	if err := json.NewDecoder(io.LimitReader(response.Body, 1<<20)).Decode(&manifest); err != nil {
+		return launcherManifest{}, fmt.Errorf("read launcher update manifest: %w", err)
+	}
+	if !launcherVersionPattern.MatchString(manifest.Version) {
+		return launcherManifest{}, fmt.Errorf("launcher update manifest has invalid version %q", manifest.Version)
+	}
+	manifest.SHA256 = strings.TrimSpace(manifest.SHA256)
+	if len(manifest.SHA256) != sha256.Size*2 {
+		return launcherManifest{}, fmt.Errorf("launcher update manifest has invalid SHA-256")
+	}
+	if _, err := hex.DecodeString(manifest.SHA256); err != nil {
+		return launcherManifest{}, fmt.Errorf("launcher update manifest has invalid SHA-256: %w", err)
+	}
+	manifest.SHA256 = strings.ToLower(manifest.SHA256)
+	return manifest, nil
+}

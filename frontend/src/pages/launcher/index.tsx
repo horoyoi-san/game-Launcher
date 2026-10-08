@@ -23,6 +23,7 @@ type CombinedLink = {
 
 export default function LauncherPage() {
     const gameSelectionChanged = useRef(false);
+    const [launcherVersion, setLauncherVersion] = useState("...");
 
     const [userName, setUserName] = useState<string>(() => {
         // โหลดจาก localStorage หรือ fallback เป็น default
@@ -52,6 +53,21 @@ export default function LauncherPage() {
     const [defaultBgType] = useState<"video" | "image">("video");
     const userColor = "#f2d99b";
 
+    useEffect(() => {
+        let active = true;
+        AppService.GetCurrentLauncherVersion()
+            .then(([ok, version]) => {
+                if (active) setLauncherVersion(ok ? version : "Unknown");
+            })
+            .catch((error) => {
+                console.error("Could not read launcher version", error);
+                if (active) setLauncherVersion("Unknown");
+            });
+
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const handleSetUserName = () => {
         setUserNameDraft(userName);
@@ -491,7 +507,7 @@ export default function LauncherPage() {
                     HSR BETA
                 </span>|
                 <span className="text-pink-400 font-semibold drop-shadow-[0_0_6px_rgba(255,105,180,0.8)] hover:drop-shadow-[0_0_12px_rgba(255,105,180,1)] transition">
-                    Cyrene Launcher Version: 0.0.7
+                    Cyrene Launcher Version: {launcherVersion}
                 </span>|
                 <span className="text-red-500 font-semibold drop-shadow-[0_0_6px_rgba(255,0,0,0.8)] hover:drop-shadow-[0_0_12px_rgba(255,0,0,1)] transition">
                     By Horoyoi-san

@@ -10,6 +10,9 @@ import (
 type AppService struct{}
 
 func (a *AppService) GetCurrentLauncherVersion() (bool, string) {
+	if !constant.LauncherUpdatesEnabled {
+		return true, "Development"
+	}
 	return true, constant.CurrentLauncherVersion
 }
 

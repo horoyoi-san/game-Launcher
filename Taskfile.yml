@@ -16,6 +16,8 @@ tasks:
     summary: Builds the application
     cmds:
       - task: "{{OS}}:build"
+        vars:
+          BUILD_VERSION: '{{.BUILD_VERSION | default "2.1.0"}}'
 
   package:
     summary: Packages a production build of the application
@@ -31,4 +33,3 @@ tasks:
     summary: Runs the application in development mode
     cmds:
       - wails3 dev -config ./build/config.yml -port {{.VITE_PORT}}
-

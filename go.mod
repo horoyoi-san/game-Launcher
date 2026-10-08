@@ -4,6 +4,7 @@ go 1.25.5
 
 require (
 	github.com/klauspost/compress v1.18.2
+	github.com/minio/selfupdate v0.6.0
 	github.com/wailsapp/wails/v3 v3.0.0-alpha.59
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
 	golang.org/x/sys v0.40.0
@@ -11,6 +12,7 @@ require (
 )
 
 require (
+	aead.dev/minisign v0.2.0 // indirect
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.3.0 // indirect

@@ -12,6 +12,7 @@ A lightweight and modern launcher for Anime game — designed to make launching,
 ## ✨ Features
 
 - 🔄 Automatically update Cyrene Go and proxy tools on launch
+- 🔔 Check for Cyrene Launcher updates automatically and install verified releases
 - 🎮 Launch the game with correct parameters and environment
 - 🌐 Switch in-game language (EN, JP, CN, KR) via Language Tools
 - 📦 Apply game patches using Hdiffz Tool (HDiffPatch-based)
@@ -61,6 +62,11 @@ wails3 build
 # Package the app (NSIS)
 wails3 package
 ```
+
+## 🔄 Cyrene Launcher Updates
+
+The `Cyrene.yml` workflow in the Hoyo repository increments the launcher version, embeds it in the Windows build, and publishes the executable together with a SHA-256 `latest.json` manifest to the existing `hkrpg` release. The launcher checks for updates on startup and periodically while it is open. Development builds display `Development` and cannot replace their executable.
+
 ---
 
 ## 📄 License
@@ -68,4 +74,3 @@ wails3 package
 MIT License — feel free to use and contribute.
 
 ---
-
