@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -86,7 +87,19 @@ func (g *GitService) UpdateLauncherProgress(version string) (bool, string) {
 
 func fetchLauncherManifest(manifestURL string) (launcherManifest, error) {
 	client := &http.Client{Timeout: 20 * time.Second}
-	response, err := client.Get(manifestURL)
+	parsedURL, err := url.Parse(manifestURL)
+	if err != nil || (parsedURL.Scheme != "https" && parsedURL.Scheme != "http") {
+		return launcherManifest{}, fmt.Errorf("invalid launcher manifest URL")
+	}
+	query := parsedURL.Query()
+	query.Set("_", fmt.Sprintf("%d", time.Now().UnixNano()))
+	parsedURL.RawQuery = query.Encode()
+	request, err := http.NewRequest(http.MethodGet, parsedURL.String(), nil)
+	if err != nil {
+		return launcherManifest{}, fmt.Errorf("create launcher manifest request: %w", err)
+	}
+	request.Header.Set("Cache-Control", "no-cache")
+	response, err := client.Do(request)
 	if err != nil {
 		return launcherManifest{}, fmt.Errorf("check launcher updates: %w", err)
 	}

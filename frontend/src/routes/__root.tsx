@@ -5,6 +5,7 @@ import useModalStore from '@/stores/modalStore';;
 import SettingModal from '@/components/settingModal';
 import CloseModal from '@/components/closeModal';
 import Header from '@/components/header';
+import { useAutoLauncherUpdate } from '@/hooks/useAutoLauncherUpdate';
 
 export const Route = createRootRoute({
     component: RootLayout
@@ -14,6 +15,7 @@ function RootLayout() {
     const { setIsOpenCloseModal, isOpenCloseModal, isOpenSettingModal, setIsOpenSettingModal } = useModalStore()
 
     useGlobalEvents();
+    useAutoLauncherUpdate();
 
 
     return (

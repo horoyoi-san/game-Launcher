@@ -22,13 +22,20 @@ export async function UpdateLauncher(launcherVersion: string): Promise<void> {
     const { setDownloadType } = useLauncherStore.getState()
     setDownloadType("update:launcher:downloading")
 
-    const [ok] = await GitService.UpdateLauncherProgress(launcherVersion)
-    if (ok) {
-        setDownloadType("update:launcher:success")
-    } else {
-        setDownloadType("update:launcher:failed")
-    }
+    try {
+        const [ok, error] = await GitService.UpdateLauncherProgress(launcherVersion)
+        if (!ok) {
+            throw new Error(error || "Launcher update failed")
+        }
 
-    AppService.CloseAppAfterTimeout(5)
-    await sleep(5000)
+        setDownloadType("update:launcher:success")
+        const [closeOk, closeError] = await AppService.CloseAppAfterTimeout(5)
+        if (!closeOk) {
+            throw new Error(closeError || "Could not close launcher after updating")
+        }
+        await sleep(5000)
+    } catch (error) {
+        setDownloadType("update:launcher:failed")
+        throw error
+    }
 }
