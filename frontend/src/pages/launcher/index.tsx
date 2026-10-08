@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Play, Menu, FolderOpen, Minus, UserRound, X } from 'lucide-react';
+import { ArrowDownToLine, Film, FolderOpen, ImagePlus, Menu, Minus, Play, RotateCcw, UserRound, Volume2, X } from 'lucide-react';
 import { AppService } from '@bindings/SilwerWolf999-launcher/internal/app-service';
 import { FSService } from '@bindings/SilwerWolf999-launcher/internal/fs-service';
 import { toast } from 'react-toastify';
@@ -29,6 +29,8 @@ export default function LauncherPage() {
     });
     const [isUserNameDialogOpen, setIsUserNameDialogOpen] = useState(false);
     const [userNameDraft, setUserNameDraft] = useState(userName);
+    const [isBackgroundDialogOpen, setIsBackgroundDialogOpen] = useState(false);
+    const [backgroundUrlDraft, setBackgroundUrlDraft] = useState("");
 
     const [videoSrc, setVideoSrc] = useState("/video3.mp4");
 
@@ -100,33 +102,31 @@ export default function LauncherPage() {
 
 
     const handleSetVideoUrl = () => {
-        const url = prompt("Enter video or image URL");
-        if (!url) return;
+        setBackgroundUrlDraft(localStorage.getItem("customBgUrl") || "");
+        setIsBackgroundDialogOpen(true);
+    };
 
-        let type: "video" | "image";
+    const saveBackgroundUrl = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const url = backgroundUrlDraft.trim();
+        const resourcePath = url.split(/[?#]/, 1)[0].toLowerCase();
+        const type = /\.(mp4|webm)$/.test(resourcePath)
+            ? "video"
+            : /\.(jpg|jpeg|png|webp)$/.test(resourcePath)
+                ? "image"
+                : null;
 
-        if (url.endsWith(".mp4") || url.endsWith(".webm")) {
-            type = "video";
-            setBgType(type);
-            setVideoSrc(url);
-        } else if (
-            url.endsWith(".jpg") ||
-            url.endsWith(".png") ||
-            url.endsWith(".jpeg") ||
-            url.endsWith(".webp")
-        ) {
-            type = "image";
-            setBgType(type);
-            setVideoSrc(url);
-        } else {
-            toast.error("Only .mp4 / .webm / .jpg / .png allowed");
+        if (!type) {
+            toast.error("Use a video (.mp4, .webm) or image (.jpg, .png, .webp) URL");
             return;
         }
 
+        setBgType(type);
+        setVideoSrc(url);
         localStorage.setItem("customBgUrl", url);
         localStorage.setItem("customBgType", type);
-
         setIsVideoLoading(false);
+        setIsBackgroundDialogOpen(false);
         toast.success("Background updated!");
     };
 
@@ -554,72 +554,81 @@ export default function LauncherPage() {
 
 
 
-                            <ul tabIndex={0} className="arcade-frame dropdown-content menu z-50 w-56 p-2">
-                                {/* ปุ่ม custom URL */}
-
+                            <ul tabIndex={0} className="arcade-frame dropdown-content menu z-50 max-h-[min(70vh,36rem)] w-72 flex-nowrap overflow-y-auto p-2.5">
+                                <li className="menu-title py-1 text-[9px] uppercase tracking-[0.18em] text-cyan-200/70">Launcher tools</li>
                                 <li>
                                     <button
-                                        onClick={() => {
-                                            window.open(
-                                                "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/SilwerWolf999-launcher.exe",
-                                                "_blank"
-                                            );
-                                        }}
+                                        className="min-h-8 gap-3 px-3 text-xs font-bold text-white/85 hover:bg-cyan-300/10 hover:text-cyan-100"
+                                        onClick={() => window.open("https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/SilwerWolf999-launcher.exe", "_blank")}
                                     >
-                                        SilwerWolf999 Launcher Update
+                                        <ArrowDownToLine size={15} className="text-cyan-200" />
+                                        Launcher download
                                     </button>
                                 </li>
-
                                 <li>
                                     <button
-                                        onClick={() => {
-                                            window.open(
-                                                "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/Sophon.Downloader.zip",
-                                                "_blank"
-                                            );
-                                        }}
+                                        className="min-h-8 gap-3 px-3 text-xs font-bold text-white/85 hover:bg-cyan-300/10 hover:text-cyan-100"
+                                        onClick={() => window.open("https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/Sophon.Downloader.zip", "_blank")}
                                     >
-                                        Sophon.download Update
+                                        <ArrowDownToLine size={15} className="text-cyan-200" />
+                                        Sophon downloader
                                     </button>
                                 </li>
-
-                                {/* ✅ ปุ่ม reset */}
-                                <li>
-                                    <button onClick={handleSetVideoUrl}>Set Background URL</button>
+                                <li role="presentation" className="px-3 py-1">
+                                    <div className="border-t border-white/10" />
                                 </li>
-
-                                {/* ปุ่ม video list */}
-                                {videos.map((v, index) => (
-                                    <li key={index}>
+                                <li className="menu-title py-1 text-[9px] uppercase tracking-[0.18em] text-fuchsia-200/70">Background</li>
+                                <li>
+                                    <button className="min-h-8 gap-3 px-3 text-xs font-bold text-white/85 hover:bg-fuchsia-300/10 hover:text-fuchsia-100" onClick={handleSetVideoUrl}>
+                                        <ImagePlus size={15} className="text-fuchsia-200" />
+                                        Use image or video URL
+                                    </button>
+                                </li>
+                                {videos.map((video) => (
+                                    <li key={video.name}>
                                         <button
+                                            className="min-h-8 gap-3 px-3 text-xs text-white/70 hover:bg-fuchsia-300/10 hover:text-white"
                                             onClick={() => {
                                                 setIsVideoLoading(true);
                                                 setBgType("video");
-                                                setVideoSrc(v.src);
+                                                setVideoSrc(video.src);
                                             }}
                                         >
-                                            {v.name}
+                                            <Film size={14} className="text-fuchsia-200/70" />
+                                            {video.name}
                                         </button>
                                     </li>
                                 ))}
-                                {/* ✅ ปุ่ม reset */}
                                 <li>
-                                    <button onClick={handleResetBackground}>Reset to Default Background</button>
+                                    <button className="min-h-8 gap-3 px-3 text-xs text-white/70 hover:bg-rose-300/10 hover:text-rose-100" onClick={handleResetBackground}>
+                                        <RotateCcw size={14} />
+                                        Reset background
+                                    </button>
                                 </li>
-
-                                <li><button onClick={handlePickFile}>Change Game Path</button></li>
-
+                                <li role="presentation" className="px-3 py-1">
+                                    <div className="border-t border-white/10" />
+                                </li>
+                                <li className="menu-title py-1 text-[9px] uppercase tracking-[0.18em] text-lime-200/70">Game files</li>
                                 <li>
-
+                                    <button className="min-h-8 gap-3 px-3 text-xs font-bold text-white/85 hover:bg-lime-300/10 hover:text-lime-100" onClick={handlePickFile}>
+                                        <FolderOpen size={15} className="text-lime-200" />
+                                        Change game path
+                                    </button>
                                 </li>
                                 <li>
-
+                                    <button
+                                        className="min-h-8 gap-3 px-3 text-xs font-bold text-white/85 hover:bg-lime-300/10 hover:text-lime-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                        disabled={!gameDir}
+                                        onClick={() => {
+                                            if (gameDir) {
+                                                void FSService.OpenFolder(gameDir + "/StarRail_Data/Persistent/Audio/AudioPackage/Windows");
+                                            }
+                                        }}
+                                    >
+                                        <Volume2 size={15} className="text-lime-200" />
+                                        Open voice folder
+                                    </button>
                                 </li>
-                                <li><button disabled={!gameDir} onClick={() => {
-                                    if (gameDir) {
-                                        FSService.OpenFolder(gameDir + "/StarRail_Data/Persistent/Audio/AudioPackage/Windows")
-                                    }
-                                }}>Open voice folder</button></li>
                             </ul>
 
                         </div>
@@ -862,6 +871,92 @@ export default function LauncherPage() {
                                     className="arcade-button arcade-button--primary min-h-10 px-4 text-[10px] disabled:cursor-not-allowed"
                                 >
                                     Save profile
+                                </button>
+                            </footer>
+                        </form>
+                    </section>
+                </div>
+            )}
+
+            {isBackgroundDialogOpen && (
+                <div
+                    className="fixed inset-0 z-[120] flex items-center justify-center bg-[#05060c]/85 p-4 backdrop-blur-md"
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) setIsBackgroundDialogOpen(false);
+                    }}
+                >
+                    <section
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="background-dialog-title"
+                        aria-describedby="background-dialog-description"
+                        className="arcade-frame w-full max-w-lg overflow-hidden text-white"
+                        onKeyDown={(event) => {
+                            if (event.key === "Escape") setIsBackgroundDialogOpen(false);
+                        }}
+                    >
+                        <header className="flex items-center justify-between border-b border-cyan-300/25 px-5 py-4">
+                            <div className="flex items-center gap-3">
+                                <div className="grid size-11 place-items-center border border-fuchsia-300/50 bg-fuchsia-400/10 text-fuchsia-200 shadow-[3px_3px_0_rgba(83,246,255,0.2)]">
+                                    <ImagePlus size={21} />
+                                </div>
+                                <div>
+                                    <p className="arcade-kicker text-[9px]">Launcher customization</p>
+                                    <h2 id="background-dialog-title" className="mt-1 text-base font-black uppercase tracking-wider">
+                                        Set background
+                                    </h2>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                aria-label="Close background dialog"
+                                onClick={() => setIsBackgroundDialogOpen(false)}
+                                className="grid size-8 place-items-center border border-white/15 text-white/60 transition hover:border-rose-300/60 hover:bg-rose-400/10 hover:text-rose-100"
+                            >
+                                <X size={16} />
+                            </button>
+                        </header>
+
+                        <form onSubmit={saveBackgroundUrl}>
+                            <div className="space-y-4 px-5 py-5">
+                                <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-cyan-100">
+                                    <span className="size-2 animate-pulse bg-cyan-300" />
+                                    Custom visual input
+                                </div>
+                                <div>
+                                    <label htmlFor="background-url-input" className="arcade-kicker mb-2 block text-[10px]">
+                                        Image or video URL
+                                    </label>
+                                    <input
+                                        id="background-url-input"
+                                        autoFocus
+                                        type="url"
+                                        value={backgroundUrlDraft}
+                                        onChange={(event) => setBackgroundUrlDraft(event.target.value)}
+                                        placeholder="https://example.com/background.mp4"
+                                        className="h-12 w-full border-2 border-cyan-300/35 bg-[#070912] px-3 text-sm font-bold text-white outline-none placeholder:font-normal placeholder:text-white/30 focus:border-cyan-200 focus:shadow-[0_0_14px_rgba(83,246,255,0.16)]"
+                                    />
+                                    <p id="background-dialog-description" className="mt-2 text-[10px] leading-relaxed text-white/45">
+                                        Supported formats: MP4, WebM, JPG, PNG and WebP. The selected background is saved on this device.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <footer className="flex justify-end gap-2 border-t border-white/10 bg-black/20 px-5 py-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsBackgroundDialogOpen(false)}
+                                    className="min-h-10 border border-white/15 px-4 text-[10px] font-black uppercase tracking-wider text-white/65 transition hover:bg-white/5 hover:text-white"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={!backgroundUrlDraft.trim()}
+                                    className="arcade-button arcade-button--primary inline-flex min-h-10 items-center gap-2 px-4 text-[10px] disabled:cursor-not-allowed"
+                                >
+                                    <ImagePlus size={15} />
+                                    Apply background
                                 </button>
                             </footer>
                         </form>

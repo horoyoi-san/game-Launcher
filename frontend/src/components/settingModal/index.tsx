@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Check, Languages, LoaderCircle, Monitor, Power, RefreshCw, Settings2, X } from "lucide-react"
+import { AlertTriangle, Check, Languages, LoaderCircle, Monitor, Power, RefreshCw, Settings2, X } from "lucide-react"
 import { CheckUpdateLauncher } from "@/helper"
 import useSettingStore from "@/stores/settingStore"
 import { toast } from "react-toastify"
@@ -19,11 +19,13 @@ export default function SettingModal({
 }) {
     const { closingOption, setClosingOption } = useSettingStore()
     const [updateStatus, setUpdateStatus] = useState<UpdateStatus>("idle")
+    const [updateError, setUpdateError] = useState("")
 
     if (!isOpen) return null
 
     const checkUpdate = async () => {
         setUpdateStatus("checking")
+        setUpdateError("")
         try {
             const launcherData = await CheckUpdateLauncher()
             if (!launcherData.isUpdate) {
@@ -32,7 +34,10 @@ export default function SettingModal({
             }
             toast.info(`Launcher update ${launcherData.version} is available`)
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : "Unable to check for launcher updates")
+            const message = error instanceof Error ? error.message : "Unable to check for launcher updates"
+            setUpdateError(message.includes("404")
+                ? "Update feed is not published yet. The Sophon.Downloader release needs a latest.json asset."
+                : message)
         } finally {
             setUpdateStatus("idle")
         }
@@ -89,6 +94,12 @@ export default function SettingModal({
                                 <p className="mt-1 text-sm leading-relaxed text-white/55">
                                     Check whether you are using the latest launcher version.
                                 </p>
+                                {updateError && (
+                                    <div role="alert" className="mt-3 flex gap-2 border border-rose-300/25 bg-rose-300/10 p-3 text-xs leading-relaxed text-rose-100">
+                                        <AlertTriangle size={15} className="mt-0.5 shrink-0 text-rose-200" />
+                                        <span>{updateError}</span>
+                                    </div>
+                                )}
                                 <button
                                     type="button"
                                     disabled={updateStatus === "checking"}

@@ -1,58 +1,38 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { CheckUpdateLauncher, UpdateLauncher } from "@/helper/launcher";
 
 const launcherUpdateCheckInterval = 60_000;
 
 export function useAutoLauncherUpdate() {
+    const [availableVersion, setAvailableVersion] = useState("");
+    const [isUpdating, setIsUpdating] = useState(false);
+    const [updateError, setUpdateError] = useState("");
+    const updatingRef = useRef(false);
+    const dismissedVersionRef = useRef("");
+
     useEffect(() => {
         let active = true;
         let checking = false;
-        let updating = false;
         let notifiedVersion = "";
         let reportedInitialError = false;
 
         const checkForUpdate = async () => {
-            if (checking || updating) return;
+            if (checking || updatingRef.current) return;
             checking = true;
 
             try {
                 const update = await CheckUpdateLauncher();
-                if (!active || !update.isUpdate) return;
+                if (!active) return;
+                if (!update.isUpdate) {
+                    setAvailableVersion("");
+                    return;
+                }
 
-                const toastId = `launcher-update-${update.version}`;
-                if (update.version === notifiedVersion && toast.isActive(toastId)) return;
+                if (update.version === notifiedVersion || update.version === dismissedVersionRef.current) return;
                 notifiedVersion = update.version;
-
-                toast.info(
-                    <div className="space-y-3">
-                        <p>Launcher update {update.version} is available.</p>
-                        <button
-                            type="button"
-                            className="arcade-button min-h-9 px-3 text-xs"
-                            onClick={() => {
-                                if (updating) return;
-                                updating = true;
-                                toast.dismiss(toastId);
-                                void UpdateLauncher(update.version)
-                                    .catch((error: unknown) => {
-                                        notifiedVersion = "";
-                                        toast.error(error instanceof Error ? error.message : "Launcher update failed");
-                                    })
-                                    .finally(() => {
-                                        updating = false;
-                                    });
-                            }}
-                        >
-                            Update now
-                        </button>
-                    </div>,
-                    {
-                        toastId,
-                        autoClose: false,
-                        closeOnClick: false,
-                    },
-                );
+                setUpdateError("");
+                setAvailableVersion(update.version);
             } catch (error) {
                 if (!reportedInitialError) {
                     console.warn("Could not check for launcher updates", error);
@@ -73,4 +53,29 @@ export function useAutoLauncherUpdate() {
             window.clearInterval(intervalId);
         };
     }, []);
+
+    const dismissUpdate = useCallback(() => {
+        dismissedVersionRef.current = availableVersion;
+        setAvailableVersion("");
+    }, [availableVersion]);
+
+    const installUpdate = useCallback(async () => {
+        if (!availableVersion || updatingRef.current) return;
+        updatingRef.current = true;
+        setIsUpdating(true);
+        setUpdateError("");
+
+        try {
+            await UpdateLauncher(availableVersion);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Launcher update failed";
+            setUpdateError(message);
+            toast.error(message);
+        } finally {
+            updatingRef.current = false;
+            setIsUpdating(false);
+        }
+    }, [availableVersion]);
+
+    return { availableVersion, dismissUpdate, installUpdate, isUpdating, updateError };
 }
