@@ -4,7 +4,7 @@ import { FSService } from "@bindings/Cyrene-launcher/internal/fs-service";
 import { GitService } from "@bindings/Cyrene-launcher/internal/git-service";
 import { toast } from "react-toastify";
 
-export async function CheckUpdateProxy(proxyPath: string, proxyVersion: string) : Promise<{isUpdate: boolean, isExists: boolean, version: string}> {
+export async function CheckUpdateProxy(proxyPath: string, proxyVersion: string): Promise<{isUpdate: boolean, isExists: boolean, version: string}> {
     const resolvedProxyPath = proxyPath || "./proxy/Proxy.exe"
     const isExists = await FSService.FileExists(resolvedProxyPath)
 
@@ -13,37 +13,34 @@ export async function CheckUpdateProxy(proxyPath: string, proxyVersion: string) 
         if (!proxyPath) {
             setProxyPath(resolvedProxyPath)
         }
-        return { isUpdate: false, isExists: true, version: proxyVersion }
+        return { isUpdate: proxyVersion !== "hkrpg", isExists: true, version: "hkrpg" }
     }
 
     return { isUpdate: false, isExists, version: "" }
 }
 
-export async function UpdateProxy(proxyVersion: string) : Promise<boolean> {
-    const {setDownloadType } = useLauncherStore.getState()
-    const {setProxyPath, setProxyVersion} = useSettingStore.getState()
-    let targetVersion = proxyVersion
-    if (!targetVersion) {
-        const [ok, latestVersion, error] = await GitService.GetLatestProxyVersion()
-        if (!ok) {
-            toast.error("Proxy error: " + error)
-            return false
-        }
-        targetVersion = latestVersion
-    }
+export async function UpdateProxy(_proxyVersion: string): Promise<boolean> {
+    const { setDownloadType } = useLauncherStore.getState()
+    const { setProxyPath, setProxyVersion } = useSettingStore.getState()
 
-    setDownloadType("Downloading proxy...")
-    const [ok, error] = await GitService.DownloadProxyProgress(targetVersion)
-    if (ok) {
-        setDownloadType("Unzipping proxy...")
-        GitService.UnzipProxy()
-        setDownloadType("Download proxy successfully")
-        setProxyVersion(targetVersion)
-        setProxyPath("./proxy/Proxy.exe")
-        return true
-    } else {
-        toast.error(error)
+    setDownloadType("Downloading HKRPG proxy...")
+    const [downloaded, downloadError] = await GitService.DownloadHKRPGProxyProgress()
+    if (!downloaded) {
+        toast.error(downloadError || "Could not download the proxy")
         setDownloadType("Download proxy failed")
         return false
     }
+
+    setDownloadType("Extracting proxy...")
+    const [extracted, extractError] = await GitService.ExtractHKRPGProxy()
+    if (!extracted) {
+        toast.error(extractError || "Could not extract the proxy")
+        setDownloadType("Extract proxy failed")
+        return false
+    }
+
+    setDownloadType("Proxy is ready")
+    setProxyVersion("hkrpg")
+    setProxyPath("./proxy/Proxy.exe")
+    return true
 }

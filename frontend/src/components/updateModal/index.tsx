@@ -8,6 +8,7 @@ interface UpdateModalProps {
     text: string
     onClick: () => Promise<void> | void
     variant?: "primary" | "error" | "outline"
+    disabled?: boolean
   }[]
   onClose: () => void
 }
@@ -57,6 +58,7 @@ export default function UpdateModal({ isOpen, title, message, buttons, onClose }
               <button
                 key={`${btn.text}-${index}`}
                 type="button"
+                disabled={btn.disabled}
                 className={`cyrene-dialog__button ${
                   btn.variant === "primary"
                     ? "cyrene-dialog__button--primary"

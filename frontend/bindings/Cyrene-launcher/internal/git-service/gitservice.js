@@ -7,6 +7,27 @@
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 /**
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function DownloadHKRPGPatchProgress() {
+    return $Call.ByID(2298868081);
+}
+
+/**
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function DownloadHKRPGProxyProgress() {
+    return $Call.ByID(906638835);
+}
+
+/**
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function DownloadHKRPGServerProgress() {
+    return $Call.ByID(3677353652);
+}
+
+/**
  * @param {string} version
  * @returns {$CancellablePromise<[boolean, string]>}
  */
@@ -20,6 +41,20 @@ export function DownloadProxyProgress(version) {
  */
 export function DownloadServerProgress(version) {
     return $Call.ByID(2046961256, version);
+}
+
+/**
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function ExtractHKRPGProxy() {
+    return $Call.ByID(1431807301);
+}
+
+/**
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function ExtractHKRPGServer() {
+    return $Call.ByID(2410566728);
 }
 
 /**
@@ -41,6 +76,14 @@ export function GetLatestProxyVersion() {
  */
 export function GetLatestServerVersion() {
     return $Call.ByID(3573241564);
+}
+
+/**
+ * @param {string} gameDir
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function InstallHKRPGPatch(gameDir) {
+    return $Call.ByID(1329304953, gameDir);
 }
 
 /**

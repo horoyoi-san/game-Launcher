@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { AppService } from '@bindings/Cyrene-launcher/internal/app-service'
 import useSettingStore from "@/stores/settingStore"
-import { Check, Download, Languages, LoaderCircle, Monitor, Power, RefreshCw, X } from "lucide-react"
+import { Check, Download, Languages, LoaderCircle, Monitor, Power, RefreshCw, Server, X } from "lucide-react"
 import i18n from "i18next"
 import { CheckUpdateLauncher, UpdateLauncher } from "@/helper"
 
@@ -12,7 +12,7 @@ export default function SettingModal({
     isOpen: boolean
     onClose: () => void
 }) {
-    const { closingOption, setClosingOption } = useSettingStore()
+    const { closingOption, setClosingOption, connectionMode, setConnectionMode } = useSettingStore()
     const activeLanguage = i18n.resolvedLanguage ?? i18n.language
     const [isCheckingUpdates, setIsCheckingUpdates] = useState(false)
     const [isInstallingUpdate, setIsInstallingUpdate] = useState(false)
@@ -147,6 +147,38 @@ export default function SettingModal({
                                 <span>FHD</span>
                                 <strong>1920 <i>×</i> 1080</strong>
                                 <small>Full screen</small>
+                            </button>
+                        </div>
+                    </section>
+
+                    <section className="settings-section">
+                        <div className="settings-section__heading">
+                            <span className="settings-section__icon"><Server size={17} /></span>
+                            <div>
+                                <h3>HKRPG connection method</h3>
+                                <p>Choose how the launcher connects the game to the server.</p>
+                            </div>
+                        </div>
+                        <div className="settings-choice-grid">
+                            <button
+                                type="button"
+                                className={`settings-choice ${connectionMode === "proxy" ? "is-selected" : ""}`}
+                                onClick={() => setConnectionMode("proxy")}
+                                aria-pressed={connectionMode === "proxy"}
+                            >
+                                <span>RECOMMENDED</span>
+                                <strong>Proxy</strong>
+                                <small>Run the proxy beside the game</small>
+                            </button>
+                            <button
+                                type="button"
+                                className={`settings-choice ${connectionMode === "patch" ? "is-selected" : ""}`}
+                                onClick={() => setConnectionMode("patch")}
+                                aria-pressed={connectionMode === "patch"}
+                            >
+                                <span>PATCH</span>
+                                <strong>Patched launcher</strong>
+                                <small>Install launcher.exe and hkrpg.dll</small>
                             </button>
                         </div>
                     </section>

@@ -11,7 +11,9 @@ A lightweight and modern launcher for Anime game — designed to make launching,
 
 ## ✨ Features
 
-- 🔄 Automatically update Cyrene Go and proxy tools on launch
+- 🔄 Download the HKRPG server and choose either proxy or patched-launcher connectivity
+- 🎮 Start the HKRPG game and SDK server processes together
+- 🛡️ Preserve original `launcher.exe` and `hkrpg.dll` files as `.cyrene-backup` copies before patching
 - 🔔 Check for Cyrene Launcher updates automatically and install verified releases
 - 🎮 Launch the game with correct parameters and environment
 - 🌐 Switch in-game language (EN, JP, CN, KR) via Language Tools

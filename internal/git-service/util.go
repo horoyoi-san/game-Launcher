@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -200,14 +201,19 @@ func (g *GitService) unzipParallel(src string, dest string) error {
 	}
 	jobs := make(chan job)
 	var wg sync.WaitGroup
+	var errorMu sync.Mutex
+	var extractionError error
 
 	for i := 0; i < maxWorkers; i++ {
 
 		wg.Go(func() {
 			for j := range jobs {
-				err := g.extractFile(j.f, dest)
-				if err != nil {
-					fmt.Printf("Error extracting %s: %v\n", j.f.Name, err)
+				if err := g.extractFile(j.f, dest); err != nil {
+					errorMu.Lock()
+					if extractionError == nil {
+						extractionError = fmt.Errorf("extract %s: %w", j.f.Name, err)
+					}
+					errorMu.Unlock()
 				}
 			}
 		})
@@ -220,17 +226,21 @@ func (g *GitService) unzipParallel(src string, dest string) error {
 
 	wg.Wait()
 
-	return nil
+	return extractionError
 }
 
 func (g *GitService) extractFile(f *zip.File, dest string) error {
-	fp := filepath.Join(dest, f.Name)
+	fp := filepath.Join(dest, filepath.FromSlash(f.Name))
+	relativePath, err := filepath.Rel(dest, fp)
+	if err != nil || relativePath == ".." || strings.HasPrefix(relativePath, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("archive entry escapes destination")
+	}
 
 	if f.FileInfo().IsDir() {
 		return os.MkdirAll(fp, f.Mode())
 	}
 
-	err := os.MkdirAll(filepath.Dir(fp), 0755)
+	err = os.MkdirAll(filepath.Dir(fp), 0755)
 	if err != nil {
 		return err
 	}

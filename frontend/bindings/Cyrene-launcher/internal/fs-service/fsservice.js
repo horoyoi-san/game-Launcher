@@ -103,6 +103,13 @@ export function StartApp(path) {
 }
 
 /**
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function StartHKRPGServer() {
+    return $Call.ByID(3386407929);
+}
+
+/**
  * @param {string} path
  * @returns {$CancellablePromise<[boolean, string]>}
  */

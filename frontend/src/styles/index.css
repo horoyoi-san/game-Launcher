@@ -617,6 +617,12 @@ a,
     background: rgba(127, 98, 190, 0.14);
 }
 
+.settings-choice.is-selected {
+    border-color: rgba(194, 169, 255, 0.4);
+    background: rgba(132, 101, 198, 0.15);
+    color: #f0eaff;
+}
+
 .settings-choice > span {
     grid-column: 1 / -1;
     color: #9d91bd;
@@ -3157,8 +3163,10 @@ body::before {
 }
 
 .cyrene-quick-menu__panel {
-    width: 272px;
+    box-sizing: border-box;
+    width: min(272px, calc(100vw - 82px));
     max-height: min(72vh, 590px);
+    flex-flow: column nowrap;
     overflow-x: hidden;
     overflow-y: auto;
     border: 1px solid rgba(242, 217, 155, 0.27);
@@ -3193,6 +3201,9 @@ body::before {
 
 .cyrene-quick-menu__panel li > button {
     display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
     min-height: 38px;
     align-items: center;
     gap: 10px;
@@ -3230,10 +3241,4 @@ body::before {
 
 .cyrene-quick-menu__panel li > button:disabled svg {
     color: rgba(199, 184, 255, 0.32);
-}
-
-@media (max-width: 600px) {
-    .cyrene-quick-menu__panel {
-        width: min(272px, calc(100vw - 82px));
-    }
 }

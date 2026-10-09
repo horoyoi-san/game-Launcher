@@ -1,12 +1,15 @@
 package fsService
 
 import (
+	"Cyrene-launcher/pkg/constant"
 	"Cyrene-launcher/pkg/sevenzip"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"golang.org/x/sys/windows"
@@ -90,13 +93,73 @@ func (f *FSService) StartApp(path string) (bool, string) {
 }
 
 func (f *FSService) StartWithConsole(path string) (bool, string) {
-	absPath, err := filepath.Abs(path)
+	cmd, absPath, err := startConsoleProcess(path)
 	if err != nil {
 		return false, err.Error()
 	}
 
-	if _, err := os.Stat(absPath); os.IsNotExist(err) {
-		return false, "file not found: " + absPath
+	if err := cmd.Start(); err != nil {
+		return false, err.Error()
+	}
+
+	go func() {
+		_ = cmd.Wait()
+		switch strings.ToLower(filepath.Base(absPath)) {
+		case "launcher.exe":
+			application.Get().Event.Emit("game:exit")
+		case "firefly-go_win.exe", constant.HKRPGServerExecutable, constant.HKRPGSDKServerExecutable:
+			application.Get().Event.Emit("server:exit")
+		case "firefly-go-proxy.exe", "proxy.exe":
+			application.Get().Event.Emit("proxy:exit")
+		}
+	}()
+	return true, ""
+}
+
+func (f *FSService) StartHKRPGServer() (bool, string) {
+	serverExecutables := []string{
+		filepath.Join(constant.ServerStorageUrl, constant.HKRPGSDKServerExecutable),
+		filepath.Join(constant.ServerStorageUrl, constant.HKRPGServerExecutable),
+	}
+	commands := make([]*exec.Cmd, 0, len(serverExecutables))
+	for _, executable := range serverExecutables {
+		command, _, err := startConsoleProcess(executable)
+		if err != nil {
+			stopStartedProcesses(commands)
+			return false, fmt.Errorf("prepare server process %s: %w", executable, err).Error()
+		}
+		if err := command.Start(); err != nil {
+			stopStartedProcesses(commands)
+			return false, fmt.Errorf("start server process %s: %w", executable, err).Error()
+		}
+		commands = append(commands, command)
+	}
+
+	go func() {
+		var waitGroup sync.WaitGroup
+		for _, command := range commands {
+			waitGroup.Go(func() {
+				_ = command.Wait()
+			})
+		}
+		waitGroup.Wait()
+		application.Get().Event.Emit("server:exit")
+	}()
+	return true, ""
+}
+
+func startConsoleProcess(path string) (*exec.Cmd, string, error) {
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return nil, "", err
+	}
+
+	info, err := os.Stat(absPath)
+	if err != nil {
+		return nil, "", fmt.Errorf("file not found: %s: %w", absPath, err)
+	}
+	if !info.Mode().IsRegular() {
+		return nil, "", fmt.Errorf("not a file: %s", absPath)
 	}
 	cmd := exec.Command(absPath)
 	cmd.Dir = filepath.Dir(absPath)
@@ -109,24 +172,16 @@ func (f *FSService) StartWithConsole(path string) (bool, string) {
 			windows.CREATE_BREAKAWAY_FROM_JOB,
 		NoInheritHandles: true,
 	}
+	return cmd, absPath, nil
+}
 
-	err = cmd.Start()
-
-	if err != nil {
-		return false, err.Error()
-	}
-
-	go func() {
-		_ = cmd.Wait()
-		if strings.HasSuffix(path, "launcher.exe") {
-			application.Get().Event.Emit("game:exit")
-		} else if strings.HasSuffix(path, "firefly-go_win.exe") {
-			application.Get().Event.Emit("server:exit")
-		} else if strings.HasSuffix(path, "firefly-go-proxy.exe") {
-			application.Get().Event.Emit("proxy:exit")
+func stopStartedProcesses(commands []*exec.Cmd) {
+	for _, command := range commands {
+		if command.Process != nil {
+			_ = command.Process.Kill()
+			_ = command.Wait()
 		}
-	}()
-	return true, ""
+	}
 }
 
 func (f *FSService) OpenFolder(path string) (bool, string) {

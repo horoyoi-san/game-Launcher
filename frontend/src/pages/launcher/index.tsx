@@ -8,7 +8,7 @@ import useSettingStore from '@/stores/settingStore';
 import useModalStore from '@/stores/modalStore';
 import useLauncherStore from '@/stores/launcherStore';
 import { motion } from 'motion/react';
-import { CheckUpdateProxy, sleep, UpdateProxy } from '@/helper';
+import { CheckPatchInstalled, CheckUpdateProxy, CheckUpdateServer, sleep, UpdatePatch, UpdateProxy, UpdateServer } from '@/helper';
 import UpdateModal from '@/components/updateModal';
 import usePanelStore from "@/stores/panelStore";
 
@@ -24,6 +24,7 @@ type CombinedLink = {
 export default function LauncherPage() {
     const gameSelectionChanged = useRef(false);
     const [launcherVersion, setLauncherVersion] = useState("...");
+    const [isGamePathValid, setIsGamePathValid] = useState(false);
 
     const [userName, setUserName] = useState<string>(() => {
         // โหลดจาก localStorage หรือ fallback เป็น default
@@ -181,9 +182,12 @@ export default function LauncherPage() {
         setGamePath,
         setGameDir,
         serverPath,
-        proxyPath,
-        gameDir,
-        proxyVersion,
+    serverVersion,
+    proxyPath,
+    gameDir,
+    proxyVersion,
+    connectionMode,
+    patchInstalledGameDir,
 
     } = useSettingStore()
 
@@ -207,6 +211,7 @@ export default function LauncherPage() {
 
         setIsLoading,
         setDownloadType,
+        setServerReady,
         setProxyReady,
         setIsDownloading,
         setServerRunning,
@@ -267,54 +272,100 @@ export default function LauncherPage() {
 
     useEffect(() => {
         const check = async () => {
-            const resolvedProxyPath = proxyPath || "./proxy/Proxy.exe"
-            const proxyExists = await FSService.FileExists(resolvedProxyPath)
-            setProxyReady(proxyExists)
+            if (connectionMode !== "proxy") {
+                setProxyReady(true)
+                return
+            }
+            const proxyData = await CheckUpdateProxy(proxyPath, proxyVersion)
+            setProxyReady(proxyData.isExists && !proxyData.isUpdate)
         }
 
-        check()
-    }, [proxyPath])
+        void check().catch((error: unknown) => {
+            toast.error(`Could not check proxy files: ${error instanceof Error ? error.message : String(error)}`)
+        })
+    }, [proxyPath, proxyVersion, connectionMode])
 
     useEffect(() => {
         const checkStartUp = async (): Promise<void> => {
             const restoreGameSelection = async () => {
-                const [savedGamePath, savedGameDir] = await FSService.GetSavedGameSelection()
-                if (savedGamePath && !gameSelectionChanged.current) {
-                    const restoredGameDir = savedGameDir || path.dirname(savedGamePath.replace(/\\/g, '/'))
-                    setGamePath(savedGamePath)
-                    setGameDir(restoredGameDir)
-                    return
+                let savedGamePath = ""
+                let savedGameDir = ""
+                try {
+                    [savedGamePath, savedGameDir] = await FSService.GetSavedGameSelection()
+                } catch (error: unknown) {
+                    toast.error(`Could not read saved game location: ${error instanceof Error ? error.message : String(error)}`)
                 }
 
-                if (!gamePath) return
+                const restoredGamePath = !gameSelectionChanged.current ? savedGamePath || gamePath : gamePath
+                const restoredGameDir = restoredGamePath
+                    ? savedGameDir || gameDir || path.dirname(restoredGamePath.replace(/\\/g, '/'))
+                    : ""
 
-                const legacyGameDir = gameDir || path.dirname(gamePath.replace(/\\/g, '/'))
-                setGameDir(legacyGameDir)
-                await FSService.SaveGameSelection(gamePath, legacyGameDir)
+                if (!restoredGamePath) {
+                    setGamePath("")
+                    setGameDir("")
+                    setIsGamePathValid(false)
+                    return ""
+                }
+
+                const normalizedGamePath = restoredGamePath.replace(/\\/g, '/')
+                const executableName = path.basename(normalizedGamePath).toLowerCase()
+                const validExecutable = executableName === "starrail.exe" || executableName === "launcher.exe"
+                const gameDataExists = await FSService.DirExists(
+                    path.join(restoredGameDir, "StarRail_Data", "StreamingAssets", "DesignData", "Windows")
+                )
+                const gameExecutableExists = await FSService.FileExists(restoredGamePath)
+                if (!validExecutable || !gameExecutableExists || !gameDataExists) {
+                    setGamePath("")
+                    setGameDir("")
+                    setIsGamePathValid(false)
+                    try {
+                        await FSService.SaveGameSelection("", "")
+                    } catch (error: unknown) {
+                        toast.error(`Could not clear invalid saved game location: ${error instanceof Error ? error.message : String(error)}`)
+                    }
+                    return ""
+                }
+
+                setGamePath(restoredGamePath)
+                setGameDir(restoredGameDir)
+                setIsGamePathValid(true)
+                if (savedGamePath !== restoredGamePath || savedGameDir !== restoredGameDir) {
+                    await FSService.SaveGameSelection(restoredGamePath, restoredGameDir)
+                }
+                return restoredGameDir
             }
 
+            let restoredGameDir = gameDir
             try {
-                await restoreGameSelection()
+                restoredGameDir = await restoreGameSelection() || ""
             } catch (err: unknown) {
                 toast.error(`Could not restore saved game location: ${err instanceof Error ? err.message : String(err)}`)
             }
 
-            const proxyData = await CheckUpdateProxy(proxyPath, proxyVersion)
+            const serverData = await CheckUpdateServer(serverPath, serverVersion)
+            const proxyData = connectionMode === "proxy"
+                ? await CheckUpdateProxy(proxyPath, proxyVersion)
+                : { isUpdate: false, isExists: true, version: "" }
             setUpdateData({
-                server: { isUpdate: false, isExists: true, version: "" },
+                server: serverData,
                 proxy: proxyData,
                 launcher: { isUpdate: false, isExists: true, version: "" }
             })
+            setServerReady(serverData.isExists && !serverData.isUpdate)
+            setProxyReady(connectionMode !== "proxy" || (proxyData.isExists && !proxyData.isUpdate))
 
-            if (!proxyData.isExists) {
-                setProxyReady(false)
+            const patchIsInstalled = connectionMode !== "patch" ||
+                !restoredGameDir ||
+                await CheckPatchInstalled(restoredGameDir, patchInstalledGameDir)
+            if (!serverData.isExists || serverData.isUpdate ||
+                !proxyData.isExists || proxyData.isUpdate || !patchIsInstalled) {
                 setIsOpenDownloadDataModal(true)
-                return
             }
-
-            setProxyReady(true)
         }
-        checkStartUp()
+        void checkStartUp().catch((error: unknown) => {
+            toast.error(`Could not check HKRPG files: ${error instanceof Error ? error.message : String(error)}`)
+        })
     }, []);
 
     const handlePickFile = async () => {
@@ -323,22 +374,24 @@ export default function LauncherPage() {
             const basePath = await FSService.PickFile("exe")
             if (!basePath) return
 
-            if (basePath.endsWith("StarRail.exe") || basePath.endsWith("launcher.exe")) {
-                const normalized = basePath.replace(/\\/g, '/')
+            const normalized = basePath.replace(/\\/g, '/')
+            const executableName = path.basename(normalized).toLowerCase()
+            if (executableName === "starrail.exe" || executableName === "launcher.exe") {
                 const folderPath = path.dirname(normalized)
-                const fullPath = `${folderPath}/StarRail_Data/StreamingAssets/DesignData/Windows`
+                const fullPath = path.join(folderPath, "StarRail_Data", "StreamingAssets", "DesignData", "Windows")
                 const exists = await FSService.DirExists(fullPath)
                 if (!exists) {
                     toast.error('Game directory not found. Please select the correct folder.')
                 } else {
-                    gameSelectionChanged.current = true
-                    setGamePath(basePath)
-                    setGameDir(folderPath)
                     try {
                         await FSService.SaveGameSelection(basePath, folderPath)
+                        gameSelectionChanged.current = true
+                        setGamePath(basePath)
+                        setGameDir(folderPath)
+                        setIsGamePathValid(true)
                         toast.success('Game path saved successfully')
                     } catch (err: unknown) {
-                        toast.error(`Game path selected but could not sync to app settings: ${err instanceof Error ? err.message : String(err)}`)
+                        toast.error(`Could not save selected game location: ${err instanceof Error ? err.message : String(err)}`)
                     }
                 }
             } else {
@@ -385,60 +438,82 @@ export default function LauncherPage() {
             const gameExists = await FSService.FileExists(gamePath)
             if (!gameExists) {
                 toast.error('Selected game file could not be found. Please choose the game file again.')
+                setIsGamePathValid(false)
+                setGamePath("")
+                setGameDir("")
+                try {
+                    await FSService.SaveGameSelection("", "")
+                } catch (error: unknown) {
+                    toast.error(`Could not clear missing game location: ${error instanceof Error ? error.message : String(error)}`)
+                }
                 return
             }
 
-            const activeServerPath = serverPath || "./server/firefly-go_win.exe"
             const activeProxyPath = proxyPath || "./proxy/Proxy.exe"
-            const proxyData = await CheckUpdateProxy(proxyPath, proxyVersion)
+            const serverData = await CheckUpdateServer(serverPath, serverVersion)
+            const proxyData = connectionMode === "proxy"
+                ? await CheckUpdateProxy(proxyPath, proxyVersion)
+                : { isUpdate: false, isExists: true, version: "" }
             setUpdateData({
-                server: { isUpdate: false, isExists: true, version: "" },
+                server: serverData,
                 proxy: proxyData,
                 launcher: updateData.launcher
             })
 
-            if (!proxyData.isExists) {
-                setProxyReady(false)
+            setServerReady(serverData.isExists && !serverData.isUpdate)
+            if (!serverData.isExists || serverData.isUpdate ||
+                (connectionMode === "proxy" && (!proxyData.isExists || proxyData.isUpdate))) {
+                setProxyReady(connectionMode !== "proxy" || (proxyData.isExists && !proxyData.isUpdate))
                 setIsOpenDownloadDataModal(true)
                 return
             }
 
-            if (!proxyRunning && !gamePath.endsWith("launcher.exe")) {
-                const resultProxy = await FSService.StartWithConsole(activeProxyPath)
-                if (!resultProxy) {
-                    toast.error('Failed to start proxy')
+            if (connectionMode === "patch" && !(await CheckPatchInstalled(gameDir, patchInstalledGameDir))) {
+                setIsOpenDownloadDataModal(true)
+                return
+            }
+
+            if (connectionMode === "proxy" && !proxyRunning && !gamePath.endsWith("launcher.exe")) {
+                const [proxyStarted, proxyError] = await FSService.StartWithConsole(activeProxyPath)
+                if (!proxyStarted) {
+                    toast.error(`Failed to start proxy: ${proxyError}`)
                     return
                 }
                 setProxyRunning(true)
             }
-            await sleep(500)
-            const serverExists = await FSService.FileExists(activeServerPath)
-            if (serverExists && !serverRunning) {
-                const resultServer = await FSService.StartWithConsole(activeServerPath)
-                if (!resultServer) {
-                    toast.error('Failed to start server')
+            if (!serverRunning) {
+                const [serverStarted, serverError] = await FSService.StartHKRPGServer()
+                if (!serverStarted) {
+                    toast.error(`Failed to start server: ${serverError}`)
                     return
                 }
                 setServerRunning(true)
             }
             await sleep(2000)
-            if (gamePath.endsWith("launcher.exe")) {
-                const resultGame = await FSService.StartWithConsole(gamePath)
+            if (connectionMode === "patch") {
+                const patchedLauncher = path.join(gameDir, "launcher.exe")
+                const [resultGame, gameError] = await FSService.StartWithConsole(patchedLauncher)
                 if (!resultGame) {
-                    toast.error('Failed to start game')
+                    toast.error(`Failed to start patched game: ${gameError}`)
+                    return
+                }
+            } else if (gamePath.endsWith("launcher.exe")) {
+                const [resultGame, gameError] = await FSService.StartWithConsole(gamePath)
+                if (!resultGame) {
+                    toast.error(`Failed to start game: ${gameError}`)
                     return
                 }
             } else {
-                const resultGame = await FSService.StartApp(gamePath)
+                const [resultGame, gameError] = await FSService.StartApp(gamePath)
                 if (!resultGame) {
-                    toast.error('Failed to start game')
+                    toast.error(`Failed to start game: ${gameError}`)
                     return
                 }
             }
             setGameRunning(true)
 
-        } catch (err: any) {
-            toast.error('StartGame error:', err)
+        } catch (err: unknown) {
+            toast.error(`Start game error: ${err instanceof Error ? err.message : String(err)}`)
         } finally {
             setIsLoading(false)
         }
@@ -446,17 +521,36 @@ export default function LauncherPage() {
 
 
     const handlerUpdateData = async () => {
+        if (isDownloading) return
         setIsDownloading(true)
         const nextUpdateData = { ...updateData }
-        if (!updateData.proxy.isExists) {
-            const proxyOk = await UpdateProxy(updateData.proxy.version)
-            setProxyReady(proxyOk)
-            nextUpdateData.proxy = { isUpdate: false, isExists: proxyOk, version: updateData.proxy.version }
-        }
+        try {
+            if (!updateData.server.isExists || updateData.server.isUpdate) {
+                const serverOk = await UpdateServer()
+                if (!serverOk) return
+                nextUpdateData.server = { isUpdate: false, isExists: true, version: "hkrpg" }
+                setServerReady(true)
+            }
 
-        setUpdateData(nextUpdateData)
-        setDownloadType("")
-        setIsDownloading(false)
+            if (connectionMode === "proxy" && (!updateData.proxy.isExists || updateData.proxy.isUpdate)) {
+                const proxyOk = await UpdateProxy(updateData.proxy.version)
+                if (!proxyOk) return
+                nextUpdateData.proxy = { isUpdate: false, isExists: true, version: "hkrpg" }
+                setProxyReady(true)
+            } else if (connectionMode === "patch" && gameDir) {
+                if (!(await CheckPatchInstalled(gameDir, patchInstalledGameDir))) {
+                    if (!(await UpdatePatch(gameDir))) return
+                }
+            }
+
+            setIsOpenDownloadDataModal(false)
+            setUpdateData(nextUpdateData)
+        } catch (error: unknown) {
+            toast.error(`Could not prepare HKRPG: ${error instanceof Error ? error.message : String(error)}`)
+        } finally {
+            setDownloadType("")
+            setIsDownloading(false)
+        }
     }
 
 
@@ -596,7 +690,7 @@ export default function LauncherPage() {
                         <button
                             // The primary action selects the game before a path is configured.
                             className="cyrene-primary-action btn btn-secondary btn-xl relative overflow-hidden font-bold"
-                            onClick={gamePath ? handleStartGame : handlePickFile}
+                            onClick={isGamePathValid ? handleStartGame : handlePickFile}
                             disabled={isLoading || gameRunning}
                             style={{
                                 // กำหนดรูปภาพพื้นหลัง
@@ -612,10 +706,10 @@ export default function LauncherPage() {
                                 textShadow: "0 0 5px rgba(0, 0, 0, 0.93)"
                             }}
                         >
-                            {gamePath ? <Play className="w-5 h-5" /> : <FolderOpen className="w-5 h-5" />}
+                            {isGamePathValid ? <Play className="w-5 h-5" /> : <FolderOpen className="w-5 h-5" />}
                             {isLoading
-                                ? gamePath ? 'Starting...' : 'Selecting...'
-                                : gameRunning ? 'Game is running' : gamePath ? 'Start Game' : 'Select Game File'}
+                                ? isGamePathValid ? 'Starting...' : 'Selecting...'
+                                : gameRunning ? 'Game is running' : isGamePathValid ? 'Start Game' : 'Select Game File'}
                         </button>
 
                         <div className="dropdown dropdown-top dropdown-end cyrene-quick-menu">
@@ -629,7 +723,7 @@ export default function LauncherPage() {
                                 <Menu className="w-5 h-5 text-white" />
                             </button>
 
-                            <ul tabIndex={0} className="dropdown-content menu cyrene-quick-menu__panel rounded-box z-50 w-52 p-2">
+                            <ul tabIndex={0} className="dropdown-content menu cyrene-quick-menu__panel rounded-box z-50 p-2">
                                 <li className="cyrene-quick-menu__heading">Launcher shortcuts</li>
                                 <li>
                                     <button
@@ -690,25 +784,35 @@ export default function LauncherPage() {
 
                                 <li className="cyrene-quick-menu__heading">Utilities</li>
                                 <li>
+                                    <button onClick={() => void handlePickFile()}>
+                                        <FolderOpen aria-hidden="true" />
+                                        {isGamePathValid ? "Change game location" : "Select game location"}
+                                    </button>
+                                </li>
+                                {connectionMode === "proxy" && <li>
                                     <button
                                         onClick={async () => {
-                                            const proxyData = await CheckUpdateProxy(proxyPath, proxyVersion)
-                                            setUpdateData({
-                                                server: { isUpdate: false, isExists: true, version: "" },
-                                                proxy: proxyData,
-                                                launcher: updateData.launcher
-                                            })
+                                            try {
+                                                const proxyData = await CheckUpdateProxy(proxyPath, proxyVersion)
+                                                setUpdateData({
+                                                    server: updateData.server,
+                                                    proxy: proxyData,
+                                                    launcher: updateData.launcher
+                                                })
 
-                                            if (!proxyData.isExists) {
-                                                setIsOpenDownloadDataModal(true)
-                                                return
+                                                if (!proxyData.isExists || proxyData.isUpdate) {
+                                                    setIsOpenDownloadDataModal(true)
+                                                    return
+                                                }
+                                                toast.success("Proxy file is ready")
+                                            } catch (error: unknown) {
+                                                toast.error(`Could not check proxy files: ${error instanceof Error ? error.message : String(error)}`)
                                             }
-                                            toast.success("Proxy file is ready")
                                         }}>
                                         <ShieldCheck aria-hidden="true" />
                                         Check Proxy File
                                     </button>
-                                </li>
+                                </li>}
                                 <li><button disabled={!serverPath && !serverReady} onClick={() => {
                                     FSService.OpenFolder("./server")
                                 }}><FolderOpen aria-hidden="true" />Open server folder</button></li>
@@ -728,7 +832,7 @@ export default function LauncherPage() {
             )}
 
             {/* Downloading */}
-            {isDownloading && !updateData.proxy.isExists && (
+            {isDownloading && (
                 <div className="fixed bottom-4 left-1/2  transform -translate-x-1/2 z-60 w-[60vw] bg-black/20 backdrop-blur-sm rounded-lg p-4 shadow-lg">
                     <div className="space-y-3">
                         <div className="flex justify-center items-center text-sm text-white/80">
@@ -795,10 +899,23 @@ export default function LauncherPage() {
             <UpdateModal
                 isOpen={isOpenDownloadDataModal}
                 onClose={() => setIsOpenDownloadDataModal(false)}
-                title="Download Data"
-                message="Proxy download required"
+                title="Prepare HKRPG"
+                message={
+                    !updateData.server.isExists
+                        ? "The HKRPG server files are missing. Download and extract the server package to continue."
+                        : connectionMode === "proxy"
+                            ? "The proxy files are missing or outdated. Download and extract the proxy package to continue."
+                            : gameDir
+                                ? "The HKRPG patch must be installed in the selected game folder. Existing launcher and DLL files will be backed up."
+                                : "Select the game file and folder before installing the HKRPG patch."
+                }
                 buttons={[
-                    { text: "Download", onClick: async () => { setIsOpenDownloadDataModal(false); await handlerUpdateData() }, variant: "primary" }
+                    {
+                        text: connectionMode === "patch" ? "Install" : "Download",
+                        onClick: handlerUpdateData,
+                        variant: "primary",
+                        disabled: isDownloading
+                    }
                 ]}
             />
 
