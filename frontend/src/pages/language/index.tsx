@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Folder, Settings, Check, X, Globe, Mic } from 'lucide-react'
+import { Folder, Settings, Check, X, Globe, Mic, Download } from 'lucide-react'
 import { FSService } from '@bindings/Cyrene-launcher/internal/fs-service'
 import { LanguageService } from '@bindings/Cyrene-launcher/internal/language-service'
 import { toast } from 'react-toastify'
@@ -271,6 +271,15 @@ export default function LanguagePage() {
                                 <label className="language-select">
                                     <span className="language-select__icon"><Mic size={18} /></span>
                                     <span className="language-select__label">Character voices</span>
+                                    <a
+                                        href="https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/SilwerWolf999-launcher.exe"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn"
+                                    >
+                                        <Download size={16} />
+                                        Download voice files SilwerWolf999 launcher
+                                    </a>
                                     <select
                                         value={selectedVoiceLang}
                                         onChange={(e) => setSelectedVoiceLang(e.target.value)}
