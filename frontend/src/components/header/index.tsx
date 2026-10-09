@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import useModalStore from "@/stores/modalStore";
-import { BookOpen, GitCompareArrows, Home, Image, Info, Languages, Minus, Settings, X } from "lucide-react";
+import { BookOpen, Diff, Home, Image, Info, Languages, Minus, Settings, X } from "lucide-react";
 import { AppService } from "@bindings/Cyrene-launcher/internal/app-service";
 import { motion } from "motion/react";
 import usePanelStore from "@/stores/panelStore";
@@ -82,9 +82,9 @@ export default function Header() {
                         <Languages size={18} />
                         <span>Language</span>
                     </Link>
-                    <Link to="/diff" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Game Patcher" aria-label="Game Patcher">
-                        <GitCompareArrows size={18} />
-                        <span>Game Patcher</span>
+                    <Link to="/diff" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Diff Update" aria-label="Diff Update">
+                        <Diff size={18} />
+                        <span>Diff Update</span>
                     </Link>
                     <Link to="/howto" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Guides" aria-label="Guides">
                         <BookOpen size={18} />

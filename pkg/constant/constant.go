@@ -18,6 +18,7 @@ const HKRPGSDKServerExecutable = "sdkserver.exe"
 const TempUrl = "./temp"
 const LauncherManifestURL = "https://github.com/horoyoi-san/Hoyo/releases/download/hkrpg/latest.json"
 const LauncherDownloadURL = "https://github.com/horoyoi-san/Hoyo/releases/download/hkrpg/Cyrene-launcher.exe"
+const DiffUpdaterGitUrl = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/diff.zip"
 
 var CurrentLauncherVersion = "2.1.0"
 

@@ -7,59 +7,10 @@
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 /**
- * @param {string} patchPath
- * @returns {$CancellablePromise<[boolean, string, string]>}
- */
-export function CheckTypeHDiff(patchPath) {
-    return $Call.ByID(2114716733, patchPath);
-}
-
-/**
- * @param {string} gamePath
- * @returns {$CancellablePromise<[boolean, string]>}
- */
-export function CutData(gamePath) {
-    return $Call.ByID(2956661090, gamePath);
-}
-
-/**
  * @param {string} gamePath
  * @param {string} patchPath
  * @returns {$CancellablePromise<[boolean, string]>}
  */
-export function DataExtract(gamePath, patchPath) {
-    return $Call.ByID(972598119, gamePath, patchPath);
-}
-
-/**
- * @param {string} gamePath
- * @returns {$CancellablePromise<[boolean, string]>}
- */
-export function DeleteFiles(gamePath) {
-    return $Call.ByID(2247732472, gamePath);
-}
-
-/**
- * @param {string} gamePath
- * @returns {$CancellablePromise<[boolean, string]>}
- */
-export function HDiffPatchData(gamePath) {
-    return $Call.ByID(4111810273, gamePath);
-}
-
-/**
- * @param {string} gamePath
- * @returns {$CancellablePromise<[boolean, string]>}
- */
-export function LDiffPatchData(gamePath) {
-    return $Call.ByID(645789237, gamePath);
-}
-
-/**
- * @param {string} gamePath
- * @param {string} patchPath
- * @returns {$CancellablePromise<[boolean, string]>}
- */
-export function VersionValidate(gamePath, patchPath) {
-    return $Call.ByID(1066855744, gamePath, patchPath);
+export function ApplyDiffZip(gamePath, patchPath) {
+    return $Call.ByID(1256177576, gamePath, patchPath);
 }

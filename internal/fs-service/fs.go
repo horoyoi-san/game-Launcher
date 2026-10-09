@@ -41,6 +41,10 @@ func (f *FSService) PickFile(filter string) (string, error) {
 	}
 	if filter == "exe" {
 		dialog.AddFilter("Executable Files (*.exe)", "*.exe")
+	} else if filter == "zip" {
+		dialog.AddFilter("ZIP archives (*.zip)", "*.zip")
+	} else if filter == "patch" {
+		dialog.AddFilter("Patch archives (*.zip;*.7z)", "*.zip;*.7z")
 	}
 	if path, err := dialog.PromptForSingleSelection(); err == nil {
 		return path, nil
