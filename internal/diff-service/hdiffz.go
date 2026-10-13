@@ -68,11 +68,11 @@ func (h *DiffService) VersionValidate(gamePath, patchPath string) (bool, string)
 		if err := sevenzip.ExtractAFileFromZip(patchPath, "StarRail_Data\\StreamingAssets\\BinaryVersion.bytes.hdiff", constant.TempUrl); err != nil {
 			return false, err.Error()
 		}
-		
+
 		patchBinFile := filepath.Join(constant.TempUrl, "BinaryVersion.bytes.hdiff")
 		sourceBinFile := oldBinPath
 		tempBinFile = filepath.Join(constant.TempUrl, "BinaryVersion.bytes")
-		
+
 		if err := hpatchz.ApplyPatch(sourceBinFile, patchBinFile, tempBinFile); err != nil {
 			os.Remove(patchBinFile)
 			return false, err.Error()
@@ -118,19 +118,34 @@ func (h *DiffService) VersionValidate(gamePath, patchPath string) (bool, string)
 	for _, pkgData := range pkgDataList {
 		if filepath.ToSlash(pkgData.RemoteFile) == "StarRail_Data/StreamingAssets/BinaryVersion.bytes" {
 			flags = true
+
 			md5, err := verifier.FileMD5(tempBinFile)
 			if err != nil {
 				os.Remove(tempBinFile)
 				return false, err.Error()
 			}
-			if md5 != pkgData.MD5 {
+
+			info, err := os.Stat(tempBinFile)
+			if err != nil {
 				os.Remove(tempBinFile)
-				return false, fmt.Sprintf("md5 mismatch for %s: expected %s, got %s",
-					tempBinFile, pkgData.MD5, md5)
+				return false, err.Error()
+			}
+
+			if md5 != pkgData.MD5 {
+				message := fmt.Sprintf(
+					"md5 mismatch for %s: expected %s, got %s, size=%d bytes",
+					tempBinFile,
+					pkgData.MD5,
+					md5,
+					info.Size(),
+				)
+				os.Remove(tempBinFile)
+				return false, message
 			}
 			break
 		}
 	}
+
 	if !flags {
 		os.Remove(tempBinFile)
 		return false, "BinaryVersion file not found in patch"
