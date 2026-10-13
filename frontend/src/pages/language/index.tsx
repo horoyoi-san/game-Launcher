@@ -4,9 +4,12 @@ import { FSService } from '@bindings/Cyrene-launcher/internal/fs-service'
 import { LanguageService } from '@bindings/Cyrene-launcher/internal/language-service'
 import { toast } from 'react-toastify'
 import useSettingStore from '@/stores/settingStore'
+import useModalStore from '@/stores/modalStore'
+import { diagnoseLanguageError } from '@/utils/diagnostics'
 
 export default function LanguagePage() {
     const { gameDir, setGameDir } = useSettingStore()
+    const { showDiagnostic } = useModalStore()
     const [folderCheckResult, setFolderCheckResult] = useState<'success' | 'error' | null>(null)
 
     const [textLang, setTextLang] = useState('')
@@ -59,6 +62,7 @@ export default function LanguagePage() {
                     setVoiceLang("")
                     setSelectedTextLang("")
                     setSelectedVoiceLang("")
+                    showDiagnostic(diagnoseLanguageError(err, gameDir, "Read Language"))
                     toast.error(`Game folder found, but language settings could not be read: ${err}`)
                     return
                 }
@@ -73,13 +77,17 @@ export default function LanguagePage() {
                 setVoiceLang("")
                 setSelectedTextLang("")
                 setSelectedVoiceLang("")
-                toast.error(`Game folder found, but language settings could not be read: ${err instanceof Error ? err.message : String(err)}`)
+                const msg = err instanceof Error ? err.message : String(err)
+                showDiagnostic(diagnoseLanguageError(msg, gameDir, "Read Language"))
+                toast.error(`Game folder found, but language settings could not be read: ${msg}`)
             }
         }
 
         loadLanguage().catch((err: unknown) => {
             if (!cancelled) {
-                toast.error(`Could not validate game folder: ${err instanceof Error ? err.message : String(err)}`)
+                const msg = err instanceof Error ? err.message : String(err)
+                showDiagnostic(diagnoseLanguageError(msg, gameDir, "Validate Folder"))
+                toast.error(`Could not validate game folder: ${msg}`)
                 setFolderCheckResult("error")
             }
         })
@@ -160,6 +168,7 @@ export default function LanguagePage() {
 
             const [ok, message] = await LanguageService.InstallThaiPatch(gameDir, packageDir)
             if (!ok) {
+                showDiagnostic(diagnoseLanguageError(message, gameDir, "Install Thai Patch"))
                 toast.error(message)
                 return
             }
@@ -173,10 +182,13 @@ export default function LanguagePage() {
                 setSelectedTextLang(current => current || text)
                 setSelectedVoiceLang(current => current || voice)
             } else {
+                showDiagnostic(diagnoseLanguageError(error, gameDir, "Reload Language After Patch"))
                 toast.error(`Thai patch installed, but could not reload language settings: ${error}`)
             }
         } catch (err: unknown) {
-            toast.error(`Thai patch install error: ${err instanceof Error ? err.message : String(err)}`)
+            const msg = err instanceof Error ? err.message : String(err)
+            showDiagnostic(diagnoseLanguageError(msg, gameDir, "Install Thai Patch"))
+            toast.error(`Thai patch install error: ${msg}`)
         } finally {
             setIsInstallingThaiPatch(false)
         }

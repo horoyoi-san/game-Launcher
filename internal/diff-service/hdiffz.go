@@ -38,10 +38,33 @@ func (h *DiffService) CheckTypeHDiff(patchPath string) (bool, string, string) {
 func (h *DiffService) VersionValidate(gamePath, patchPath string) (bool, string) {
 	oldBinPath := filepath.Join(gamePath, "StarRail_Data\\StreamingAssets\\BinaryVersion.bytes")
 	if _, err := os.Stat(oldBinPath); err != nil {
-		return false, err.Error()
+		errorPayload := map[string]interface{}{
+			"code":    "GAME_BINARY_NOT_FOUND",
+			"title":   "ไม่พบไฟล์ระบุเวอร์ชันของเกม",
+			"stage":   "Version Validate",
+			"file":    oldBinPath,
+			"message": err.Error(),
+			"reason":  "ไม่พบไฟล์ StarRail_Data\\StreamingAssets\\BinaryVersion.bytes ในโฟลเดอร์เกมที่เลือก",
+			"suggestions": []string{
+				"ตรวจสอบว่าเลือกโฟลเดอร์เกมที่ถูกต้อง (โฟลเดอร์หลักที่มี StarRail_Data)",
+			},
+		}
+		jsonBytes, _ := json.Marshal(errorPayload)
+		return false, string(jsonBytes)
 	}
 	if _, err := os.Stat(patchPath); err != nil {
-		return false, err.Error()
+		errorPayload := map[string]interface{}{
+			"code":    "PATCH_FILE_NOT_FOUND",
+			"title":   "ไม่พบไฟล์แพตช์ที่ระบุ",
+			"stage":   "Version Validate",
+			"message": err.Error(),
+			"reason":  "ไฟล์แพตช์ที่เลือกอาจถูกย้าย ลบ หรือไม่มีสิทธิ์เข้าถึง",
+			"suggestions": []string{
+				"ตรวจสอบว่าไฟล์แพตช์ยังคงอยู่ในตำแหน่งเดิมและไม่ได้ถูกโปรแกรมอื่นล็อกไว้",
+			},
+		}
+		jsonBytes, _ := json.Marshal(errorPayload)
+		return false, string(jsonBytes)
 	}
 
 	if _, err := os.Stat(constant.TempUrl); os.IsNotExist(err) {
@@ -54,7 +77,18 @@ func (h *DiffService) VersionValidate(gamePath, patchPath string) (bool, string)
 	okDiff, errDiff := sevenzip.IsFileIn7z(patchPath, "StarRail_Data\\StreamingAssets\\BinaryVersion.bytes.hdiff")
 
 	if (errFull != nil && errDiff != nil) || (!okFull && !okDiff) {
-		return false, "BinaryVersion file not found in patch"
+		errorPayload := map[string]interface{}{
+			"code":    "BINARY_VERSION_NOT_FOUND_IN_PATCH",
+			"title":   "ไม่พบข้อมูลเวอร์ชันในไฟล์แพตช์",
+			"stage":   "Version Validate",
+			"message": "BinaryVersion file not found in patch",
+			"reason":  "ไม่พบไฟล์ BinaryVersion.bytes หรือ BinaryVersion.bytes.hdiff ในแพตช์",
+			"suggestions": []string{
+				"ตรวจสอบว่าไฟล์ที่เลือกเป็นแพตช์อัปเดตของเกมที่ถูกต้อง (.7z, .zip, .rar)",
+			},
+		}
+		jsonBytes, _ := json.Marshal(errorPayload)
+		return false, string(jsonBytes)
 	}
 
 	var tempBinFile string
@@ -132,15 +166,35 @@ func (h *DiffService) VersionValidate(gamePath, patchPath string) (bool, string)
 			}
 
 			if md5 != pkgData.MD5 {
-				message := fmt.Sprintf(
-					"md5 mismatch for %s: expected %s, got %s, size=%d bytes",
-					tempBinFile,
-					pkgData.MD5,
-					md5,
-					info.Size(),
-				)
+				currentGameVer := "ไม่ทราบเวอร์ชัน"
+				if binVer, err := models.ParseBinaryVersion(oldBinPath); err == nil && binVer != nil {
+					currentGameVer = binVer.String()
+				}
+
+				errorPayload := map[string]interface{}{
+					"code":               "VERSION_MD5_MISMATCH",
+					"title":              "เวอร์ชันเกมไม่ตรงกับไฟล์แพตช์ (Version Mismatch)",
+					"stage":              "Version Validate",
+					"file":               "StarRail_Data/StreamingAssets/BinaryVersion.bytes",
+					"currentGameVersion": currentGameVer,
+					"expectedMd5":        pkgData.MD5,
+					"actualMd5":          md5,
+					"fileSize":           info.Size(),
+					"message":            fmt.Sprintf("md5 mismatch for %s: expected %s, got %s, size=%d bytes", tempBinFile, pkgData.MD5, md5, info.Size()),
+					"reason":             "ไฟล์อัปเดต (Patch) นี้ไม่ได้สร้างขึ้นสำหรับเวอร์ชันเกมปัจจุบันที่ติดตั้งในเครื่องของคุณ หรือไฟล์เกมเดิมมีการดัดแปลง/เสียหาย",
+					"suggestions": []string{
+						"ตรวจสอบว่าไฟล์ Patch อัปเดตจากเวอร์ชันใดไปยังเวอร์ชันใด (เวอร์ชันปัจจุบันในเครื่อง: " + currentGameVer + ")",
+						"ตรวจสอบว่าเลือกโฟลเดอร์เกมที่ถูกต้องในขั้นตอนที่ 1",
+						"หากไฟล์เกมเดิมมีปัญหา แนะนำให้ทำการตรวจสอบความสมบูรณ์ของไฟล์เกมเดิมก่อนเริ่มอัปเดต",
+					},
+				}
+
+				jsonBytes, err := json.Marshal(errorPayload)
 				os.Remove(tempBinFile)
-				return false, message
+				if err == nil {
+					return false, string(jsonBytes)
+				}
+				return false, fmt.Sprintf("md5 mismatch for %s: expected %s, got %s, size=%d bytes", tempBinFile, pkgData.MD5, md5, info.Size())
 			}
 			break
 		}

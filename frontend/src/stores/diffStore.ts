@@ -1,5 +1,6 @@
 
 import { create } from 'zustand'
+import { DiffErrorInfo } from '@/components/diffErrorModal'
 
 interface DiffState {
     folderCheckResult: 'success' | 'error' | null,
@@ -11,6 +12,8 @@ interface DiffState {
     maxProgressUpdate: number,
     messageUpdate: string,
     stageType: string,
+    diffError: DiffErrorInfo | null,
+    setDiffError: (value: DiffErrorInfo | null) => void,
     setMessageUpdate: (value: string) => void,
     setIsLoading: (value: {game: boolean, diff: boolean}) => void,
     setFolderCheckResult: (value: 'success' | 'error' | null) => void,
@@ -32,6 +35,8 @@ const useDiffStore = create<DiffState>((set, get) => ({
     maxProgressUpdate: 0,
     messageUpdate: "",
     stageType: "",
+    diffError: null,
+    setDiffError: (value: DiffErrorInfo | null) => set({ diffError: value }),
     setIsLoading: (value: {game: boolean, diff: boolean}) => set({ isLoading: value }),
     setFolderCheckResult: (value: 'success' | 'error' | null) => set({ folderCheckResult: value }),
     setDiffDir: (value: string) => set({ diffDir: value }),

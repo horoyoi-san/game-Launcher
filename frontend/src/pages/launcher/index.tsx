@@ -11,6 +11,7 @@ import { motion } from 'motion/react';
 import { CheckPatchInstalled, CheckUpdateProxy, CheckUpdateServer, sleep, UpdatePatch, UpdateProxy, UpdateServer } from '@/helper';
 import UpdateModal from '@/components/updateModal';
 import usePanelStore from "@/stores/panelStore";
+import { diagnoseGameError, diagnoseProxyError, diagnoseServerError } from '@/utils/diagnostics';
 
 type CombinedLink = {
     tooltip: string;
@@ -193,7 +194,8 @@ export default function LauncherPage() {
 
     const {
         isOpenDownloadDataModal,
-        setIsOpenDownloadDataModal
+        setIsOpenDownloadDataModal,
+        showDiagnostic
     } = useModalStore()
 
     const {
@@ -437,6 +439,7 @@ export default function LauncherPage() {
             setIsLoading(true)
             const gameExists = await FSService.FileExists(gamePath)
             if (!gameExists) {
+                showDiagnostic(diagnoseGameError(`ไม่พบไฟล์เกมในตำแหน่งที่ระบุ: ${gamePath}`, gamePath))
                 toast.error('Selected game file could not be found. Please choose the game file again.')
                 setIsGamePathValid(false)
                 setGamePath("")
@@ -476,6 +479,7 @@ export default function LauncherPage() {
             if (connectionMode === "proxy" && !proxyRunning && !gamePath.endsWith("launcher.exe")) {
                 const [proxyStarted, proxyError] = await FSService.StartWithConsole(activeProxyPath)
                 if (!proxyStarted) {
+                    showDiagnostic(diagnoseProxyError(proxyError, activeProxyPath))
                     toast.error(`Failed to start proxy: ${proxyError}`)
                     return
                 }
@@ -484,6 +488,7 @@ export default function LauncherPage() {
             if (!serverRunning) {
                 const [serverStarted, serverError] = await FSService.StartHKRPGServer()
                 if (!serverStarted) {
+                    showDiagnostic(diagnoseServerError(serverError))
                     toast.error(`Failed to start server: ${serverError}`)
                     return
                 }
@@ -494,18 +499,21 @@ export default function LauncherPage() {
                 const patchedLauncher = path.join(gameDir, "launcher.exe")
                 const [resultGame, gameError] = await FSService.StartWithConsole(patchedLauncher)
                 if (!resultGame) {
+                    showDiagnostic(diagnoseGameError(gameError, patchedLauncher))
                     toast.error(`Failed to start patched game: ${gameError}`)
                     return
                 }
             } else if (gamePath.endsWith("launcher.exe")) {
                 const [resultGame, gameError] = await FSService.StartWithConsole(gamePath)
                 if (!resultGame) {
+                    showDiagnostic(diagnoseGameError(gameError, gamePath))
                     toast.error(`Failed to start game: ${gameError}`)
                     return
                 }
             } else {
                 const [resultGame, gameError] = await FSService.StartApp(gamePath)
                 if (!resultGame) {
+                    showDiagnostic(diagnoseGameError(gameError, gamePath))
                     toast.error(`Failed to start game: ${gameError}`)
                     return
                 }
@@ -513,7 +521,9 @@ export default function LauncherPage() {
             setGameRunning(true)
 
         } catch (err: unknown) {
-            toast.error(`Start game error: ${err instanceof Error ? err.message : String(err)}`)
+            const errMsg = err instanceof Error ? err.message : String(err)
+            showDiagnostic(diagnoseGameError(errMsg, gamePath))
+            toast.error(`Start game error: ${errMsg}`)
         } finally {
             setIsLoading(false)
         }
@@ -831,27 +841,66 @@ export default function LauncherPage() {
                 </div>
             )}
 
-            {/* Downloading */}
+            {/* Downloading HUD Bar */}
             {isDownloading && (
-                <div className="fixed bottom-4 left-1/2  transform -translate-x-1/2 z-60 w-[60vw] bg-black/20 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-                    <div className="space-y-3">
-                        <div className="flex justify-center items-center text-sm text-white/80">
-                            <span>{downloadType}</span>
-                            <div className="flex items-center gap-4 ml-4">
-                                <span className="text-cyan-400 font-semibold">{downloadSpeed}</span>
-                                <span className="text-white font-bold">{progressDownload.toFixed(1)}%</span>
+                <div
+                    className="fixed bottom-6 left-1/2 -translate-x-1/2 z-60 w-[min(90vw,620px)] rounded-[22px] p-[1px] transition-all"
+                    style={{
+                        background: "linear-gradient(135deg, rgba(242, 217, 155, 0.45), rgba(226, 167, 215, 0.3), rgba(164, 157, 221, 0.18))",
+                        boxShadow: "0 20px 60px rgba(5, 3, 14, 0.75), 0 0 45px rgba(205, 152, 210, 0.22)",
+                    }}
+                >
+                    <div
+                        className="rounded-[21px] px-6 py-4 backdrop-blur-xl"
+                        style={{
+                            background:
+                                "radial-gradient(circle at 100% 0, rgba(226, 167, 215, 0.16), transparent 50%), linear-gradient(145deg, rgba(37, 24, 47, 0.97), rgba(18, 16, 34, 0.97))",
+                        }}
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2.5">
+                                <span className="relative flex h-2.5 w-2.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#f2d99b] opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#f2d99b]"></span>
+                                </span>
+                                <span className="text-[10px] tracking-[0.16em] font-bold text-[#f2d99b] uppercase">
+                                    DOWNLOADING ASSETS
+                                </span>
+                                <span className="text-xs text-[#cfc1d7] font-medium ml-1">
+                                    {downloadType || "Preparing component files..."}
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                {downloadSpeed && (
+                                    <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[#d0c0f3]">
+                                        {downloadSpeed}
+                                    </span>
+                                )}
+                                <span className="text-sm font-bold font-mono text-[#fff5fb]">
+                                    {progressDownload.toFixed(1)}%
+                                </span>
                             </div>
                         </div>
-                        <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+
+                        {/* Progress Track */}
+                        <div className="w-full bg-black/50 border border-white/10 rounded-full h-2.5 overflow-hidden p-[1px] my-2">
                             <motion.div
-                                className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
+                                className="h-full rounded-full"
+                                style={{
+                                    background: "linear-gradient(90deg, #edc4de 0%, #d0c0f3 50%, #f2d99b 100%)",
+                                    boxShadow: "0 0 14px rgba(242, 217, 155, 0.6), 0 0 6px rgba(208, 192, 243, 0.8)",
+                                }}
                                 initial={{ width: 0 }}
-                                animate={{ width: `${progressDownload}%` }}
-                                transition={{ type: "tween", ease: "linear", duration: 0.03 }}
+                                animate={{ width: `${Math.min(100, Math.max(0, progressDownload))}%` }}
+                                transition={{ type: "tween", ease: "linear", duration: 0.05 }}
                             />
                         </div>
-                        <div className="text-center text-xs text-white/60">
-                            {progressDownload < 100 ? 'Please wait...' : 'Complete!'}
+
+                        <div className="flex justify-between items-center text-[11px] text-[#a89eb6] mt-1.5">
+                            <span>{progressDownload < 100 ? "กำลังดาวน์โหลดไฟล์ กรุณาอย่าปิดโปรแกรม Launcher..." : "ดาวน์โหลดเสร็จสมบูรณ์!"}</span>
+                            <span className="font-mono text-[10px] text-[#c7b7d2]">
+                                {progressDownload < 100 ? "IN PROGRESS" : "COMPLETED"}
+                            </span>
                         </div>
                     </div>
                 </div>

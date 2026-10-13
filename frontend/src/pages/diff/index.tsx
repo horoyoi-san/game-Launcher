@@ -6,6 +6,7 @@ import { DiffService } from "@bindings/Cyrene-launcher/internal/diff-service"
 import { FSService } from "@bindings/Cyrene-launcher/internal/fs-service"
 import { motion } from "motion/react"
 import useDiffStore from "@/stores/diffStore"
+import DiffErrorModal, { parseDiffError } from "@/components/diffErrorModal"
 
 export default function DiffPage() {
     const { gameDir, setGameDir } = useSettingStore()
@@ -27,7 +28,9 @@ export default function DiffPage() {
         stageType,
         setStageType,
         messageUpdate,
-        setMessageUpdate
+        setMessageUpdate,
+        diffError,
+        setDiffError
     } = useDiffStore()
 
     useEffect(() => {
@@ -103,9 +106,11 @@ export default function DiffPage() {
     }
 
     const handleUpdateGame = async () => {
-        const handleResult = (ok: boolean, error: string) => {
+        const handleResult = (ok: boolean, error: string, stageName: string) => {
             if (!ok) {
-                toast.error(error)
+                const parsed = parseDiffError(error, stageName, gameDir)
+                setDiffError(parsed)
+                toast.error(parsed.title || error)
                 return false
             }
             return true
@@ -124,7 +129,7 @@ export default function DiffPage() {
             setMaxProgressUpdate(1)
 
             const [isOk, validType, errorType] = await DiffService.CheckTypeHDiff(diffDir)
-            if (!handleResult(isOk, errorType)) return
+            if (!handleResult(isOk, errorType, 'Check Type HDiff')) return
             setProgressUpdate(1)
 
             if (['hdiffmap.json', 'hdifffiles.txt', 'hdifffiles.json'].includes(validType)) {
@@ -132,18 +137,18 @@ export default function DiffPage() {
                 setProgressUpdate(0)
                 setMaxProgressUpdate(1)
                 const [validVersion, errorVersion] = await DiffService.VersionValidate(gameDir, diffDir)
-                if (!handleResult(validVersion, errorVersion)) return
+                if (!handleResult(validVersion, errorVersion, 'Version Validate')) return
                 setProgressUpdate(1)
             }
 
             setStageType('Data Extract')
             const [validData, errorData] = await DiffService.DataExtract(gameDir, diffDir)
-            if (!handleResult(validData, errorData)) return
+            if (!handleResult(validData, errorData, 'Data Extract')) return
 
             setStageType('Cut Data')
             setMessageUpdate('')
             const [validCut, errorCut] = await DiffService.CutData(gameDir)
-            if (!handleResult(validCut, errorCut)) return
+            if (!handleResult(validCut, errorCut, 'Cut Data')) return
 
             switch (validType) {
                 case 'hdifffiles.txt':
@@ -151,17 +156,17 @@ export default function DiffPage() {
                 case 'hdifffiles.json': {
                     setStageType('Patch Data')
                     const [validPatch, errorPatch] = await DiffService.HDiffPatchData(gameDir)
-                    if (!handleResult(validPatch, errorPatch)) return
+                    if (!handleResult(validPatch, errorPatch, 'Patch Data (HDiff)')) return
 
                     setStageType('Delete old files')
                     const [validDelete, errorDelete] = await DiffService.DeleteFiles(gameDir)
-                    if (!handleResult(validDelete, errorDelete)) return
+                    if (!handleResult(validDelete, errorDelete, 'Delete old files')) return
                     break
                 }
                 case 'manifest': {
                     setStageType('Patch Data')
                     const [validPatch, errorPatch] = await DiffService.LDiffPatchData(gameDir)
-                    if (!handleResult(validPatch, errorPatch)) return
+                    if (!handleResult(validPatch, errorPatch, 'Patch Data (LDiff)')) return
                     break
                 }
             }
@@ -169,7 +174,9 @@ export default function DiffPage() {
             toast.success('Update game completed')
         } catch (err: any) {
             console.error(err)
-            toast.error(`PickFile error: ${err}`)
+            const parsed = parseDiffError(err?.message || String(err), stageType || 'Patcher', gameDir)
+            setDiffError(parsed)
+            toast.error(parsed.title || `Error: ${err}`)
         } finally {
             setIsDiffLoading(false)
         }
@@ -312,6 +319,12 @@ export default function DiffPage() {
                         </section>
                     </div>
                 )}
+
+                <DiffErrorModal
+                    isOpen={!!diffError}
+                    error={diffError}
+                    onClose={() => setDiffError(null)}
+                />
             </div>
         </main>
     )

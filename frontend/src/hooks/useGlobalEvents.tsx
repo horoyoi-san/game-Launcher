@@ -6,6 +6,7 @@ import useSettingStore from "@/stores/settingStore";
 import { AppService } from "@bindings/Cyrene-launcher/internal/app-service";
 import useModalStore from "@/stores/modalStore";
 import useDiffStore from "@/stores/diffStore";
+import { parseDiffError } from "@/components/diffErrorModal";
 import useLauncherStore from "@/stores/launcherStore";
 
 export function useGlobalEvents() {
@@ -52,7 +53,9 @@ export function useGlobalEvents() {
         Events.On("diff:stage", onStageUpdate);
         Events.On("diff:error", (event: any) => {
             const { message } = event.data;
-            toast.error(message);
+            const parsed = parseDiffError(message, useDiffStore.getState().stageType);
+            useDiffStore.getState().setDiffError(parsed);
+            toast.error(parsed.title || message);
         });
         Events.On("window:close", async () => {
             const option = useSettingStore.getState().closingOption

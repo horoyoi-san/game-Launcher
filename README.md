@@ -47,6 +47,7 @@ go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha.34
 3. [Node.js](https://nodejs.org/en/download/current)
     - เปิด Command Prompt / PowerShell ใหม่ แล้วพิมพ์:
 ```
+npm install i18next react-i18next
 node -v
 npm -v
 ```

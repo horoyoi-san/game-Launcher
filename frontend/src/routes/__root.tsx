@@ -4,6 +4,7 @@ import { useGlobalEvents } from '@/hooks';
 import useModalStore from '@/stores/modalStore';;
 import SettingModal from '@/components/settingModal';
 import CloseModal from '@/components/closeModal';
+import DiagnosticModal from '@/components/diagnosticModal';
 import Header from '@/components/header';
 import PageBackground from '@/components/pageBackground';
 import { useAutoLauncherUpdate } from '@/hooks/useAutoLauncherUpdate';
@@ -41,6 +42,7 @@ function RootLayout() {
 
             <CloseModal isOpen={isOpenCloseModal} onClose={() => setIsOpenCloseModal(false)} />
             <SettingModal isOpen={isOpenSettingModal} onClose={() => setIsOpenSettingModal(false)} />
+            <DiagnosticModal />
             <ToastContainer />
         </>
     )
