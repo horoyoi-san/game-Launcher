@@ -538,7 +538,7 @@ export default function LauncherPage() {
             if (!updateData.server.isExists || updateData.server.isUpdate) {
                 const serverOk = await UpdateServer()
                 if (!serverOk) return
-                nextUpdateData.server = { isUpdate: false, isExists: true, version: "hkrpg" }
+                nextUpdateData.server = { isUpdate: false, isExists: true, version: updateData.server.version }
                 setServerReady(true)
             }
 
@@ -951,7 +951,9 @@ export default function LauncherPage() {
                 title="Prepare HKRPG"
                 message={
                     !updateData.server.isExists
-                        ? "The HKRPG server files are missing. Download and extract the server package to continue."
+                        ? `The HKRPG server files are missing${updateData.server.version ? ` (version ${updateData.server.version})` : ""}. Download and extract the server package to continue.`
+                        : updateData.server.isUpdate
+                            ? `HKRPG server version ${updateData.server.version} is available. Download and install it to continue.`
                         : connectionMode === "proxy"
                             ? "The proxy files are missing or outdated. Download and extract the proxy package to continue."
                             : gameDir

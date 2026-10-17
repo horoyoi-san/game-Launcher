@@ -2,20 +2,47 @@ package gitService
 
 import (
 	"Cyrene-launcher/pkg/constant"
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-func (g *GitService) DownloadHKRPGServerProgress() (bool, string) {
-	err := g.downloadHKRPGAsset(
+type serverManifest struct {
+	Version string `json:"version"`
+	SHA256  string `json:"sha256"`
+}
+
+var serverVersionPattern = regexp.MustCompile(`^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$`)
+
+func (g *GitService) GetLatestHKRPGServerVersion() (bool, string, string) {
+	manifest, err := fetchServerManifest()
+	if err != nil {
+		return false, "", err.Error()
+	}
+	return true, manifest.Version, ""
+}
+
+func (g *GitService) DownloadHKRPGServerProgress(version string) (bool, string) {
+	manifest, err := fetchServerManifest()
+	if err != nil {
+		return false, err.Error()
+	}
+	if manifest.Version != version {
+		return false, fmt.Sprintf("server update changed from %s to %s; check again", version, manifest.Version)
+	}
+	err = g.downloadHKRPGAsset(
 		constant.HKRPGServerDownloadURL,
 		filepath.Join(constant.ServerStorageUrl, constant.HKRPGServerArchiveFile),
 		"download:server",
@@ -25,24 +52,128 @@ func (g *GitService) DownloadHKRPGServerProgress() (bool, string) {
 	if err != nil {
 		return false, err.Error()
 	}
+	archivePath := filepath.Join(constant.ServerStorageUrl, constant.HKRPGServerArchiveFile)
+	archive, err := os.Open(archivePath)
+	if err != nil {
+		return false, fmt.Errorf("open server package: %w", err).Error()
+	}
+	hash := sha256.New()
+	_, copyErr := io.Copy(hash, archive)
+	closeErr := archive.Close()
+	if copyErr != nil {
+		return false, fmt.Errorf("hash server package: %w", copyErr).Error()
+	}
+	if closeErr != nil {
+		return false, fmt.Errorf("close server package: %w", closeErr).Error()
+	}
+	expectedHash, err := hex.DecodeString(manifest.SHA256)
+	if err != nil || subtle.ConstantTimeCompare(hash.Sum(nil), expectedHash) != 1 {
+		_ = os.Remove(archivePath)
+		return false, "server package checksum mismatch"
+	}
 	return true, ""
 }
 
-func (g *GitService) ExtractHKRPGServer() (bool, string) {
+func (g *GitService) ExtractHKRPGServer(version string) (bool, string) {
 	archivePath := filepath.Join(constant.ServerStorageUrl, constant.HKRPGServerArchiveFile)
-	if err := g.unzipParallel(archivePath, constant.ServerStorageUrl); err != nil {
+	stageDir, err := os.MkdirTemp(constant.ServerStorageUrl, ".server-update-*")
+	if err != nil {
+		return false, fmt.Errorf("create server staging directory: %w", err).Error()
+	}
+	defer os.RemoveAll(stageDir)
+	if err := g.unzipParallel(archivePath, stageDir); err != nil {
 		return false, fmt.Errorf("extract HKRPG server: %w", err).Error()
 	}
 
 	for _, name := range []string{constant.HKRPGServerExecutable, constant.HKRPGSDKServerExecutable} {
-		if !regularFileExists(filepath.Join(constant.ServerStorageUrl, name)) {
+		if !regularFileExists(filepath.Join(stageDir, name)) {
 			return false, fmt.Sprintf("server archive did not contain %s", name)
 		}
+	}
+	if err := copyServerPackage(stageDir, constant.ServerStorageUrl); err != nil {
+		return false, fmt.Errorf("install HKRPG server: %w", err).Error()
+	}
+	if err := os.WriteFile(filepath.Join(constant.ServerStorageUrl, ".build-id"), []byte(version+"\n"), 0644); err != nil {
+		return false, fmt.Errorf("save installed server build ID: %w", err).Error()
 	}
 	if err := os.Remove(archivePath); err != nil && !os.IsNotExist(err) {
 		return false, fmt.Errorf("remove server archive: %w", err).Error()
 	}
 	return true, ""
+}
+
+func fetchServerManifest() (serverManifest, error) {
+	manifestURL := constant.HKRPGServerManifestURL + "?_=" + fmt.Sprintf("%d", time.Now().UnixNano())
+	request, err := http.NewRequest(http.MethodGet, manifestURL, nil)
+	if err != nil {
+		return serverManifest{}, fmt.Errorf("create server manifest request: %w", err)
+	}
+	request.Header.Set("Cache-Control", "no-cache")
+	client := &http.Client{
+		Timeout: 20 * time.Second,
+		CheckRedirect: func(request *http.Request, _ []*http.Request) error {
+			if request.URL.Scheme != "https" {
+				return fmt.Errorf("refusing non-HTTPS server manifest redirect")
+			}
+			return nil
+		},
+	}
+	response, err := client.Do(request)
+	if err != nil {
+		return serverManifest{}, fmt.Errorf("check server updates: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		return serverManifest{}, fmt.Errorf("check server updates: server returned %s", response.Status)
+	}
+	var manifest serverManifest
+	if err := json.NewDecoder(io.LimitReader(response.Body, 1<<20)).Decode(&manifest); err != nil {
+		return serverManifest{}, fmt.Errorf("read server update manifest: %w", err)
+	}
+	if !serverVersionPattern.MatchString(manifest.Version) {
+		return serverManifest{}, fmt.Errorf("server update manifest has invalid version %q", manifest.Version)
+	}
+	manifest.SHA256 = strings.ToLower(strings.TrimSpace(manifest.SHA256))
+	if len(manifest.SHA256) != sha256.Size*2 {
+		return serverManifest{}, fmt.Errorf("server update manifest has invalid SHA-256")
+	}
+	if _, err := hex.DecodeString(manifest.SHA256); err != nil {
+		return serverManifest{}, fmt.Errorf("server update manifest has invalid SHA-256: %w", err)
+	}
+	return manifest, nil
+}
+
+func copyServerPackage(sourceDir, destinationDir string) error {
+	return filepath.WalkDir(sourceDir, func(sourcePath string, entry os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		relativePath, err := filepath.Rel(sourceDir, sourcePath)
+		if err != nil {
+			return err
+		}
+		if relativePath == "." {
+			return nil
+		}
+		if relativePath == "persistent" || strings.HasPrefix(relativePath, "persistent"+string(filepath.Separator)) {
+			if entry.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		destinationPath := filepath.Join(destinationDir, relativePath)
+		if entry.IsDir() {
+			return os.MkdirAll(destinationPath, 0755)
+		}
+		if !entry.Type().IsRegular() {
+			return fmt.Errorf("unsupported server package entry: %s", relativePath)
+		}
+		data, err := os.ReadFile(sourcePath)
+		if err != nil {
+			return err
+		}
+		return os.WriteFile(destinationPath, data, 0755)
+	})
 }
 
 func (g *GitService) DownloadHKRPGProxyProgress() (bool, string) {

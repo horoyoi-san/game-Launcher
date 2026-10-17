@@ -21,10 +21,11 @@ export function DownloadHKRPGProxyProgress() {
 }
 
 /**
+ * @param {string} version
  * @returns {$CancellablePromise<[boolean, string]>}
  */
-export function DownloadHKRPGServerProgress() {
-    return $Call.ByID(3677353652);
+export function DownloadHKRPGServerProgress(version) {
+    return $Call.ByID(3677353652, version);
 }
 
 /**
@@ -51,10 +52,18 @@ export function ExtractHKRPGProxy() {
 }
 
 /**
+ * @param {string} version
  * @returns {$CancellablePromise<[boolean, string]>}
  */
-export function ExtractHKRPGServer() {
-    return $Call.ByID(2410566728);
+export function ExtractHKRPGServer(version) {
+    return $Call.ByID(2410566728, version);
+}
+
+/**
+ * @returns {$CancellablePromise<[boolean, string, string]>}
+ */
+export function GetLatestHKRPGServerVersion() {
+    return $Call.ByID(1887840202);
 }
 
 /**

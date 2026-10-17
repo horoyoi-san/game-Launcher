@@ -1,9 +1,12 @@
 import { useState } from "react"
 import { AppService } from '@bindings/Cyrene-launcher/internal/app-service'
 import useSettingStore from "@/stores/settingStore"
+import useLauncherStore from "@/stores/launcherStore"
 import { Check, Download, Languages, LoaderCircle, Monitor, Power, RefreshCw, Server, X } from "lucide-react"
 import i18n from "i18next"
-import { CheckUpdateLauncher, UpdateLauncher } from "@/helper"
+import { CheckUpdateLauncher, UpdateLauncher, UpdateServer } from "@/helper"
+import { FSService } from "@bindings/Cyrene-launcher/internal/fs-service"
+import { GitService } from "@bindings/Cyrene-launcher/internal/git-service"
 
 export default function SettingModal({
     isOpen,
@@ -12,7 +15,19 @@ export default function SettingModal({
     isOpen: boolean
     onClose: () => void
 }) {
-    const { closingOption, setClosingOption, connectionMode, setConnectionMode } = useSettingStore()
+    const { closingOption, setClosingOption, connectionMode, setConnectionMode, serverVersion } = useSettingStore()
+    const {
+        isDownloading: isLauncherDownloading,
+        progressDownload,
+        downloadType,
+        setDownloadSpeed,
+        setDownloadType,
+        setIsDownloading,
+        setProgressDownload,
+        setServerReady,
+        setUpdateData,
+        updateData,
+    } = useLauncherStore()
     const activeLanguage = i18n.resolvedLanguage ?? i18n.language
     const [isCheckingUpdates, setIsCheckingUpdates] = useState(false)
     const [isInstallingUpdate, setIsInstallingUpdate] = useState(false)
@@ -20,6 +35,11 @@ export default function SettingModal({
     const [availableLauncherVersion, setAvailableLauncherVersion] = useState("")
     const [updateMessage, setUpdateMessage] = useState("")
     const [updateError, setUpdateError] = useState("")
+    const [isCheckingServerVersion, setIsCheckingServerVersion] = useState(false)
+    const [latestServerVersion, setLatestServerVersion] = useState("")
+    const [serverVersionMessage, setServerVersionMessage] = useState("")
+    const [serverVersionError, setServerVersionError] = useState("")
+    const [serverDownloadNeeded, setServerDownloadNeeded] = useState(false)
 
     if (!isOpen) return null
 
@@ -71,6 +91,68 @@ export default function SettingModal({
         } catch (error) {
             setUpdateError(error instanceof Error ? error.message : "Launcher update failed")
             setIsInstallingUpdate(false)
+        }
+    }
+
+    const checkServerVersion = async () => {
+        setIsCheckingServerVersion(true)
+        setLatestServerVersion("")
+        setServerVersionMessage("")
+        setServerVersionError("")
+        setServerDownloadNeeded(false)
+
+        try {
+            const [latestExists, latestVersion, error] = await GitService.GetLatestHKRPGServerVersion()
+            if (!latestExists) {
+                throw new Error(error || "Unable to check for server updates")
+            }
+
+            setLatestServerVersion(latestVersion)
+            const gameServerExists = await FSService.FileExists("./server/gameserver.exe")
+            const sdkServerExists = await FSService.FileExists("./server/sdkserver.exe")
+            const installed = gameServerExists && sdkServerExists
+            const hasKnownInstalledVersion = /^\d+\.\d+\.\d+$/.test(serverVersion)
+            setServerDownloadNeeded(!installed || !hasKnownInstalledVersion || serverVersion !== latestVersion)
+
+            if (!installed) {
+                setServerVersionMessage(`Server is not installed. Latest version: ${latestVersion}.`)
+            } else if (!hasKnownInstalledVersion) {
+                setServerVersionMessage(`Installed version is unknown. Latest version: ${latestVersion}.`)
+            } else if (serverVersion === latestVersion) {
+                setServerVersionMessage(`Server is up to date (version ${latestVersion}).`)
+            } else {
+                setServerVersionMessage(`Update available: ${serverVersion} → ${latestVersion}.`)
+            }
+        } catch (error) {
+            setServerVersionError(error instanceof Error ? error.message : "Unable to check for server updates")
+        } finally {
+            setIsCheckingServerVersion(false)
+        }
+    }
+
+    const downloadServerUpdate = async () => {
+        if (isLauncherDownloading || !latestServerVersion) return
+        setIsDownloading(true)
+        setProgressDownload(0)
+        setDownloadSpeed("")
+        setServerVersionError("")
+
+        try {
+            const updated = await UpdateServer()
+            if (!updated) return
+
+            setServerDownloadNeeded(false)
+            setServerVersionMessage(`Server is up to date (version ${latestServerVersion}).`)
+            setServerReady(true)
+            setUpdateData({
+                ...updateData,
+                server: { isUpdate: false, isExists: true, version: latestServerVersion },
+            })
+        } catch (error) {
+            setServerVersionError(error instanceof Error ? error.message : "Server download failed")
+        } finally {
+            setDownloadType("")
+            setIsDownloading(false)
         }
     }
 
@@ -127,6 +209,48 @@ export default function SettingModal({
                         </div>
                         {updateMessage && <p className="mt-3 text-sm text-slate-300">{updateMessage}</p>}
                         {updateError && <p role="alert" className="mt-3 text-sm text-rose-300">{updateError}</p>}
+                    </section>
+
+                    <section className="settings-section">
+                        <div className="settings-section__heading">
+                            <span className="settings-section__icon"><Server size={17} /></span>
+                            <div>
+                                <h3>Server version</h3>
+                                <p>Check the installed server against the latest release.</p>
+                            </div>
+                        </div>
+                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                            <button
+                                type="button"
+                                className="settings-choice !flex min-h-11 flex-1 items-center justify-center gap-2"
+                                onClick={() => void checkServerVersion()}
+                                disabled={isCheckingServerVersion || isLauncherDownloading}
+                            >
+                                {isCheckingServerVersion
+                                    ? <LoaderCircle size={16} className="animate-spin" />
+                                    : <RefreshCw size={16} />}
+                                {isCheckingServerVersion ? "Checking..." : "Check server version"}
+                            </button>
+                        </div>
+                        {serverDownloadNeeded && latestServerVersion && (
+                            <button
+                                type="button"
+                                className="settings-choice !mt-3 !flex min-h-11 w-full items-center justify-center gap-2"
+                                onClick={() => void downloadServerUpdate()}
+                                disabled={isLauncherDownloading}
+                            >
+                                {isLauncherDownloading
+                                    ? <LoaderCircle size={16} className="animate-spin" />
+                                    : <Download size={16} />}
+                                {isLauncherDownloading ? "Installing..." : `Download and install v${latestServerVersion}`}
+                            </button>
+                        )}
+                        {latestServerVersion && <p className="mt-3 text-sm text-slate-300">Latest version: {latestServerVersion}</p>}
+                        {serverVersionMessage && <p className="mt-2 text-sm text-slate-300">{serverVersionMessage}</p>}
+                        {serverVersionError && <p role="alert" className="mt-3 text-sm text-rose-300">{serverVersionError}</p>}
+                        {isLauncherDownloading && downloadType && (
+                            <p className="mt-3 text-sm text-slate-300">{downloadType} {progressDownload.toFixed(1)}%</p>
+                        )}
                     </section>
 
                     <section className="settings-section">
