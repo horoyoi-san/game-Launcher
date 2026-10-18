@@ -40,7 +40,6 @@ export default function SettingModal({
     const [serverVersionMessage, setServerVersionMessage] = useState("")
     const [serverVersionError, setServerVersionError] = useState("")
     const [serverDownloadNeeded, setServerDownloadNeeded] = useState(false)
-
     if (!isOpen) return null
 
     const changeLang = (lang: string) => {

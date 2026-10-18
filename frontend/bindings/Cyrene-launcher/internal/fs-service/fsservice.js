@@ -6,6 +6,10 @@
 // @ts-ignore: Unused imports
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
+
 /**
  * @param {string} path
  * @returns {$CancellablePromise<boolean>}
@@ -78,6 +82,15 @@ export function PickFolder() {
 }
 
 /**
+ * @returns {$CancellablePromise<$models.UIDCustomConfig>}
+ */
+export function ReadUIDCustom() {
+    return $Call.ByID(4242400691).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * @param {string} path
  * @returns {$CancellablePromise<void>}
  */
@@ -92,6 +105,14 @@ export function RemoveFile(path) {
  */
 export function SaveGameSelection(gamePath, gameDir) {
     return $Call.ByID(1396931989, gamePath, gameDir);
+}
+
+/**
+ * @param {$models.UIDCustomConfig} config
+ * @returns {$CancellablePromise<void>}
+ */
+export function SaveUIDCustom(config) {
+    return $Call.ByID(2473441536, config);
 }
 
 /**
@@ -116,3 +137,6 @@ export function StartHKRPGServer() {
 export function StartWithConsole(path) {
     return $Call.ByID(1563952671, path);
 }
+
+// Private type creation functions
+const $$createType0 = $models.UIDCustomConfig.createFrom;

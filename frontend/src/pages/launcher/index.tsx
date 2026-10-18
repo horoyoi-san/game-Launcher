@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Play, Menu, Minus, FolderOpen, Sparkles, Crown, X, ExternalLink, Server, ImagePlus, Image, RotateCcw, ShieldCheck, Music2 } from 'lucide-react';
+import { Play, Menu, Minus, FolderOpen, Sparkles, Crown, X, ExternalLink, Server, ImagePlus, Image, RotateCcw, ShieldCheck, Music2, Palette } from 'lucide-react';
 import { AppService } from '@bindings/Cyrene-launcher/internal/app-service';
 import { FSService } from '@bindings/Cyrene-launcher/internal/fs-service';
 import { toast } from 'react-toastify';
@@ -195,6 +195,7 @@ export default function LauncherPage() {
     const {
         isOpenDownloadDataModal,
         setIsOpenDownloadDataModal,
+        setIsOpenUIDCustomModal,
         showDiagnostic
     } = useModalStore()
 
@@ -793,6 +794,7 @@ export default function LauncherPage() {
                                 </li>
 
                                 <li className="cyrene-quick-menu__heading">Utilities</li>
+                                <li><button onClick={() => setIsOpenUIDCustomModal(true)}><Palette aria-hidden="true" />UID Custom Text</button></li>
                                 <li>
                                     <button onClick={() => void handlePickFile()}>
                                         <FolderOpen aria-hidden="true" />

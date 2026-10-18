@@ -6,3 +6,7 @@ import * as FSService from "./fsservice.js";
 export {
     FSService
 };
+
+export {
+    UIDCustomConfig
+} from "./models.js";

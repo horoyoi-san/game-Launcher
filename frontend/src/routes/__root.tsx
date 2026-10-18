@@ -9,13 +9,14 @@ import Header from '@/components/header';
 import PageBackground from '@/components/pageBackground';
 import { useAutoLauncherUpdate } from '@/hooks/useAutoLauncherUpdate';
 import LauncherUpdateNotice from '@/components/launcherUpdateNotice';
+import UIDCustomModal from '@/components/uidCustomModal';
 
 export const Route = createRootRoute({
     component: RootLayout
 })
 
 function RootLayout() {
-    const { setIsOpenCloseModal, isOpenCloseModal, isOpenSettingModal, setIsOpenSettingModal } = useModalStore()
+    const { setIsOpenCloseModal, isOpenCloseModal, isOpenSettingModal, setIsOpenSettingModal, isOpenUIDCustomModal, setIsOpenUIDCustomModal } = useModalStore()
     const pathname = useRouterState({ select: (state) => state.location.pathname })
     const launcherUpdate = useAutoLauncherUpdate()
 
@@ -42,6 +43,7 @@ function RootLayout() {
 
             <CloseModal isOpen={isOpenCloseModal} onClose={() => setIsOpenCloseModal(false)} />
             <SettingModal isOpen={isOpenSettingModal} onClose={() => setIsOpenSettingModal(false)} />
+            <UIDCustomModal isOpen={isOpenUIDCustomModal} onClose={() => setIsOpenUIDCustomModal(false)} />
             <DiagnosticModal />
             <ToastContainer />
         </>

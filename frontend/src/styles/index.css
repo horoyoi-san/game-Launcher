@@ -566,6 +566,81 @@ a,
     padding: 16px;
 }
 
+.uid-custom-editor {
+    display: grid;
+    gap: 11px;
+    margin-top: 14px;
+}
+
+.uid-custom-editor__field {
+    display: grid;
+    gap: 6px;
+    color: #c9c4d8;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.uid-custom-editor__field textarea {
+    width: 100%;
+    resize: vertical;
+    border: 1px solid rgba(188, 178, 223, 0.18);
+    border-radius: 10px;
+    background: rgba(4, 6, 15, 0.58);
+    padding: 10px 11px;
+    color: #f2effb;
+    font: inherit;
+    font-weight: 400;
+    line-height: 1.5;
+    outline: none;
+}
+
+.uid-custom-editor__field textarea:focus {
+    border-color: rgba(203, 184, 242, 0.65);
+    box-shadow: 0 0 0 3px rgba(142, 111, 211, 0.13);
+}
+
+.uid-custom-editor__field textarea:disabled {
+    opacity: 0.6;
+}
+
+.uid-custom-editor__hint,
+.uid-custom-editor__success,
+.uid-custom-editor__error {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.uid-custom-editor__hint {
+    color: #9691a9;
+}
+
+.uid-custom-editor__success {
+    color: #8de5b2;
+}
+
+.uid-custom-editor__error {
+    color: #ff9aab;
+}
+
+.uid-custom-overlay { z-index: 130; }
+.uid-custom-modal { width: min(100%, 620px); }
+.uid-custom-modal__content { padding: 20px 24px 24px; }
+.uid-custom-modal__intro { margin: 0; color: #aaa7bd; font-size: 12px; line-height: 1.6; }
+.uid-custom-modal .uid-custom-editor { gap: 14px; margin-top: 18px; }
+.uid-custom-modal .uid-custom-editor__field textarea { min-height: 84px; }
+.uid-custom-editor__success { display: flex; align-items: center; gap: 6px; }
+.uid-custom-modal__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 3px; }
+.uid-custom-modal__actions button {
+    display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 8px;
+    border: 1px solid rgba(196, 172, 248, 0.25); border-radius: 11px; padding: 0 16px;
+    color: #e9e0fb; font-size: 12px; font-weight: 650; cursor: pointer;
+}
+.uid-custom-modal__cancel { background: rgba(255, 255, 255, 0.045); }
+.uid-custom-modal__save { background: rgba(130, 99, 195, 0.3); }
+.uid-custom-modal__actions button:hover { border-color: rgba(196, 172, 248, 0.55); background: rgba(145, 110, 211, 0.35); }
+.uid-custom-modal__actions button:disabled { cursor: wait; opacity: 0.65; }
+
 .settings-section__heading {
     display: flex;
     align-items: center;
