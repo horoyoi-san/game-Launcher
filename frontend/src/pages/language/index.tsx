@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Folder, Settings, Check, X, Globe, Mic, Download } from 'lucide-react'
+import { Folder, Settings, Check, X, Globe, Mic, Download, Copy, RotateCcw, Hammer, FolderOpen } from 'lucide-react'
 import { FSService } from '@bindings/Cyrene-launcher/internal/fs-service'
 import { LanguageService } from '@bindings/Cyrene-launcher/internal/language-service'
 import { toast } from 'react-toastify'
@@ -21,6 +21,12 @@ export default function LanguagePage() {
     const [isLoading, setIsLoading] = useState(false)
     const [isSettingLanguage, setIsSettingLanguage] = useState(false)
     const [isInstallingThaiPatch, setIsInstallingThaiPatch] = useState(false)
+    const [isBuildingThaiText, setIsBuildingThaiText] = useState(false)
+    const [isRestoringThaiText, setIsRestoringThaiText] = useState(false)
+    const [liveGameDir, setLiveGameDir] = useState('')
+    const [liveThaiTextMapDir, setLiveThaiTextMapDir] = useState('')
+    const [thaiTextResult, setThaiTextResult] = useState('')
+    const [thaiLogCopied, setThaiLogCopied] = useState(false)
 
     const languageOptions = [
         { value: 'en', label: 'English', flag: '🇺🇸' },
@@ -194,6 +200,84 @@ export default function LanguagePage() {
         }
     }
 
+    const handlePickLiveFolder = async () => {
+        try {
+            const liveRoot = await FSService.PickFolder()
+            if (!liveRoot) return
+
+            setLiveGameDir(liveRoot)
+            setLiveThaiTextMapDir(liveRoot)
+            setThaiTextResult('')
+        } catch (err: unknown) {
+            toast.error(`Could not select Live game folder: ${err instanceof Error ? err.message : String(err)}`)
+        }
+    }
+
+    const handleBuildThaiText = async () => {
+        if (!gameDir || !liveGameDir) {
+            toast.error('Select both the Beta and Live game folders first')
+            return
+        }
+        try {
+            setIsBuildingThaiText(true)
+            setThaiTextResult('')
+            const [ok, message] = await LanguageService.BuildThaiText(gameDir, liveGameDir, './server')
+            if (!ok) {
+                showDiagnostic(diagnoseLanguageError(message, gameDir, 'Build Thai Beta Text'))
+                toast.error(message)
+                return
+            }
+            setThaiTextResult(message)
+            const [languageOk, text, voice, error] = await LanguageService.GetLanguage(`${gameDir}/StarRail_Data/StreamingAssets`)
+            if (languageOk) {
+                setTextLang(text)
+                setVoiceLang(voice)
+                setSelectedTextLang(text)
+                setSelectedVoiceLang(voice)
+            } else {
+                toast.error(`Thai text built, but language settings could not be reloaded: ${error}`)
+            }
+            toast.success('Thai text built and enabled. Restart the game to use it.')
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err)
+            showDiagnostic(diagnoseLanguageError(message, gameDir, 'Build Thai Beta Text'))
+            toast.error(`Could not build Thai beta text: ${message}`)
+        } finally {
+            setIsBuildingThaiText(false)
+        }
+    }
+
+    const handleRestoreThaiText = async () => {
+        if (!gameDir) return
+        try {
+            setIsRestoringThaiText(true)
+            setThaiTextResult('')
+            const [ok, message] = await LanguageService.RestoreThaiText(gameDir, './server')
+            if (!ok) {
+                showDiagnostic(diagnoseLanguageError(message, gameDir, 'Restore Thai Beta Text'))
+                toast.error(message)
+                return
+            }
+            setThaiTextResult(message)
+            const [languageOk, text, voice, error] = await LanguageService.GetLanguage(`${gameDir}/StarRail_Data/StreamingAssets`)
+            if (languageOk) {
+                setTextLang(text)
+                setVoiceLang(voice)
+                setSelectedTextLang(text)
+                setSelectedVoiceLang(voice)
+            } else {
+                toast.error(`Files restored, but language settings could not be reloaded: ${error}`)
+            }
+            toast.success('Original Beta text settings restored. Restart the game.')
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err)
+            showDiagnostic(diagnoseLanguageError(message, gameDir, 'Restore Thai Beta Text'))
+            toast.error(`Could not restore Thai beta text: ${message}`)
+        } finally {
+            setIsRestoringThaiText(false)
+        }
+    }
+
     const getLanguageLabel = (code: string) => {
         const lang = languageOptions.find(l => l.value === code)
         return lang ? `${lang.flag} ${lang.label}` : code
@@ -247,12 +331,55 @@ export default function LanguagePage() {
                             {gameDir && (
                                 <div className="thai-patch">
                                     <div>
-                                        <strong>Thai beta patch</strong>
-                                        <p>Install the Thai language asset package. Existing changed files are backed up.</p>
+                                        <strong>Prebuilt Thai beta patch</strong>
+                                        <p>Install a prepared Thai language asset package. Existing changed files are backed up.</p>
                                     </div>
                                     <button type="button" onClick={handleInstallThaiPatch} disabled={isInstallingThaiPatch} className="btn">
-                                        {isInstallingThaiPatch ? 'Installing…' : 'Install patch'}
+                                        {isInstallingThaiPatch ? 'Installing…' : 'Install package'}
                                     </button>
+                                </div>
+                            )}
+                            {gameDir && (
+                                <div className="thai-patch thai-text-builder">
+                                    <div className="thai-text-builder__intro">
+                                        <strong>Build Thai text from Live</strong>
+                                        <p>Select the Live game folder containing StarRail_Data. The launcher finds the English and Thai TextMaps automatically. Python 3 and the updated local server are required.</p>
+                                        <div className={`thai-live-path ${liveThaiTextMapDir ? 'is-selected' : ''}`} title={liveThaiTextMapDir}>
+                                            <FolderOpen size={14} />
+                                            <span>{liveThaiTextMapDir || 'No Live game folder selected'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="thai-text-actions">
+                                        <button type="button" onClick={() => void handlePickLiveFolder()} disabled={isBuildingThaiText || isRestoringThaiText} className="btn thai-text-actions__secondary">
+                                            <FolderOpen size={15} />
+                                            Choose Live
+                                        </button>
+                                        <button type="button" onClick={() => void handleBuildThaiText()} disabled={!liveGameDir || isBuildingThaiText || isRestoringThaiText} className="btn thai-text-actions__primary">
+                                            <Hammer size={15} />
+                                            {isBuildingThaiText ? 'Building…' : 'Build Thai'}
+                                        </button>
+                                        <button type="button" onClick={() => void handleRestoreThaiText()} disabled={isBuildingThaiText || isRestoringThaiText} className="btn thai-text-actions__secondary">
+                                            <RotateCcw size={15} />
+                                            {isRestoringThaiText ? 'Restoring…' : 'Restore'}
+                                        </button>
+                                    </div>
+                                    {thaiTextResult && (
+                                        <section className="thai-build-log" aria-label="Thai text build log">
+                                            <header className="thai-build-log__header">
+                                                <div className="thai-build-log__title"><span className="thai-build-log__status" />Build log <small>{thaiTextResult.split(/\r?\n/).length} lines</small></div>
+                                                <button type="button" className="thai-build-log__copy" onClick={() => {
+                                                    void navigator.clipboard.writeText(thaiTextResult).then(() => {
+                                                        setThaiLogCopied(true)
+                                                        window.setTimeout(() => setThaiLogCopied(false), 1800)
+                                                    }).catch(() => toast.error('Could not copy the build log'))
+                                                }}>
+                                                    {thaiLogCopied ? <Check size={14} /> : <Copy size={14} />}
+                                                    {thaiLogCopied ? 'Copied' : 'Copy log'}
+                                                </button>
+                                            </header>
+                                            <pre className="thai-build-log__body">{thaiTextResult}</pre>
+                                        </section>
+                                    )}
                                 </div>
                             )}
                         </section>

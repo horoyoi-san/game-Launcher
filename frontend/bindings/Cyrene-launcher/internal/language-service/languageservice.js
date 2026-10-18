@@ -7,6 +7,16 @@
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 /**
+ * @param {string} betaRoot
+ * @param {string} liveRoot
+ * @param {string} dispatchRoot
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function BuildThaiText(betaRoot, liveRoot, dispatchRoot) {
+    return $Call.ByID(2096247549, betaRoot, liveRoot, dispatchRoot);
+}
+
+/**
  * @param {string} path
  * @returns {$CancellablePromise<[boolean, string, string, string]>}
  */
@@ -21,6 +31,15 @@ export function GetLanguage(path) {
  */
 export function InstallThaiPatch(gameRoot, packageRoot) {
     return $Call.ByID(2582310097, gameRoot, packageRoot);
+}
+
+/**
+ * @param {string} betaRoot
+ * @param {string} dispatchRoot
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function RestoreThaiText(betaRoot, dispatchRoot) {
+    return $Call.ByID(992770239, betaRoot, dispatchRoot);
 }
 
 /**

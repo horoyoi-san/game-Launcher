@@ -117,6 +117,12 @@ func (f *FSService) StartWithConsole(path string) (bool, string) {
 }
 
 func (f *FSService) StartHKRPGServer() (bool, string) {
+	serverRoot, err := filepath.Abs(constant.ServerStorageUrl)
+	if err != nil {
+		return false, "resolve server directory: " + err.Error()
+	}
+	designOverrideDir := filepath.Join(serverRoot, "design_override")
+
 	serverExecutables := []string{
 		filepath.Join(constant.ServerStorageUrl, constant.HKRPGSDKServerExecutable),
 		filepath.Join(constant.ServerStorageUrl, constant.HKRPGServerExecutable),
@@ -128,6 +134,9 @@ func (f *FSService) StartHKRPGServer() (bool, string) {
 			stopStartedProcesses(commands)
 			return false, fmt.Errorf("prepare server process %s: %w", executable, err).Error()
 		}
+		// The launcher starts sdkserver.exe directly instead of using Hoyo's
+		// run.bat, so pass the override directory explicitly to both servers.
+		command.Env = append(os.Environ(), "HOYO_DESIGN_OVERRIDE_DIR="+designOverrideDir)
 		if err := command.Start(); err != nil {
 			stopStartedProcesses(commands)
 			return false, fmt.Errorf("start server process %s: %w", executable, err).Error()

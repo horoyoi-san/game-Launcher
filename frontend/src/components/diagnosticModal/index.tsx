@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
     AlertTriangle,
     Check,
@@ -19,6 +19,17 @@ export default function DiagnosticModal() {
     const { diagnosticError, showDiagnostic } = useModalStore()
     const [showTechnical, setShowTechnical] = useState(false)
     const [copied, setCopied] = useState(false)
+    const technicalLogRef = useRef<HTMLPreElement>(null)
+
+    useEffect(() => {
+        if (diagnosticError) setShowTechnical(true)
+    }, [diagnosticError])
+
+    useEffect(() => {
+        if (showTechnical && technicalLogRef.current) {
+            technicalLogRef.current.scrollTop = technicalLogRef.current.scrollHeight
+        }
+    }, [showTechnical, diagnosticError])
 
     if (!diagnosticError) return null
 
@@ -356,17 +367,20 @@ ${diagnosticError.technical || diagnosticError.message || "N/A"}
                                     }}
                                 >
                                     <pre
+                                        ref={technicalLogRef}
                                         style={{
                                             margin: "10px 0 8px",
                                             padding: "8px 10px",
-                                            background: "rgba(0, 0, 0, 0.5)",
-                                            borderRadius: "6px",
-                                            color: "#94a3b8",
-                                            fontSize: "11px",
-                                            whiteSpace: "pre-wrap",
-                                            wordBreak: "break-all",
-                                            maxHeight: "120px",
-                                            overflowY: "auto",
+                                            background: "rgba(5, 5, 14, 0.78)",
+                                            border: "1px solid rgba(208, 189, 255, 0.12)",
+                                            borderRadius: "9px",
+                                            color: "#c4bdd2",
+                                            fontFamily: '"Cascadia Code", Consolas, monospace',
+                                            fontSize: "10px",
+                                            lineHeight: 1.6,
+                                            whiteSpace: "pre",
+                                            overflow: "auto",
+                                            maxHeight: "min(34vh, 260px)",
                                         }}
                                     >
                                         {diagnosticError.technical || diagnosticError.message}

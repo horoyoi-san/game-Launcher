@@ -151,7 +151,13 @@ export function diagnoseServerError(errorStr: string): DiagnosticErrorInfo {
 export function diagnoseLanguageError(errorStr: string, gameDir?: string, stage?: string): DiagnosticErrorInfo {
     const lower = (errorStr || "").toLowerCase()
 
-    if (lower.includes("not found") || lower.includes("designdata")) {
+    const missingPath = lower.includes("no such file or directory")
+        || lower.includes("filenotfounderror")
+        || lower.includes("cannot find the path")
+    const missingDesignAsset = missingPath && lower.includes("designdata")
+        || lower.includes("design data index has no file")
+
+    if (missingDesignAsset) {
         return {
             category: "language",
             stage: stage || "Read Language",
