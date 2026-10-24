@@ -18,7 +18,7 @@ const NAPServerExecutable = "gameserver.exe"
 const NAPSDKServerExecutable = "sdkserver.exe"
 const TempUrl = "./temp"
 const LauncherManifestURL = "https://github.com/horoyoi-san/Hoyo/releases/download/nap/latest.json"
-const LauncherDownloadURL = "https://github.com/horoyoi-san/Hoyo/releases/download/nap/Sunbringer.exe"
+const LauncherDownloadURL = "https://github.com/horoyoi-san/Hoyo/releases/download/nap/Sunbringer-launcher.exe"
 const DiffUpdaterGitUrl = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/diff.zip"
 
 var CurrentLauncherVersion = "1.0.0"
@@ -30,6 +30,7 @@ const (
 	Tool7zaDLL     ToolFile = "bin/7za.dll"
 	Tool7zxaDLL    ToolFile = "bin/7zxa.dll"
 	ToolHPatchzExe ToolFile = "bin/hpatchz.exe"
+	ToolZiftExe    ToolFile = "bin/zift.exe"
 )
 
 var RequiredFiles = map[ToolFile]string{
@@ -37,6 +38,7 @@ var RequiredFiles = map[ToolFile]string{
 	Tool7zaDLL:     "assets/7za.dll",
 	Tool7zxaDLL:    "assets/7zxa.dll",
 	ToolHPatchzExe: "assets/hpatchz.exe",
+	ToolZiftExe:    "assets/zift.exe",
 }
 
 func (t ToolFile) GetEmbedPath() string {

@@ -7,6 +7,18 @@
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 /**
+ * ApplyDiffZiffCopy applies a Ziff delta to a staged copy of the source game,
+ * then swaps the completed copy into an empty destination directory.
+ * @param {string} sourcePath
+ * @param {string} patchPath
+ * @param {string} outputPath
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function ApplyDiffZiffCopy(sourcePath, patchPath, outputPath) {
+    return $Call.ByID(3094578738, sourcePath, patchPath, outputPath);
+}
+
+/**
  * @param {string} gamePath
  * @param {string} patchPath
  * @returns {$CancellablePromise<[boolean, string]>}

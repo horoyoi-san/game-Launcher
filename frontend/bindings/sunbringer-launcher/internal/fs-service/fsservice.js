@@ -85,17 +85,19 @@ export function PickFolder() {
 }
 
 /**
+ * @param {string} gameDir
  * @returns {$CancellablePromise<string>}
  */
-export function ReadOffsetsFile() {
-    return $Call.ByID(3448935667);
+export function ReadOffsetsFile(gameDir) {
+    return $Call.ByID(3448935667, gameDir);
 }
 
 /**
+ * @param {string} gameDir
  * @returns {$CancellablePromise<string>}
  */
-export function ReadUIDCustomFile() {
-    return $Call.ByID(148584454);
+export function ReadUIDCustomFile(gameDir) {
+    return $Call.ByID(148584454, gameDir);
 }
 
 /**
@@ -139,17 +141,19 @@ export function StartWithConsole(path) {
 }
 
 /**
+ * @param {string} gameDir
  * @param {string} content
  * @returns {$CancellablePromise<void>}
  */
-export function WriteOffsetsFile(content) {
-    return $Call.ByID(399838664, content);
+export function WriteOffsetsFile(gameDir, content) {
+    return $Call.ByID(399838664, gameDir, content);
 }
 
 /**
+ * @param {string} gameDir
  * @param {string} content
  * @returns {$CancellablePromise<void>}
  */
-export function WriteUIDCustomFile(content) {
-    return $Call.ByID(1444216753, content);
+export function WriteUIDCustomFile(gameDir, content) {
+    return $Call.ByID(1444216753, gameDir, content);
 }
