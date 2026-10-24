@@ -9,6 +9,7 @@ interface SettingState {
     serverPath: string;
     serverVersion: string;
     serverChoice: "remielle" | "eldreda";
+    patchChoice: "sunbringer" | "kafka";
     patchInstalledGameDir: string;
     closingOption: {
         isMinimize: boolean;
@@ -25,6 +26,7 @@ interface SettingState {
     setServerPath: (newServerPath: string) => void;
     setServerVersion: (newServerVersion: string) => void;
     setServerChoice: (serverChoice: "remielle" | "eldreda") => void;
+    setPatchChoice: (patchChoice: "sunbringer" | "kafka") => void;
     setPatchInstalledGameDir: (newGameDir: string) => void;
 }
 
@@ -37,6 +39,7 @@ const useSettingStore = create<SettingState>()(
             serverPath: "",
             serverVersion: "",
             serverChoice: "remielle",
+            patchChoice: "sunbringer",
             patchInstalledGameDir: "",
             closingOption: {
                 isMinimize: false,
@@ -53,11 +56,20 @@ const useSettingStore = create<SettingState>()(
             setServerPath: (newServerPath: string) => set({ serverPath: newServerPath }),
             setServerVersion: (newServerVersion: string) => set({ serverVersion: newServerVersion }),
             setServerChoice: (serverChoice: "remielle" | "eldreda") => set({ serverChoice }),
+            setPatchChoice: (patchChoice: "sunbringer" | "kafka") => set({ patchChoice }),
             setPatchInstalledGameDir: (newGameDir: string) => set({ patchInstalledGameDir: newGameDir }),
         }),
         {
             name: 'setting-storage',
             storage: createJSONStorage(() => localStorage),
+            merge: (persistedState, currentState) => {
+                const persisted = persistedState as Partial<SettingState>;
+                return {
+                    ...currentState,
+                    ...persisted,
+                    patchChoice: persisted.patchChoice ?? (persisted.serverChoice === "eldreda" ? "kafka" : "sunbringer"),
+                };
+            },
         }
     )
 );

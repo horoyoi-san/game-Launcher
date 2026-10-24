@@ -14,7 +14,7 @@ export default function SettingModal({
     isOpen: boolean
     onClose: () => void
 }) {
-    const { closingOption, setClosingOption, gameDir, serverChoice, setServerChoice } = useSettingStore()
+    const { closingOption, setClosingOption, gameDir, serverChoice, setServerChoice, patchChoice, setPatchChoice } = useSettingStore()
     const activeLanguage = i18n.resolvedLanguage ?? i18n.language
     const [isCheckingUpdates, setIsCheckingUpdates] = useState(false)
     const [isInstallingUpdate, setIsInstallingUpdate] = useState(false)
@@ -36,7 +36,7 @@ export default function SettingModal({
         setPatchUpdateAvailable(false)
         setPatchUpdateMessage("")
         setPatchUpdateError("")
-    }, [gameDir])
+    }, [gameDir, patchChoice])
 
     useEffect(() => {
         if (!isOpen) return
@@ -118,14 +118,14 @@ export default function SettingModal({
         setPatchUpdateMessage("")
         setPatchUpdateError("")
         try {
-            const [isCurrent, error] = await GitService.IsNAPPatchCurrent(gameDir)
+            const [isCurrent, error] = await GitService.IsNAPPatchCurrent(gameDir, patchChoice)
             if (error) throw new Error(error)
             setPatchUpdateAvailable(!isCurrent)
             setPatchUpdateMessage(isCurrent
-                ? "The installed NAP patch is up to date."
-                : "A newer patch is available, or the patch is not installed yet.")
+                ? `The ${patchChoice === "kafka" ? "Kafka" : "Sunbringer"} patch is up to date.`
+                : `An update for the ${patchChoice === "kafka" ? "Kafka" : "Sunbringer"} patch is available, or it is not installed yet.`)
         } catch (error) {
-            setPatchUpdateError(error instanceof Error ? error.message : "Unable to check for NAP patch updates")
+            setPatchUpdateError(error instanceof Error ? error.message : "Unable to check for patch updates")
         } finally {
             setIsCheckingPatch(false)
         }
@@ -137,11 +137,11 @@ export default function SettingModal({
         setPatchUpdateError("")
         try {
             const installed = await UpdatePatch(gameDir)
-            if (!installed) throw new Error("NAP patch update could not be installed. Check the launcher log for details.")
+            if (!installed) throw new Error("Patch update could not be installed. Check the launcher log for details.")
             setPatchUpdateAvailable(false)
-            setPatchUpdateMessage("The latest NAP patch has been installed.")
+            setPatchUpdateMessage(`The latest ${patchChoice === "kafka" ? "Kafka" : "Sunbringer"} patch has been installed.`)
         } catch (error) {
-            setPatchUpdateError(error instanceof Error ? error.message : "NAP patch update failed")
+            setPatchUpdateError(error instanceof Error ? error.message : "Patch update failed")
         } finally {
             setIsUpdatingPatch(false)
         }
@@ -224,8 +224,8 @@ export default function SettingModal({
                         <div className="settings-section__heading">
                             <span className="settings-section__icon"><ShieldCheck size={17} /></span>
                             <div>
-                                <h3>NAP patch updates</h3>
-                                <p>Check and install the latest NAP patch for this game folder.</p>
+                                <h3>{patchChoice === "kafka" ? "Kafka patch updates" : "Sunbringer patch updates"}</h3>
+                                <p>Check and install the selected client patch for this game folder.</p>
                             </div>
                         </div>
                         <div className="settings-update-card__target">
@@ -254,7 +254,7 @@ export default function SettingModal({
                                     {isUpdatingPatch
                                         ? <LoaderCircle size={16} className="animate-spin" />
                                         : <Download size={16} />}
-                                    {isUpdatingPatch ? "Updating patch…" : "Update NAP patch"}
+                                    {isUpdatingPatch ? "Updating patch…" : `Update ${patchChoice === "kafka" ? "Kafka" : "Sunbringer"} patch`}
                                 </button>
                             )}
                         </div>
@@ -285,19 +285,19 @@ export default function SettingModal({
                         </div>
                     </section>}
 
-                    {activeSection === "connection" && <section className="settings-section settings-section--console">
+                    {activeSection === "connection" && <section className="settings-section settings-section--console settings-server-section">
                         <div className="settings-section__heading">
                             <span className="settings-section__icon"><Server size={17} /></span>
                             <div>
                                 <h3>NAP game server</h3>
-                                <p>Choose which local server Sunbringer starts with the game.</p>
+                                <p>Choose a server profile; Sunbringer switches to its matching client patch.</p>
                             </div>
                         </div>
                         <div className="settings-patch-info">
                             <Check size={18} />
-                            <span><strong>Client patch route active</strong><small>The NAP client patch is used with either server option.</small></span>
+                            <span><strong>Matched client patch</strong><small>{patchChoice === "kafka" ? "Kafka.exe + Unknown_Realm.dll" : "Sunbringer.exe + Roscaelifer.dll"}</small></span>
                         </div>
-                        <div className="settings-update-card__target">
+                        <div className="settings-update-card__target settings-server-version">
                             <span>SUPPORTED GAME VERSION · {serverChoice === "eldreda" ? "ELDREDA" : "REMIELLE"}</span>
                             <code>{serverGameVersion || (serverGameVersionError ? "Version unavailable" : "Checking…")}</code>
                             <button
@@ -326,17 +326,17 @@ export default function SettingModal({
                             </button>
                             {serverGameVersionError && <small className="settings-update-card__message is-error">{serverGameVersionError}</small>}
                         </div>
-                        <div className="settings-choice-grid settings-server-options">
-                            <button type="button" className={`settings-choice ${serverChoice === "remielle" ? "is-selected" : ""}`} onClick={() => setServerChoice("remielle")} aria-pressed={serverChoice === "remielle"}>
-                                <span>SERVER 01 · ZIG 0.16.0</span>
+                        <div className="settings-choice-grid settings-server-options" aria-label="Choose NAP server">
+                            <button type="button" className={`settings-choice ${serverChoice === "remielle" ? "is-selected" : ""}`} onClick={() => { setServerChoice("remielle"); setPatchChoice("sunbringer") }} aria-pressed={serverChoice === "remielle"}>
+                                <span>SERVER 01 <i>·</i> PATCH 01</span>
                                 <strong>Remielle</strong>
-                                <small>Current server option</small>
+                                <small>Sunbringer.exe + Roscaelifer.dll</small>
                                 {serverChoice === "remielle" && <Check size={15} />}
                             </button>
-                            <button type="button" className={`settings-choice ${serverChoice === "eldreda" ? "is-selected" : ""}`} onClick={() => setServerChoice("eldreda")} aria-pressed={serverChoice === "eldreda"}>
-                                <span>SERVER 02 · ZIG 0.17.0</span>
+                            <button type="button" className={`settings-choice ${serverChoice === "eldreda" ? "is-selected" : ""}`} onClick={() => { setServerChoice("eldreda"); setPatchChoice("kafka") }} aria-pressed={serverChoice === "eldreda"}>
+                                <span>SERVER 02 <i>·</i> PATCH 02</span>
                                 <strong>Eldreda</strong>
-                                <small>Builds from Eldreda source</small>
+                                <small>Kafka.exe + Unknown_Realm.dll</small>
                                 {serverChoice === "eldreda" && <Check size={15} />}
                             </button>
                         </div>

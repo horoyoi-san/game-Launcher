@@ -1,6 +1,10 @@
 {
   "version": "1.0",
   "assets": {
+    "Kafka.exe": {
+      "sha256": "fdbdd28ca6967b267c9de4a228e4c3b05d5600b223fe9fd37aa84cff0fd5238c",
+      "size": 56320
+    },
     "Roscaelifer.dll": {
       "sha256": "b49813c79ae34f60537332b343d919835682af798819b52abd2d3f856759236d",
       "size": 465920
@@ -8,6 +12,10 @@
     "Sunbringer.exe": {
       "sha256": "882f8c1e9702be76a5710e4655154083180706847f5e73176853dd8fdf74f1f5",
       "size": 54784
+    },
+    "Unknown_Realm.dll": {
+      "sha256": "c00a35288ac7fa9934005230e1c181ec99fc82f2bbb5bb830d8cc5f4df335a14",
+      "size": 467456
     }
   }
 }

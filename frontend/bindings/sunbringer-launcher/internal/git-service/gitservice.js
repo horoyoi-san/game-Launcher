@@ -21,10 +21,11 @@ export function DownloadEldredaServerProgress() {
 }
 
 /**
+ * @param {string} patchChoice
  * @returns {$CancellablePromise<[boolean, string]>}
  */
-export function DownloadNAPPatchProgress() {
-    return $Call.ByID(1485089949);
+export function DownloadNAPPatchProgress(patchChoice) {
+    return $Call.ByID(1485089949, patchChoice);
 }
 
 /**
@@ -74,18 +75,20 @@ export function GetNAPServerGameVersion(serverChoice) {
 
 /**
  * @param {string} gameDir
+ * @param {string} patchChoice
  * @returns {$CancellablePromise<[boolean, string]>}
  */
-export function InstallNAPPatch(gameDir) {
-    return $Call.ByID(2638467463, gameDir);
+export function InstallNAPPatch(gameDir, patchChoice) {
+    return $Call.ByID(2638467463, gameDir, patchChoice);
 }
 
 /**
  * @param {string} gameDir
+ * @param {string} patchChoice
  * @returns {$CancellablePromise<[boolean, string]>}
  */
-export function IsNAPPatchCurrent(gameDir) {
-    return $Call.ByID(3094144199, gameDir);
+export function IsNAPPatchCurrent(gameDir, patchChoice) {
+    return $Call.ByID(3094144199, gameDir, patchChoice);
 }
 
 /**

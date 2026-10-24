@@ -279,6 +279,7 @@ export default function LauncherPage() {
         setGamePath,
         setGameDir,
         serverChoice,
+        patchChoice,
     serverPath,
     serverVersion,
     gameDir,
@@ -544,7 +545,7 @@ export default function LauncherPage() {
                 setServerRunning(true)
             }
             await sleep(2000)
-            const patchedLauncher = path.join(gameDir, "Sunbringer.exe")
+            const patchedLauncher = path.join(gameDir, patchChoice === "kafka" ? "Kafka.exe" : "Sunbringer.exe")
             const [resultGame, gameError] = await FSService.StartWithConsole(patchedLauncher)
             if (!resultGame) {
                 toast.error(`Failed to start patched game: ${gameError}`)
@@ -1011,8 +1012,8 @@ export default function LauncherPage() {
                     !updateData.server.isExists
                         ? `The ${serverChoice === "eldreda" ? "Eldreda" : "Remielle"} server source or Zig compiler is missing. Download and build it to continue.`
                         : gameDir
-                            ? "The latest NAP patch must be installed in the selected game folder. Sunbringer checks the release manifest and updates outdated patch files; existing launcher and DLL files are backed up."
-                            : "Select the game file and folder before installing the NAP patch."
+                            ? `The selected ${patchChoice === "kafka" ? "Kafka" : "Sunbringer"} patch must be installed in the chosen game folder. The launcher checks the release manifest, verifies both files, and backs up files it replaces.`
+                            : `Select the game file and folder before installing the ${patchChoice === "kafka" ? "Kafka" : "Sunbringer"} patch.`
                 }
                 buttons={[
                     {

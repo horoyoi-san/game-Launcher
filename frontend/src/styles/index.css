@@ -3771,6 +3771,56 @@ body::before {
 @media (max-width: 900px) { .sunbringer-dashboard .sunbringer-news-panel.sunbringer-transmission { left: 80px; bottom: 16px; width: min(240px, 28vw); }.sunbringer-dashboard .sunbringer-command-deck__art { transform: translateY(-32px); } }
 @media (max-width: 560px) { .sunbringer-dashboard .sunbringer-news-panel.sunbringer-transmission { left: 72px; bottom: 10px; width: 145px; padding: 5px; }.sunbringer-transmission__screen-label strong { font-size: 7px; }.sunbringer-transmission__reel button { width: 43px; height: 30px; }.sunbringer-dashboard .sunbringer-command-deck__art { transform: translateY(-20px); }.sunbringer-dashboard .sunbringer-command-actions { bottom: 58px; }.sunbringer-dashboard > div.fixed.bottom-2.right-0 { right: 9px; bottom: 54px; }.sunbringer-dashboard .sunbringer-statusbar { right: 12px; bottom: 10px; left: auto; }.voice-deck__main { padding: 14px; }.voice-deck__now { gap: 10px; padding: 13px; }.voice-deck__disc { width: 48px; height: 48px; }.voice-deck__now strong { font-size: 15px; }.voice-deck__options { grid-template-columns: 1fr; }.voice-deck__footer { align-items: flex-start; flex-direction: column; } }
 
+/* Compact server profile cards; keep the selected profile and matching patch easy to scan. */
+.settings-section--console.settings-server-section {
+    min-height: 0;
+    justify-content: flex-start;
+    gap: 13px;
+    padding: 17px;
+}
+.settings-section--console.settings-server-section .settings-section__heading h3 { font-size: 17px; }
+.settings-section--console.settings-server-section .settings-section__heading p { max-width: 440px; }
+.settings-patch-info { min-height: 50px; gap: 10px; padding: 10px 13px; }
+.settings-patch-info > svg { width: 17px; height: 17px; flex: none; padding: 2px; border-radius: 50%; background: rgba(105, 225, 195, .12); }
+.settings-patch-info > span { gap: 3px; }
+.settings-patch-info strong { font-size: 11px; }
+.settings-patch-info small { font-size: 9px; }
+.settings-server-version { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 5px 12px; padding: 10px 12px; }
+.settings-server-version > span, .settings-server-version > small { grid-column: 1 / -1; }
+.settings-server-version code { font-size: 10px; font-weight: 750; }
+.settings-server-version .settings-version-check { grid-column: 2; grid-row: 2; min-height: 32px; margin: 0; white-space: nowrap; }
+.settings-server-version > small.is-error { grid-column: 1 / -1; }
+.settings-server-options { gap: 10px; margin-top: 0; }
+.settings-console .settings-server-options .settings-choice {
+    position: relative;
+    min-width: 0;
+    min-height: 94px;
+    grid-template-columns: minmax(0, 1fr) 18px;
+    align-content: center;
+    gap: 6px 10px;
+    padding: 12px 13px;
+    border-color: rgba(129, 165, 230, .19);
+    background: linear-gradient(145deg, rgba(9, 18, 39, .78), rgba(17, 15, 39, .74));
+    transition: border-color .18s ease, background .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.settings-console .settings-server-options .settings-choice:hover { transform: translateY(-1px); border-color: rgba(105, 211, 255, .48); }
+.settings-console .settings-server-options .settings-choice.is-selected {
+    border-color: rgba(105, 211, 255, .62);
+    background: linear-gradient(120deg, rgba(48, 127, 190, .25), rgba(111, 82, 187, .2));
+    box-shadow: inset 0 0 0 1px rgba(105, 211, 255, .08), 0 8px 24px rgba(30, 80, 145, .13);
+}
+.settings-console .settings-server-options .settings-choice > span { grid-column: 1 / -1; color: #82bfe5; font-size: 8px; }
+.settings-server-options .settings-choice > span i { padding: 0 3px; color: #917de0; font-style: normal; }
+.settings-console .settings-server-options .settings-choice strong { grid-column: 1; color: #f2f5ff; font-size: 15px; }
+.settings-console .settings-server-options .settings-choice small { grid-column: 1; color: #a7b6d5; font-size: 9px; text-align: left; overflow-wrap: anywhere; }
+.settings-console .settings-server-options .settings-choice > svg { grid-column: 2; grid-row: 2; color: #87e9ff; }
+@media (max-width: 700px) {
+    .settings-section--console.settings-server-section { gap: 11px; padding: 13px; }
+    .settings-console .settings-server-options .settings-choice { min-height: 88px; padding: 10px; }
+    .settings-server-version { grid-template-columns: minmax(0, 1fr); }
+    .settings-server-version .settings-version-check { grid-column: 1; grid-row: auto; }
+}
+
 /* Keep the launcher and game patch update controls in separate, balanced cards. */
 .settings-console__page { min-width: 0; overflow-x: hidden; overflow-y: auto; }
 .settings-section--console.settings-update-card { min-height: 0; flex: 0 0 auto; justify-content: flex-start; gap: 14px; padding: 17px; }
