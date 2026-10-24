@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "assets": {
+    "Roscaelifer.dll": {
+      "sha256": "b49813c79ae34f60537332b343d919835682af798819b52abd2d3f856759236d",
+      "size": 465920
+    },
+    "Sunbringer.exe": {
+      "sha256": "882f8c1e9702be76a5710e4655154083180706847f5e73176853dd8fdf74f1f5",
+      "size": 54784
+    }
+  }
+}

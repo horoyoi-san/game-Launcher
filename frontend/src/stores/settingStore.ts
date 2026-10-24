@@ -8,6 +8,7 @@ interface SettingState {
     gameDir: string;
     serverPath: string;
     serverVersion: string;
+    serverChoice: "remielle" | "eldreda";
     patchInstalledGameDir: string;
     closingOption: {
         isMinimize: boolean;
@@ -23,6 +24,7 @@ interface SettingState {
     setGameDir: (newGameDir: string) => void;
     setServerPath: (newServerPath: string) => void;
     setServerVersion: (newServerVersion: string) => void;
+    setServerChoice: (serverChoice: "remielle" | "eldreda") => void;
     setPatchInstalledGameDir: (newGameDir: string) => void;
 }
 
@@ -34,6 +36,7 @@ const useSettingStore = create<SettingState>()(
             gameDir: "",
             serverPath: "",
             serverVersion: "",
+            serverChoice: "remielle",
             patchInstalledGameDir: "",
             closingOption: {
                 isMinimize: false,
@@ -49,6 +52,7 @@ const useSettingStore = create<SettingState>()(
             setGameDir: (newGameDir: string) => set({ gameDir: newGameDir }),
             setServerPath: (newServerPath: string) => set({ serverPath: newServerPath }),
             setServerVersion: (newServerVersion: string) => set({ serverVersion: newServerVersion }),
+            setServerChoice: (serverChoice: "remielle" | "eldreda") => set({ serverChoice }),
             setPatchInstalledGameDir: (newGameDir: string) => set({ patchInstalledGameDir: newGameDir }),
         }),
         {

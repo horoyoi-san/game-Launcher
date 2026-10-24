@@ -246,6 +246,27 @@ func (f *FSService) StartNAPServer() (bool, string) {
 	return true, ""
 }
 
+func (f *FSService) StartEldredaServer() (bool, string) {
+	serverExecutable := filepath.Join(constant.EldredaStorageDir, "zig-out", "bin", "eldreda.exe")
+	command, _, err := startConsoleProcess(serverExecutable)
+	if err != nil {
+		return false, fmt.Errorf("prepare Eldreda server executable: %w", err).Error()
+	}
+	serverDir, err := filepath.Abs(constant.EldredaStorageDir)
+	if err != nil {
+		return false, fmt.Errorf("resolve Eldreda source folder: %w", err).Error()
+	}
+	command.Dir = serverDir
+	if err := command.Start(); err != nil {
+		return false, fmt.Errorf("start Eldreda server executable: %w", err).Error()
+	}
+	go func() {
+		_ = command.Wait()
+		application.Get().Event.Emit("server:exit")
+	}()
+	return true, ""
+}
+
 func startConsoleProcess(path string) (*exec.Cmd, string, error) {
 	absPath, err := filepath.Abs(path)
 	if err != nil {

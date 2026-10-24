@@ -9,6 +9,20 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 /**
  * @returns {$CancellablePromise<[boolean, string]>}
  */
+export function BuildEldredaServer() {
+    return $Call.ByID(376348339);
+}
+
+/**
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function DownloadEldredaServerProgress() {
+    return $Call.ByID(2572957530);
+}
+
+/**
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
 export function DownloadNAPPatchProgress() {
     return $Call.ByID(1485089949);
 }
@@ -50,11 +64,28 @@ export function GetLatestServerVersion() {
 }
 
 /**
+ * GetNAPServerGameVersion reads the client version configured by the selected server.
+ * @param {string} serverChoice
+ * @returns {$CancellablePromise<[string, string]>}
+ */
+export function GetNAPServerGameVersion(serverChoice) {
+    return $Call.ByID(3296504993, serverChoice);
+}
+
+/**
  * @param {string} gameDir
  * @returns {$CancellablePromise<[boolean, string]>}
  */
 export function InstallNAPPatch(gameDir) {
     return $Call.ByID(2638467463, gameDir);
+}
+
+/**
+ * @param {string} gameDir
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function IsNAPPatchCurrent(gameDir) {
+    return $Call.ByID(3094144199, gameDir);
 }
 
 /**

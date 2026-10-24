@@ -14,7 +14,21 @@ export async function CheckPatchInstalled(gameDir: string, installedGameDir: str
     }
     const launcherExists = await FSService.FileExists(`${gameDir}/Sunbringer.exe`);
     const dllExists = await FSService.FileExists(`${gameDir}/Roscaelifer.dll`);
-    return launcherExists && dllExists;
+    if (!launcherExists || !dllExists) return false;
+
+    try {
+        const [isCurrent, error] = await GitService.IsNAPPatchCurrent(gameDir);
+        if (error) {
+            // Preserve playability during a GitHub outage; the next online check can update it.
+            console.warn("Could not check for NAP patch updates", error);
+            return true;
+        }
+        return isCurrent;
+    } catch (error) {
+        // Preserve playability during a GitHub outage; the next online check can update it.
+        console.warn("Could not check for NAP patch updates", error);
+        return true;
+    }
 }
 
 export async function UpdatePatch(gameDir: string): Promise<boolean> {

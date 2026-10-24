@@ -278,6 +278,7 @@ export default function LauncherPage() {
     const { gamePath,
         setGamePath,
         setGameDir,
+        serverChoice,
     serverPath,
     serverVersion,
     gameDir,
@@ -419,7 +420,7 @@ export default function LauncherPage() {
                 toast.error(`Could not restore saved game location: ${err instanceof Error ? err.message : String(err)}`)
             }
 
-            const serverData = await CheckUpdateServer(serverPath, serverVersion)
+            const serverData = await CheckUpdateServer(serverPath, serverVersion, serverChoice)
             setUpdateData({
                 server: serverData,
                 launcher: { isUpdate: false, isExists: true, version: "" }
@@ -515,7 +516,7 @@ export default function LauncherPage() {
                 return
             }
 
-            const serverData = await CheckUpdateServer(serverPath, serverVersion)
+            const serverData = await CheckUpdateServer(serverPath, serverVersion, serverChoice)
             setUpdateData({
                 server: serverData,
                 launcher: updateData.launcher
@@ -533,7 +534,9 @@ export default function LauncherPage() {
             }
 
             if (!serverRunning) {
-                const [serverStarted, serverError] = await FSService.StartNAPServer()
+                const [serverStarted, serverError] = serverChoice === "eldreda"
+                    ? await FSService.StartEldredaServer()
+                    : await FSService.StartNAPServer()
                 if (!serverStarted) {
                     toast.error(`Failed to start server: ${serverError}`)
                     return
@@ -563,9 +566,13 @@ export default function LauncherPage() {
         const nextUpdateData = { ...updateData }
         try {
             if (!updateData.server.isExists || updateData.server.isUpdate) {
-                const serverOk = await UpdateServer()
+                const serverOk = await UpdateServer(serverChoice)
                 if (!serverOk) return
-                nextUpdateData.server = { isUpdate: false, isExists: true, version: "remielle-0.1.x" }
+                nextUpdateData.server = {
+                    isUpdate: false,
+                    isExists: true,
+                    version: serverChoice === "eldreda" ? "eldreda-latest" : "remielle-0.1.x"
+                }
                 setServerReady(true)
             }
 
@@ -783,13 +790,15 @@ export default function LauncherPage() {
                                     <button
                                         onClick={() => {
                                             window.open(
-                                                "https://git.xeondev.com/remielle/remielle/src/branch/0.1.x",
+                                                serverChoice === "eldreda"
+                                                    ? "https://git.xeondev.com/eldreda/eldreda"
+                                                    : "https://git.xeondev.com/remielle/remielle/src/branch/0.1.x",
                                                 "_blank"
                                             );
                                         }}
                                     >
                                         <Server aria-hidden="true" />
-                                        Sunbringer Server
+                                        {serverChoice === "eldreda" ? "Eldreda Server" : "Remielle Server"}
                                     </button>
                                 </li>
 
@@ -1000,14 +1009,14 @@ export default function LauncherPage() {
                 title="Prepare NAP"
                 message={
                     !updateData.server.isExists
-                        ? "The Remielle server source or Zig compiler is missing. Download and build it to continue."
+                        ? `The ${serverChoice === "eldreda" ? "Eldreda" : "Remielle"} server source or Zig compiler is missing. Download and build it to continue.`
                         : gameDir
-                            ? "The NAP patch must be installed in the selected game folder. Existing launcher and DLL files will be backed up."
+                            ? "The latest NAP patch must be installed in the selected game folder. Sunbringer checks the release manifest and updates outdated patch files; existing launcher and DLL files are backed up."
                             : "Select the game file and folder before installing the NAP patch."
                 }
                 buttons={[
                     {
-                        text: "Install",
+                        text: "Install / update patch",
                         onClick: handlerUpdateData,
                         variant: "primary",
                         disabled: isDownloading

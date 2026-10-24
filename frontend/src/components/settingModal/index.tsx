@@ -1,9 +1,11 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AppService } from '@bindings/sunbringer-launcher/internal/app-service'
 import useSettingStore from "@/stores/settingStore"
-import { Check, Download, Languages, LoaderCircle, Monitor, Power, RefreshCw, Server, X, Sparkles } from "lucide-react"
+import { Check, Download, Languages, LoaderCircle, Monitor, Power, RefreshCw, Server, X, Sparkles, ShieldCheck } from "lucide-react"
 import i18n from "i18next"
 import { CheckUpdateLauncher, UpdateLauncher } from "@/helper"
+import { GitService } from "@bindings/sunbringer-launcher/internal/git-service"
+import { UpdatePatch } from "@/helper/patch"
 
 export default function SettingModal({
     isOpen,
@@ -12,7 +14,7 @@ export default function SettingModal({
     isOpen: boolean
     onClose: () => void
 }) {
-    const { closingOption, setClosingOption } = useSettingStore()
+    const { closingOption, setClosingOption, gameDir, serverChoice, setServerChoice } = useSettingStore()
     const activeLanguage = i18n.resolvedLanguage ?? i18n.language
     const [isCheckingUpdates, setIsCheckingUpdates] = useState(false)
     const [isInstallingUpdate, setIsInstallingUpdate] = useState(false)
@@ -20,7 +22,38 @@ export default function SettingModal({
     const [availableLauncherVersion, setAvailableLauncherVersion] = useState("")
     const [updateMessage, setUpdateMessage] = useState("")
     const [updateError, setUpdateError] = useState("")
+    const [isCheckingPatch, setIsCheckingPatch] = useState(false)
+    const [isUpdatingPatch, setIsUpdatingPatch] = useState(false)
+    const [patchUpdateAvailable, setPatchUpdateAvailable] = useState(false)
+    const [patchUpdateMessage, setPatchUpdateMessage] = useState("")
+    const [patchUpdateError, setPatchUpdateError] = useState("")
+    const [serverGameVersion, setServerGameVersion] = useState("")
+    const [serverGameVersionError, setServerGameVersionError] = useState("")
+    const [isCheckingServerGameVersion, setIsCheckingServerGameVersion] = useState(false)
     const [activeSection, setActiveSection] = useState("connection")
+
+    useEffect(() => {
+        setPatchUpdateAvailable(false)
+        setPatchUpdateMessage("")
+        setPatchUpdateError("")
+    }, [gameDir])
+
+    useEffect(() => {
+        if (!isOpen) return
+        let cancelled = false
+        setServerGameVersion("")
+        setServerGameVersionError("")
+        void GitService.GetNAPServerGameVersion(serverChoice)
+            .then(([version, error]) => {
+                if (cancelled) return
+                if (error) setServerGameVersionError(error)
+                else setServerGameVersion(version)
+            })
+            .catch((error: unknown) => {
+                if (!cancelled) setServerGameVersionError(error instanceof Error ? error.message : "Unable to read server game version")
+            })
+        return () => { cancelled = true }
+    }, [isOpen, serverChoice])
 
     if (!isOpen) return null
 
@@ -75,6 +108,45 @@ export default function SettingModal({
         }
     }
 
+    const checkPatchVersion = async () => {
+        if (!gameDir) {
+            setPatchUpdateError("Select the NAP game folder on the Home screen first.")
+            return
+        }
+        setIsCheckingPatch(true)
+        setPatchUpdateAvailable(false)
+        setPatchUpdateMessage("")
+        setPatchUpdateError("")
+        try {
+            const [isCurrent, error] = await GitService.IsNAPPatchCurrent(gameDir)
+            if (error) throw new Error(error)
+            setPatchUpdateAvailable(!isCurrent)
+            setPatchUpdateMessage(isCurrent
+                ? "The installed NAP patch is up to date."
+                : "A newer patch is available, or the patch is not installed yet.")
+        } catch (error) {
+            setPatchUpdateError(error instanceof Error ? error.message : "Unable to check for NAP patch updates")
+        } finally {
+            setIsCheckingPatch(false)
+        }
+    }
+
+    const installPatchUpdate = async () => {
+        if (!gameDir || isUpdatingPatch) return
+        setIsUpdatingPatch(true)
+        setPatchUpdateError("")
+        try {
+            const installed = await UpdatePatch(gameDir)
+            if (!installed) throw new Error("NAP patch update could not be installed. Check the launcher log for details.")
+            setPatchUpdateAvailable(false)
+            setPatchUpdateMessage("The latest NAP patch has been installed.")
+        } catch (error) {
+            setPatchUpdateError(error instanceof Error ? error.message : "NAP patch update failed")
+        } finally {
+            setIsUpdatingPatch(false)
+        }
+    }
+
     return (
         <div className="settings-overlay" onMouseDown={(event) => {
             if (event.target === event.currentTarget) onClose()
@@ -95,7 +167,7 @@ export default function SettingModal({
                     <nav className="settings-console__rail" aria-label="Settings sections">
                         <span className="settings-console__rail-label">SYSTEM</span>
                         {[
-                            { id: "connection", label: "Launch mode", sub: "PATCHED CLIENT", icon: Server },
+                            { id: "connection", label: "Game server", sub: "NAP BACKEND", icon: Server },
                             { id: "display", label: "Display", sub: "WINDOW", icon: Monitor },
                             { id: "language", label: "Language", sub: "INTERFACE", icon: Languages },
                             { id: "updates", label: "Updates", sub: "VERSION", icon: RefreshCw },
@@ -109,7 +181,8 @@ export default function SettingModal({
                     </nav>
                     <div className="settings-modal__content settings-console__page">
                     <div className="settings-console__page-head"><span>CONTROL NODE / 0{["connection", "display", "language", "updates", "closing"].indexOf(activeSection) + 1}</span><Sparkles size={16} /></div>
-                    {activeSection === "updates" && <section className="settings-section settings-section--console">
+                    {activeSection === "updates" && <>
+                    <section className="settings-section settings-section--console settings-update-card">
                         <div className="settings-section__heading">
                             <span className="settings-section__icon"><RefreshCw size={17} /></span>
                             <div>
@@ -117,10 +190,10 @@ export default function SettingModal({
                                 <p>Installed version: {currentLauncherVersion}</p>
                             </div>
                         </div>
-                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <div className="settings-update-card__actions">
                             <button
                                 type="button"
-                                className="settings-choice !flex min-h-11 flex-1 items-center justify-center gap-2"
+                                className="settings-choice settings-update-card__button"
                                 onClick={() => void checkLauncherVersion()}
                                 disabled={isCheckingUpdates || isInstallingUpdate}
                             >
@@ -132,7 +205,7 @@ export default function SettingModal({
                             {availableLauncherVersion && (
                                 <button
                                     type="button"
-                                    className="settings-choice !flex min-h-11 flex-1 items-center justify-center gap-2"
+                                    className="settings-choice settings-update-card__button"
                                     onClick={() => void installLauncherUpdate()}
                                     disabled={isInstallingUpdate}
                                 >
@@ -143,9 +216,52 @@ export default function SettingModal({
                                 </button>
                             )}
                         </div>
-                        {updateMessage && <p className="mt-3 text-sm text-slate-300">{updateMessage}</p>}
-                        {updateError && <p role="alert" className="mt-3 text-sm text-rose-300">{updateError}</p>}
-                    </section>}
+                        {updateMessage && <p aria-live="polite" className="settings-update-card__message">{updateMessage}</p>}
+                        {updateError && <p role="alert" className="settings-update-card__message is-error">{updateError}</p>}
+                    </section>
+
+                    <section className="settings-section settings-section--console settings-update-card">
+                        <div className="settings-section__heading">
+                            <span className="settings-section__icon"><ShieldCheck size={17} /></span>
+                            <div>
+                                <h3>NAP patch updates</h3>
+                                <p>Check and install the latest NAP patch for this game folder.</p>
+                            </div>
+                        </div>
+                        <div className="settings-update-card__target">
+                            <span>GAME FOLDER</span>
+                            <code title={gameDir || undefined}>{gameDir || "No game folder selected"}</code>
+                        </div>
+                        <div className="settings-update-card__actions">
+                            <button
+                                type="button"
+                                className="settings-choice settings-update-card__button"
+                                onClick={() => void checkPatchVersion()}
+                                disabled={!gameDir || isCheckingPatch || isUpdatingPatch}
+                            >
+                                {isCheckingPatch
+                                    ? <LoaderCircle size={16} className="animate-spin" />
+                                    : <RefreshCw size={16} />}
+                                {isCheckingPatch ? "Checking patch…" : "Check patch updates"}
+                            </button>
+                            {patchUpdateAvailable && (
+                                <button
+                                    type="button"
+                                    className="settings-choice settings-update-card__button"
+                                    onClick={() => void installPatchUpdate()}
+                                    disabled={isUpdatingPatch || isCheckingPatch}
+                                >
+                                    {isUpdatingPatch
+                                        ? <LoaderCircle size={16} className="animate-spin" />
+                                        : <Download size={16} />}
+                                    {isUpdatingPatch ? "Updating patch…" : "Update NAP patch"}
+                                </button>
+                            )}
+                        </div>
+                        {patchUpdateMessage && <p aria-live="polite" className="settings-update-card__message">{patchUpdateMessage}</p>}
+                        {patchUpdateError && <p role="alert" className="settings-update-card__message is-error">{patchUpdateError}</p>}
+                    </section>
+                    </>}
 
                     {activeSection === "display" && <section className="settings-section settings-section--console">
                         <div className="settings-section__heading">
@@ -173,13 +289,56 @@ export default function SettingModal({
                         <div className="settings-section__heading">
                             <span className="settings-section__icon"><Server size={17} /></span>
                             <div>
-                                <h3>Patched launcher</h3>
-                                <p>Sunbringer launches the game with the NAP patch installed.</p>
+                                <h3>NAP game server</h3>
+                                <p>Choose which local server Sunbringer starts with the game.</p>
                             </div>
                         </div>
                         <div className="settings-patch-info">
                             <Check size={18} />
-                            <span><strong>NAP patch route active</strong><small>Install or repair the patch from the Home screen before launching.</small></span>
+                            <span><strong>Client patch route active</strong><small>The NAP client patch is used with either server option.</small></span>
+                        </div>
+                        <div className="settings-update-card__target">
+                            <span>SUPPORTED GAME VERSION · {serverChoice === "eldreda" ? "ELDREDA" : "REMIELLE"}</span>
+                            <code>{serverGameVersion || (serverGameVersionError ? "Version unavailable" : "Checking…")}</code>
+                            <button
+                                type="button"
+                                className="settings-version-check"
+                                onClick={async () => {
+                                    setIsCheckingServerGameVersion(true)
+                                    setServerGameVersion("")
+                                    setServerGameVersionError("")
+                                    try {
+                                        const [version, error] = await GitService.GetNAPServerGameVersion(serverChoice)
+                                        if (error) setServerGameVersionError(error)
+                                        else setServerGameVersion(version)
+                                    } catch (error) {
+                                        setServerGameVersionError(error instanceof Error ? error.message : "Unable to read server game version")
+                                    } finally {
+                                        setIsCheckingServerGameVersion(false)
+                                    }
+                                }}
+                                disabled={isCheckingServerGameVersion}
+                            >
+                                {isCheckingServerGameVersion
+                                    ? <LoaderCircle size={14} className="animate-spin" />
+                                    : <RefreshCw size={14} />}
+                                {isCheckingServerGameVersion ? "Checking…" : "Check version"}
+                            </button>
+                            {serverGameVersionError && <small className="settings-update-card__message is-error">{serverGameVersionError}</small>}
+                        </div>
+                        <div className="settings-choice-grid settings-server-options">
+                            <button type="button" className={`settings-choice ${serverChoice === "remielle" ? "is-selected" : ""}`} onClick={() => setServerChoice("remielle")} aria-pressed={serverChoice === "remielle"}>
+                                <span>SERVER 01 · ZIG 0.16.0</span>
+                                <strong>Remielle</strong>
+                                <small>Current server option</small>
+                                {serverChoice === "remielle" && <Check size={15} />}
+                            </button>
+                            <button type="button" className={`settings-choice ${serverChoice === "eldreda" ? "is-selected" : ""}`} onClick={() => setServerChoice("eldreda")} aria-pressed={serverChoice === "eldreda"}>
+                                <span>SERVER 02 · ZIG 0.17.0</span>
+                                <strong>Eldreda</strong>
+                                <small>Builds from Eldreda source</small>
+                                {serverChoice === "eldreda" && <Check size={15} />}
+                            </button>
                         </div>
                     </section>}
 

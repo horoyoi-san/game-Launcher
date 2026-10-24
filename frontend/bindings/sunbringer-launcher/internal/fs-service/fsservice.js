@@ -128,6 +128,13 @@ export function StartApp(path) {
 /**
  * @returns {$CancellablePromise<[boolean, string]>}
  */
+export function StartEldredaServer() {
+    return $Call.ByID(3347093569);
+}
+
+/**
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
 export function StartNAPServer() {
     return $Call.ByID(3265940439);
 }

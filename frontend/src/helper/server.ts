@@ -4,46 +4,67 @@ import { FSService } from '@bindings/sunbringer-launcher/internal/fs-service';
 import { GitService } from '@bindings/sunbringer-launcher/internal/git-service';
 import { toast } from 'react-toastify';
 
+export type NAPServerChoice = "remielle" | "eldreda";
+
 export async function CheckUpdateServer(
     _serverPath: string,
-    _serverVersion: string
+    _serverVersion: string,
+    serverChoice: NAPServerChoice = "remielle"
 ): Promise<{ isUpdate: boolean; isExists: boolean; version: string }> {
-    const resolvedServerPath = "./server/remielle"
-    const serverExists = await FSService.FileExists(`${resolvedServerPath}/build.zig`)
-    const zigExists = await FSService.FileExists("./server/zig/zig-x86_64-windows-0.16.0/zig.exe")
+    const isEldreda = serverChoice === "eldreda"
+    const resolvedServerPath = isEldreda ? "./server/eldreda" : "./server/remielle"
+    const version = isEldreda ? "eldreda-latest" : "remielle-0.1.x"
+    const serverExists = isEldreda
+        ? await FSService.FileExists(`${resolvedServerPath}/zig-out/bin/eldreda.exe`)
+        : await FSService.FileExists(`${resolvedServerPath}/build.zig`)
+    const zigExecutable = isEldreda
+        ? "./server/zig/zig-x86_64-windows-0.17.0/zig.exe"
+        : "./server/zig/zig-x86_64-windows-0.16.0/zig.exe"
+    const zigExists = await FSService.FileExists(zigExecutable)
 
-    if (serverExists && zigExists) {
-        const { setServerPath } = useSettingStore.getState()
+    if (serverExists && (isEldreda || zigExists)) {
+        const { setServerPath, setServerVersion } = useSettingStore.getState()
+        const isSameServer = _serverPath.replace(/[\\/]+$/, "").toLowerCase()
+            === resolvedServerPath.replace(/[\\/]+$/, "").toLowerCase()
         setServerPath(resolvedServerPath)
-        return { isUpdate: _serverVersion !== "remielle-0.1.x", isExists: true, version: "remielle-0.1.x" }
+        if (!isSameServer) setServerVersion(version)
+        return { isUpdate: isSameServer && _serverVersion !== version, isExists: true, version }
     }
 
     return { isUpdate: false, isExists: false, version: "" }
 }
 
 
-export async function UpdateServer(): Promise<boolean> {
+export async function UpdateServer(serverChoice: NAPServerChoice = "remielle"): Promise<boolean> {
     const { setDownloadType } = useLauncherStore.getState()
     const { setServerPath, setServerVersion } = useSettingStore.getState()
 
-    setDownloadType("Preparing Remielle 0.1.x and Zig 0.16.0...")
-    const [downloaded, downloadError] = await GitService.DownloadNAPServerProgress()
+    const isEldreda = serverChoice === "eldreda"
+    const serverName = isEldreda ? "Eldreda" : "Remielle"
+    const serverVersion = isEldreda ? "eldreda-latest" : "remielle-0.1.x"
+
+    setDownloadType(`Preparing ${serverName} and Zig ${isEldreda ? "0.17.0" : "0.16.0"}...`)
+    const [downloaded, downloadError] = isEldreda
+        ? await GitService.DownloadEldredaServerProgress()
+        : await GitService.DownloadNAPServerProgress()
     if (!downloaded) {
-        toast.error(downloadError || "Could not prepare the Remielle server")
+        toast.error(downloadError || `Could not prepare the ${serverName} server`)
         setDownloadType("Prepare server failed")
         return false
     }
 
-    setDownloadType("Building Remielle with Zig 0.16.0...")
-    const [extracted, extractError] = await GitService.ExtractNAPServer()
+    setDownloadType(`Building ${serverName} with Zig ${isEldreda ? "0.17.0" : "0.16.0"}...`)
+    const [extracted, extractError] = isEldreda
+        ? await GitService.BuildEldredaServer()
+        : await GitService.ExtractNAPServer()
     if (!extracted) {
-        toast.error(extractError || "Could not build the Remielle server")
+        toast.error(extractError || `Could not build the ${serverName} server`)
         setDownloadType("Build server failed")
         return false
     }
 
-    setDownloadType("Remielle server is ready")
-    setServerVersion("remielle-0.1.x")
-    setServerPath("./server/remielle")
+    setDownloadType(`${serverName} server is ready`)
+    setServerVersion(serverVersion)
+    setServerPath(isEldreda ? "./server/eldreda" : "./server/remielle")
     return true
 }

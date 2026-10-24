@@ -3771,6 +3771,30 @@ body::before {
 @media (max-width: 900px) { .sunbringer-dashboard .sunbringer-news-panel.sunbringer-transmission { left: 80px; bottom: 16px; width: min(240px, 28vw); }.sunbringer-dashboard .sunbringer-command-deck__art { transform: translateY(-32px); } }
 @media (max-width: 560px) { .sunbringer-dashboard .sunbringer-news-panel.sunbringer-transmission { left: 72px; bottom: 10px; width: 145px; padding: 5px; }.sunbringer-transmission__screen-label strong { font-size: 7px; }.sunbringer-transmission__reel button { width: 43px; height: 30px; }.sunbringer-dashboard .sunbringer-command-deck__art { transform: translateY(-20px); }.sunbringer-dashboard .sunbringer-command-actions { bottom: 58px; }.sunbringer-dashboard > div.fixed.bottom-2.right-0 { right: 9px; bottom: 54px; }.sunbringer-dashboard .sunbringer-statusbar { right: 12px; bottom: 10px; left: auto; }.voice-deck__main { padding: 14px; }.voice-deck__now { gap: 10px; padding: 13px; }.voice-deck__disc { width: 48px; height: 48px; }.voice-deck__now strong { font-size: 15px; }.voice-deck__options { grid-template-columns: 1fr; }.voice-deck__footer { align-items: flex-start; flex-direction: column; } }
 
+/* Keep the launcher and game patch update controls in separate, balanced cards. */
+.settings-console__page { min-width: 0; overflow-x: hidden; overflow-y: auto; }
+.settings-section--console.settings-update-card { min-height: 0; flex: 0 0 auto; justify-content: flex-start; gap: 14px; padding: 17px; }
+.settings-update-card .settings-section__heading { min-width: 0; align-items: center; gap: 12px; }
+.settings-update-card .settings-section__heading > div { min-width: 0; }
+.settings-update-card .settings-section__heading h3 { font-size: 16px; }
+.settings-update-card .settings-section__heading p { max-width: none; margin-top: 3px; line-height: 1.5; }
+.settings-update-card .settings-section__icon { width: 38px; height: 38px; flex: none; border-radius: 11px; }
+.settings-update-card__actions { display: flex; flex-wrap: wrap; gap: 9px; }
+.settings-console .settings-update-card__button { display: inline-flex; min-height: 42px; flex: 1 1 190px; align-items: center; justify-content: center; gap: 8px; padding: 9px 12px; border-radius: 10px; }
+.settings-update-card__target { display: grid; min-width: 0; gap: 5px; padding: 9px 11px; border: 1px solid rgba(129, 165, 230, .14); border-radius: 9px; background: rgba(5, 11, 25, .42); }
+.settings-update-card__target > span { color: #8299c5; font: 800 8px ui-monospace, monospace; letter-spacing: .15em; }
+.settings-update-card__target code { overflow-wrap: anywhere; color: #cbd8f2; font: 9px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.settings-version-check { display: inline-flex; width: fit-content; align-items: center; justify-content: center; gap: 7px; min-height: 31px; margin-top: 3px; padding: 0 11px; border: 1px solid rgba(101, 192, 255, .3); border-radius: 8px; background: rgba(50, 105, 171, .16); color: #b9e8ff; font-size: 10px; font-weight: 700; cursor: pointer; transition: border-color .18s ease, background .18s ease; }
+.settings-version-check:hover:not(:disabled) { border-color: rgba(101, 209, 255, .62); background: rgba(50, 130, 205, .25); }
+.settings-version-check:disabled { cursor: wait; opacity: .65; }
+.settings-update-card__message { margin: 0; padding: 9px 11px; border: 1px solid rgba(112, 225, 198, .19); border-left: 2px solid rgba(112, 225, 198, .72); border-radius: 8px; background: rgba(23, 91, 83, .12); color: #b7d9d4; font-size: 10px; line-height: 1.55; overflow-wrap: anywhere; }
+.settings-update-card__message.is-error { border-color: rgba(255, 116, 145, .23); border-left-color: #ff718f; background: rgba(117, 30, 53, .16); color: #ffb0bf; }
+@media (max-width: 700px) {
+    .settings-console__page { max-height: 55vh; }
+    .settings-section--console.settings-update-card { padding: 13px; }
+    .settings-console .settings-update-card__button { flex-basis: 100%; }
+}
+
 /* Refined Sunbringer settings and identity dialogs. */
 .settings-modal { width: min(820px, calc(100vw - 36px)); }
 .settings-modal__header { min-height: 78px; padding: 16px 22px; }

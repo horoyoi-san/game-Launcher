@@ -1,9 +1,14 @@
 package gitService
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -116,6 +121,10 @@ func ensureRemielleSource() error {
 }
 
 func (g *GitService) DownloadNAPPatchProgress() (bool, string) {
+	manifest, err := fetchNAPPatchManifest()
+	if err != nil {
+		return false, err.Error()
+	}
 	patchFiles := []struct {
 		name string
 		url  string
@@ -126,8 +135,9 @@ func (g *GitService) DownloadNAPPatchProgress() (bool, string) {
 
 	for index, patchFile := range patchFiles {
 		progressStart := float64(index) * 50
+		assetURL := patchFile.url + "?_=" + fmt.Sprintf("%d", time.Now().UnixNano())
 		if err := g.downloadNAPAsset(
-			patchFile.url,
+			assetURL,
 			filepath.Join(constant.NAPPatchStorageUrl, patchFile.name),
 			"download:patch",
 			progressStart,
@@ -135,8 +145,132 @@ func (g *GitService) DownloadNAPPatchProgress() (bool, string) {
 		); err != nil {
 			return false, fmt.Errorf("download %s: %w", patchFile.name, err).Error()
 		}
+		asset, ok := manifest.Assets[patchFile.name]
+		if !ok {
+			return false, fmt.Sprintf("patch manifest is missing %s", patchFile.name)
+		}
+		if err := verifyNAPPatchAsset(filepath.Join(constant.NAPPatchStorageUrl, patchFile.name), asset); err != nil {
+			_ = os.Remove(filepath.Join(constant.NAPPatchStorageUrl, patchFile.name))
+			return false, fmt.Errorf("verify downloaded %s: %w", patchFile.name, err).Error()
+		}
+	}
+	manifestBytes, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		return false, fmt.Errorf("encode patch manifest: %w", err).Error()
+	}
+	if err := os.WriteFile(filepath.Join(constant.NAPPatchStorageUrl, "patch-latest.json"), manifestBytes, 0644); err != nil {
+		return false, fmt.Errorf("save patch manifest: %w", err).Error()
 	}
 	return true, ""
+}
+
+type napPatchManifest struct {
+	Version string                   `json:"version"`
+	Assets  map[string]napPatchAsset `json:"assets"`
+}
+
+type napPatchAsset struct {
+	SHA256 string `json:"sha256"`
+	Size   int64  `json:"size"`
+}
+
+var napPatchAssetNames = []string{"Sunbringer.exe", "Roscaelifer.dll"}
+var errNAPPatchMismatch = errors.New("installed patch does not match the current release")
+
+func (g *GitService) IsNAPPatchCurrent(gameDir string) (bool, string) {
+	if strings.TrimSpace(gameDir) == "" {
+		return false, "game directory is not selected"
+	}
+	manifest, err := fetchNAPPatchManifest()
+	if err != nil {
+		return false, err.Error()
+	}
+	absoluteGameDir, err := filepath.Abs(gameDir)
+	if err != nil {
+		return false, fmt.Errorf("resolve game directory: %w", err).Error()
+	}
+	for _, name := range napPatchAssetNames {
+		asset, ok := manifest.Assets[name]
+		if !ok {
+			return false, fmt.Sprintf("patch manifest is missing %s", name)
+		}
+		if err := verifyNAPPatchAsset(filepath.Join(absoluteGameDir, name), asset); err != nil {
+			if os.IsNotExist(err) || errors.Is(err, errNAPPatchMismatch) {
+				return false, ""
+			}
+			return false, err.Error()
+		}
+	}
+	return true, ""
+}
+
+func fetchNAPPatchManifest() (napPatchManifest, error) {
+	parsedURL, err := url.Parse(constant.NAPPatchManifestURL)
+	if err != nil || parsedURL.Scheme != "https" {
+		return napPatchManifest{}, fmt.Errorf("invalid NAP patch manifest URL")
+	}
+	query := parsedURL.Query()
+	query.Set("_", fmt.Sprintf("%d", time.Now().UnixNano()))
+	parsedURL.RawQuery = query.Encode()
+	request, err := http.NewRequest(http.MethodGet, parsedURL.String(), nil)
+	if err != nil {
+		return napPatchManifest{}, fmt.Errorf("create patch manifest request: %w", err)
+	}
+	request.Header.Set("Cache-Control", "no-cache")
+	client := &http.Client{Timeout: 20 * time.Second}
+	response, err := client.Do(request)
+	if err != nil {
+		return napPatchManifest{}, fmt.Errorf("check NAP patch updates: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		return napPatchManifest{}, fmt.Errorf("check NAP patch updates: server returned %s", response.Status)
+	}
+	var manifest napPatchManifest
+	if err := json.NewDecoder(io.LimitReader(response.Body, 1<<20)).Decode(&manifest); err != nil {
+		return napPatchManifest{}, fmt.Errorf("read NAP patch manifest: %w", err)
+	}
+	if strings.TrimSpace(manifest.Version) == "" {
+		return napPatchManifest{}, fmt.Errorf("NAP patch manifest has no version")
+	}
+	for _, name := range napPatchAssetNames {
+		asset, ok := manifest.Assets[name]
+		if !ok || asset.Size <= 0 || len(asset.SHA256) != sha256.Size*2 {
+			return napPatchManifest{}, fmt.Errorf("NAP patch manifest has invalid asset metadata for %s", name)
+		}
+		if _, err := hex.DecodeString(asset.SHA256); err != nil {
+			return napPatchManifest{}, fmt.Errorf("NAP patch manifest has invalid SHA-256 for %s", name)
+		}
+		asset.SHA256 = strings.ToLower(asset.SHA256)
+		manifest.Assets[name] = asset
+	}
+	return manifest, nil
+}
+
+func verifyNAPPatchAsset(path string, asset napPatchAsset) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("not a regular file: %s", path)
+	}
+	if info.Size() != asset.Size {
+		return fmt.Errorf("%w: file size mismatch for %s", errNAPPatchMismatch, path)
+	}
+	hash := sha256.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return fmt.Errorf("hash %s: %w", path, err)
+	}
+	if !strings.EqualFold(hex.EncodeToString(hash.Sum(nil)), asset.SHA256) {
+		return fmt.Errorf("%w: SHA-256 mismatch for %s", errNAPPatchMismatch, path)
+	}
+	return nil
 }
 
 func (g *GitService) InstallNAPPatch(gameDir string) (bool, string) {
@@ -154,6 +288,14 @@ func (g *GitService) InstallNAPPatch(gameDir string) (bool, string) {
 	if !info.IsDir() {
 		return false, "game path is not a directory"
 	}
+	manifestData, err := os.ReadFile(filepath.Join(constant.NAPPatchStorageUrl, "patch-latest.json"))
+	if err != nil {
+		return false, fmt.Errorf("read downloaded patch manifest: %w", err).Error()
+	}
+	var manifest napPatchManifest
+	if err := json.Unmarshal(manifestData, &manifest); err != nil {
+		return false, fmt.Errorf("parse downloaded patch manifest: %w", err).Error()
+	}
 
 	patchFiles := []patchFile{
 		{
@@ -165,8 +307,23 @@ func (g *GitService) InstallNAPPatch(gameDir string) (bool, string) {
 			destination: filepath.Join(absoluteGameDir, "Roscaelifer.dll"),
 		},
 	}
+	for _, name := range napPatchAssetNames {
+		asset, ok := manifest.Assets[name]
+		if !ok {
+			return false, fmt.Sprintf("patch manifest is missing %s", name)
+		}
+		if err := verifyNAPPatchAsset(filepath.Join(constant.NAPPatchStorageUrl, name), asset); err != nil {
+			return false, fmt.Errorf("verify patch asset %s: %w", name, err).Error()
+		}
+	}
 	if err := installPatchFiles(absoluteGameDir, patchFiles); err != nil {
 		return false, fmt.Errorf("install NAP patch: %w", err).Error()
+	}
+	for _, name := range napPatchAssetNames {
+		asset := manifest.Assets[name]
+		if err := verifyNAPPatchAsset(filepath.Join(absoluteGameDir, name), asset); err != nil {
+			return false, fmt.Errorf("verify installed patch %s: %w", name, err).Error()
+		}
 	}
 	return true, ""
 }
