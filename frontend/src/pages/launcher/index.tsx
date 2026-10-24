@@ -22,6 +22,9 @@ type CombinedLink = {
     onClick?: () => void;
 };
 
+const napConfigPath = (gameDir: string, fileName: string) =>
+    gameDir ? `${gameDir.replace(/[\\/]+$/, "")}\\${fileName}` : "Select a game folder first";
+
 export default function LauncherPage() {
     const gameSelectionChanged = useRef(false);
     const [launcherVersion, setLauncherVersion] = useState("...");
@@ -41,14 +44,12 @@ export default function LauncherPage() {
     const [isSavingOffsets, setIsSavingOffsets] = useState(false);
     const [offsetsError, setOffsetsError] = useState("");
     const [offsetsRemoteError, setOffsetsRemoteError] = useState("");
-    const offsetsFilePath = String.raw`D:\Horoyoisan\PS\nap\CNBetaWin3.3.4\offsets.zon`;
     const [isUIDCustomDialogOpen, setIsUIDCustomDialogOpen] = useState(false);
     const [uidCustomContent, setUIDCustomContent] = useState("");
     const [savedUIDCustomContent, setSavedUIDCustomContent] = useState("");
     const [isLoadingUIDCustom, setIsLoadingUIDCustom] = useState(false);
     const [isSavingUIDCustom, setIsSavingUIDCustom] = useState(false);
     const [uidCustomError, setUIDCustomError] = useState("");
-    const uidCustomFilePath = String.raw`D:\Horoyoisan\PS\nap\CNBetaWin3.3.4\uid_custom.txt`;
 
     const [videoSrc, setVideoSrc] = useState("/video1.mp4");
     const [isBackgroundDialogOpen, setIsBackgroundDialogOpen] = useState(false);
@@ -157,7 +158,7 @@ export default function LauncherPage() {
         setIsLoadingOffsets(true);
         setOffsetsError("");
         try {
-            const content = await FSService.ReadOffsetsFile();
+            const content = await FSService.ReadOffsetsFile(gameDir);
             setOffsetsContent(content);
             setSavedOffsetsContent(content);
         } catch (error: unknown) {
@@ -190,7 +191,7 @@ export default function LauncherPage() {
         setIsSavingOffsets(true);
         setOffsetsError("");
         try {
-            await FSService.WriteOffsetsFile(offsetsContent);
+            await FSService.WriteOffsetsFile(gameDir, offsetsContent);
             setSavedOffsetsContent(offsetsContent);
             toast.success("offsets.zon saved");
         } catch (error: unknown) {
@@ -206,7 +207,7 @@ export default function LauncherPage() {
         setIsLoadingUIDCustom(true);
         setUIDCustomError("");
         try {
-            const content = await FSService.ReadUIDCustomFile();
+            const content = await FSService.ReadUIDCustomFile(gameDir);
             setUIDCustomContent(content);
             setSavedUIDCustomContent(content);
         } catch (error: unknown) {
@@ -220,7 +221,7 @@ export default function LauncherPage() {
         setIsSavingUIDCustom(true);
         setUIDCustomError("");
         try {
-            await FSService.WriteUIDCustomFile(uidCustomContent);
+            await FSService.WriteUIDCustomFile(gameDir, uidCustomContent);
             setSavedUIDCustomContent(uidCustomContent);
             toast.success("uid_custom.txt saved");
         } catch (error: unknown) {
@@ -283,6 +284,9 @@ export default function LauncherPage() {
     patchInstalledGameDir,
 
     } = useSettingStore()
+
+    const offsetsFilePath = napConfigPath(gameDir, "offsets.zon");
+    const uidCustomFilePath = napConfigPath(gameDir, "uid_custom.txt");
 
     const {
         isOpenDownloadDataModal,
@@ -911,7 +915,7 @@ export default function LauncherPage() {
                             <button type="button" className="sunbringer-dialog__close" onClick={() => setIsOffsetsDialogOpen(false)} aria-label="Close offsets menu"><X size={17} /></button>
                         </header>
                         <div className="sunbringer-dialog__body">
-                            <p>Edit the NAP update offsets here. Save writes your changes directly to the configured game file.</p>
+                            <p>Edit the NAP update offsets here. The file is resolved from the game folder selected in Launcher settings.</p>
                             <div className="offsets-dialog__path"><span>FILE TARGET</span><code>{offsetsFilePath}</code></div>
                             <p className="offsets-editor__help">ต้องการค่า offsets ล่าสุดใช่ไหม? กด <strong>Fetch upstream</strong> เพื่อดึงค่ามาแสดงในช่องนี้ก่อน การดึงค่าจะยังไม่เปลี่ยนไฟล์เกม ให้ตรวจสอบข้อมูลแล้วกด <strong>Save changes</strong> เมื่อต้องการบันทึกลงไฟล์เกม</p>
                             <div className="offsets-editor__toolbar">
@@ -933,15 +937,15 @@ export default function LauncherPage() {
                                     } catch {
                                         toast.error("Could not copy the offsets path")
                                     }
-                                }}><Copy size={15} />Copy path</button>
+                                }} disabled={!gameDir}><Copy size={15} />Copy path</button>
                                 <button type="button" className="sunbringer-dialog__button sunbringer-dialog__button--primary" onClick={async () => {
                                     await saveOffsetsFile()
-                                }} disabled={isLoadingOffsets || isFetchingOffsets || isSavingOffsets || Boolean(offsetsError) || offsetsContent === savedOffsetsContent}><FileText size={15} />{isSavingOffsets ? "Saving…" : "Save changes"}</button>
+                                }} disabled={!gameDir || isLoadingOffsets || isFetchingOffsets || isSavingOffsets || Boolean(offsetsError) || offsetsContent === savedOffsetsContent}><FileText size={15} />{isSavingOffsets ? "Saving…" : "Save changes"}</button>
                                 <button type="button" className="sunbringer-dialog__button sunbringer-dialog__button--outline" onClick={async () => {
                                     const [ok, message] = await FSService.OpenFolder(await FSService.GetDir(offsetsFilePath))
                                     if (ok) return
                                     else toast.error(message || "Could not open the offsets folder")
-                                }}><FolderOpen size={15} />Show folder</button>
+                                }} disabled={!gameDir}><FolderOpen size={15} />Show folder</button>
                             </div>
                         </div>
                     </section>
@@ -960,7 +964,7 @@ export default function LauncherPage() {
                             <button type="button" className="sunbringer-dialog__close" onClick={() => setIsUIDCustomDialogOpen(false)} aria-label="Close UID Custom editor"><X size={17} /></button>
                         </header>
                         <div className="sunbringer-dialog__body">
-                            <p>Edit the custom UID list. Saving writes directly to the selected NAP client configuration file.</p>
+                            <p>Edit the custom UID list. The file is resolved from the selected game folder; if it does not exist yet, it will be created when you save.</p>
                             <div className="offsets-dialog__path"><span>FILE TARGET</span><code>{uidCustomFilePath}</code></div>
                             <div className="offsets-editor__toolbar">
                                 <span>{isLoadingUIDCustom ? "READING FILE…" : uidCustomError ? "FILE ERROR" : uidCustomContent !== savedUIDCustomContent ? "UNSAVED CHANGES" : "FILE LOADED"}</span>
@@ -979,12 +983,12 @@ export default function LauncherPage() {
                                     } catch {
                                         toast.error("Could not copy the UID Custom path")
                                     }
-                                }}><Copy size={15} />Copy path</button>
-                                <button type="button" className="sunbringer-dialog__button sunbringer-dialog__button--primary" onClick={() => void saveUIDCustomFile()} disabled={isLoadingUIDCustom || isSavingUIDCustom || Boolean(uidCustomError) || uidCustomContent === savedUIDCustomContent}><FileText size={15} />{isSavingUIDCustom ? "Saving…" : "Save changes"}</button>
+                                }} disabled={!gameDir}><Copy size={15} />Copy path</button>
+                                <button type="button" className="sunbringer-dialog__button sunbringer-dialog__button--primary" onClick={() => void saveUIDCustomFile()} disabled={!gameDir || isLoadingUIDCustom || isSavingUIDCustom || Boolean(uidCustomError) || uidCustomContent === savedUIDCustomContent}><FileText size={15} />{isSavingUIDCustom ? "Saving…" : "Save changes"}</button>
                                 <button type="button" className="sunbringer-dialog__button sunbringer-dialog__button--outline" onClick={async () => {
                                     const [ok, message] = await FSService.OpenFolder(await FSService.GetDir(uidCustomFilePath))
                                     if (!ok) toast.error(message || "Could not open the UID Custom folder")
-                                }}><FolderOpen size={15} />Show folder</button>
+                                }} disabled={!gameDir}><FolderOpen size={15} />Show folder</button>
                             </div>
                         </div>
                     </section>

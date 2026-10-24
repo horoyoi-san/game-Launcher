@@ -19,9 +19,25 @@ import (
 
 type FSService struct{}
 
-const napOffsetsFile = `D:\Horoyoisan\PS\nap\CNBetaWin3.3.4\offsets.zon`
-const napUIDCustomFile = `D:\Horoyoisan\PS\nap\CNBetaWin3.3.4\uid_custom.txt`
 const thaumielOffsetsURL = "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/sunbringer-launcher/offsets.zon"
+
+func napConfigFile(gameDir, name string) (string, error) {
+	if strings.TrimSpace(gameDir) == "" {
+		return "", fmt.Errorf("select the NAP game folder first")
+	}
+	root, err := filepath.Abs(gameDir)
+	if err != nil {
+		return "", fmt.Errorf("resolve NAP game folder %q: %w", gameDir, err)
+	}
+	info, err := os.Stat(root)
+	if err != nil {
+		return "", fmt.Errorf("open NAP game folder %s: %w", root, err)
+	}
+	if !info.IsDir() {
+		return "", fmt.Errorf("NAP game path is not a folder: %s", root)
+	}
+	return filepath.Join(root, name), nil
+}
 
 func (f *FSService) FetchUpstreamOffsetsFile() (string, error) {
 	client := &http.Client{Timeout: 20 * time.Second}
@@ -43,46 +59,67 @@ func (f *FSService) FetchUpstreamOffsetsFile() (string, error) {
 	return string(content), nil
 }
 
-func (f *FSService) ReadOffsetsFile() (string, error) {
-	content, err := os.ReadFile(napOffsetsFile)
+func (f *FSService) ReadOffsetsFile(gameDir string) (string, error) {
+	filePath, err := napConfigFile(gameDir, "offsets.zon")
 	if err != nil {
-		return "", fmt.Errorf("read offsets.zon at %s: %w", napOffsetsFile, err)
+		return "", err
+	}
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", fmt.Errorf("read offsets.zon at %s: %w", filePath, err)
 	}
 	return string(content), nil
 }
 
-func (f *FSService) WriteOffsetsFile(content string) error {
-	info, err := os.Stat(napOffsetsFile)
+func (f *FSService) WriteOffsetsFile(gameDir, content string) error {
+	filePath, err := napConfigFile(gameDir, "offsets.zon")
 	if err != nil {
-		return fmt.Errorf("locate offsets.zon at %s: %w", napOffsetsFile, err)
+		return err
+	}
+	info, err := os.Stat(filePath)
+	if err != nil {
+		return fmt.Errorf("locate offsets.zon at %s: %w", filePath, err)
 	}
 	if !info.Mode().IsRegular() {
-		return fmt.Errorf("offsets.zon is not a regular file: %s", napOffsetsFile)
+		return fmt.Errorf("offsets.zon is not a regular file: %s", filePath)
 	}
-	if err := os.WriteFile(napOffsetsFile, []byte(content), info.Mode().Perm()); err != nil {
-		return fmt.Errorf("save offsets.zon at %s: %w", napOffsetsFile, err)
+	if err := os.WriteFile(filePath, []byte(content), info.Mode().Perm()); err != nil {
+		return fmt.Errorf("save offsets.zon at %s: %w", filePath, err)
 	}
 	return nil
 }
 
-func (f *FSService) ReadUIDCustomFile() (string, error) {
-	content, err := os.ReadFile(napUIDCustomFile)
+func (f *FSService) ReadUIDCustomFile(gameDir string) (string, error) {
+	filePath, err := napConfigFile(gameDir, "uid_custom.txt")
 	if err != nil {
-		return "", fmt.Errorf("read uid_custom.txt at %s: %w", napUIDCustomFile, err)
+		return "", err
+	}
+	content, err := os.ReadFile(filePath)
+	if os.IsNotExist(err) {
+		return "", nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("read uid_custom.txt at %s: %w", filePath, err)
 	}
 	return string(content), nil
 }
 
-func (f *FSService) WriteUIDCustomFile(content string) error {
-	info, err := os.Stat(napUIDCustomFile)
+func (f *FSService) WriteUIDCustomFile(gameDir, content string) error {
+	filePath, err := napConfigFile(gameDir, "uid_custom.txt")
 	if err != nil {
-		return fmt.Errorf("locate uid_custom.txt at %s: %w", napUIDCustomFile, err)
+		return err
 	}
-	if !info.Mode().IsRegular() {
-		return fmt.Errorf("uid_custom.txt is not a regular file: %s", napUIDCustomFile)
+	mode := os.FileMode(0644)
+	if info, err := os.Stat(filePath); err == nil {
+		if !info.Mode().IsRegular() {
+			return fmt.Errorf("uid_custom.txt is not a regular file: %s", filePath)
+		}
+		mode = info.Mode().Perm()
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("locate uid_custom.txt at %s: %w", filePath, err)
 	}
-	if err := os.WriteFile(napUIDCustomFile, []byte(content), info.Mode().Perm()); err != nil {
-		return fmt.Errorf("save uid_custom.txt at %s: %w", napUIDCustomFile, err)
+	if err := os.WriteFile(filePath, []byte(content), mode); err != nil {
+		return fmt.Errorf("save uid_custom.txt at %s: %w", filePath, err)
 	}
 	return nil
 }
@@ -114,7 +151,7 @@ func (f *FSService) PickFile(filter string) (string, error) {
 	} else if filter == "zip" {
 		dialog.AddFilter("ZIP archives (*.zip)", "*.zip")
 	} else if filter == "patch" {
-		dialog.AddFilter("Patch archives (*.zip;*.7z)", "*.zip;*.7z")
+		dialog.AddFilter("Patch files (*.zip;*.7z;*.ziff)", "*.zip;*.7z;*.ziff")
 	}
 	if path, err := dialog.PromptForSingleSelection(); err == nil {
 		return path, nil
