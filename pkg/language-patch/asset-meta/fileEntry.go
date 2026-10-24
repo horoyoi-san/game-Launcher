@@ -7,7 +7,7 @@ import (
 )
 
 type FileEntry struct {
-	NameHash     int32
+	NameHash     int64
 	FileByteName string
 	Size         int64
 	DataCount    int32
@@ -18,9 +18,11 @@ type FileEntry struct {
 func FileEntryFromBytes(r io.Reader) (*FileEntry, error) {
 	var f FileEntry
 
-	if err := binary.Read(r, binary.BigEndian, &f.NameHash); err != nil {
+	var nameHash int32
+	if err := binary.Read(r, binary.BigEndian, &nameHash); err != nil {
 		return nil, err
 	}
+	f.NameHash = int64(nameHash)
 
 	buf := make([]byte, 16)
 	if _, err := io.ReadFull(r, buf); err != nil {

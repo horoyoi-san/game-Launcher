@@ -214,8 +214,8 @@ export default function LanguagePage() {
     }
 
     const handleBuildThaiText = async () => {
-        if (!gameDir || !liveGameDir) {
-            toast.error('Select both the Beta and Live game folders first')
+        if (!gameDir) {
+            toast.error('Select the Beta game folder first')
             return
         }
         try {
@@ -342,11 +342,11 @@ export default function LanguagePage() {
                             {gameDir && (
                                 <div className="thai-patch thai-text-builder">
                                     <div className="thai-text-builder__intro">
-                                        <strong>Build Thai text from Live</strong>
-                                        <p>Select the Live game folder containing StarRail_Data. The launcher finds the English and Thai TextMaps automatically. Python 3 and the updated local server are required.</p>
+                                        <strong>Build Thai text</strong>
+                                        <p>Downloads Thai TextMaps automatically. Choose a Live folder to use its installed translation; if the download is unavailable, a previous server cache can be reused. Python 3 and the updated local server are required.</p>
                                         <div className={`thai-live-path ${liveThaiTextMapDir ? 'is-selected' : ''}`} title={liveThaiTextMapDir}>
                                             <FolderOpen size={14} />
-                                            <span>{liveThaiTextMapDir || 'No Live game folder selected'}</span>
+                                            <span>{liveThaiTextMapDir || 'No Live folder selected; checking server cache'}</span>
                                         </div>
                                     </div>
                                     <div className="thai-text-actions">
@@ -354,7 +354,7 @@ export default function LanguagePage() {
                                             <FolderOpen size={15} />
                                             Choose Live
                                         </button>
-                                        <button type="button" onClick={() => void handleBuildThaiText()} disabled={!liveGameDir || isBuildingThaiText || isRestoringThaiText} className="btn thai-text-actions__primary">
+                                        <button type="button" onClick={() => void handleBuildThaiText()} disabled={isBuildingThaiText || isRestoringThaiText} className="btn thai-text-actions__primary">
                                             <Hammer size={15} />
                                             {isBuildingThaiText ? 'Building…' : 'Build Thai'}
                                         </button>

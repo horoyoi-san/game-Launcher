@@ -5,6 +5,7 @@ import (
 	"Cyrene-launcher/pkg/Cyrene/pb"
 	"Cyrene-launcher/pkg/hpatchz"
 	"Cyrene-launcher/pkg/models"
+	"Cyrene-launcher/pkg/verifier"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -83,9 +84,8 @@ func (h *DiffService) LDiffPatchData(gamePath string) (bool, string) {
 				wg.Wait()
 
 				for _, ma := range matchingAssets {
-					err := Cyrene.LDiffFile(ma.Asset, ma.AssetName, ma.AssetSize, ldiffPath, gamePath)
-					if err != nil {
-						continue
+					if err := Cyrene.LDiffFile(ma.Asset, ma.AssetName, ma.AssetSize, ldiffPath, gamePath); err != nil {
+						return false, err.Error()
 					}
 				}
 			}
@@ -111,20 +111,39 @@ func (h *DiffService) LDiffPatchData(gamePath string) (bool, string) {
 				targetFile := filepath.Join(gamePath, entry.TargetFileName)
 
 				if _, err := os.Stat(patchFile); os.IsNotExist(err) {
-					continue
+					return false, fmt.Sprintf("required diff file is missing: %s", entry.PatchFileName)
 				}
 
 				if entry.SourceFileName == "" {
-					hpatchz.ApplyPatchEmpty(patchFile, targetFile)
+					if err := hpatchz.ApplyPatchEmpty(patchFile, targetFile); err != nil {
+						return false, err.Error()
+					}
+					if err := verifyPatchTarget(targetFile, entry.TargetFileMD5, entry.TargetFileSize); err != nil {
+						return false, err.Error()
+					}
 					os.Remove(patchFile)
 					continue
 				}
 
 				if _, err := os.Stat(sourceFile); os.IsNotExist(err) {
-					continue
+					return false, fmt.Sprintf("required source game file is missing: %s", entry.SourceFileName)
+				}
+				if entry.SourceFileMD5 != "" {
+					sourceMD5, err := verifier.FileMD5(sourceFile)
+					if err != nil {
+						return false, err.Error()
+					}
+					if !strings.EqualFold(sourceMD5, entry.SourceFileMD5) {
+						return false, fmt.Sprintf("source game file MD5 mismatch for %s: expected %s, got %s", entry.SourceFileName, entry.SourceFileMD5, sourceMD5)
+					}
 				}
 
-				hpatchz.ApplyPatch(sourceFile, patchFile, targetFile)
+				if err := hpatchz.ApplyPatch(sourceFile, patchFile, targetFile); err != nil {
+					return false, err.Error()
+				}
+				if err := verifyPatchTarget(targetFile, entry.TargetFileMD5, entry.TargetFileSize); err != nil {
+					return false, err.Error()
+				}
 				if entry.SourceFileName != entry.TargetFileName {
 					os.Remove(sourceFile)
 				}
@@ -160,7 +179,11 @@ func MakeDiffMap(manifest *pb.ManifestProto, chunkNames []string) ([]*models.HDi
 				if chunk.OriginalFileSize != 0 || chunk.HdiffFileSize != assetSize {
 					hdiffFiles = append(hdiffFiles, &models.HDiffData{
 						SourceFileName: chunk.OriginalFilePath,
+						SourceFileMD5:  chunk.OriginalFileMd5,
+						SourceFileSize: chunk.OriginalFileSize,
 						TargetFileName: assetName,
+						TargetFileMD5:  asset.AssetHashMd5,
+						TargetFileSize: assetSize,
 						PatchFileName:  fmt.Sprintf("%s.hdiff", assetName),
 					})
 				}

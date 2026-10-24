@@ -37,7 +37,7 @@ func DesignIndexFromBytes(assetFolder string, indexHash string) (*DesignIndex, e
 	}
 	var parseErrors []error
 	var firstParsed *DesignIndex
-	for _, version := range []indexVersion{indexV3, indexV2, indexV1} {
+	for _, version := range []indexVersion{indexV4, indexV3, indexV2, indexV1} {
 		index, err := parseDesignIndex(data, version)
 		if err != nil {
 			parseErrors = append(parseErrors, fmt.Errorf("v%d: %w", version, err))
@@ -98,6 +98,7 @@ const (
 	indexV1 indexVersion = 1
 	indexV2 indexVersion = 2
 	indexV3 indexVersion = 3
+	indexV4 indexVersion = 4
 )
 
 func parseDesignIndex(data []byte, version indexVersion) (*DesignIndex, error) {
@@ -116,7 +117,11 @@ func parseDesignIndex(data []byte, version indexVersion) (*DesignIndex, error) {
 		return nil, fmt.Errorf("file count %d exceeds supported range", fileCount)
 	}
 	var designDataCount uint32
-	if err := binary.Read(r, binary.LittleEndian, &designDataCount); err != nil {
+	var designDataOrder binary.ByteOrder = binary.LittleEndian
+	if version == indexV4 {
+		designDataOrder = binary.BigEndian
+	}
+	if err := binary.Read(r, designDataOrder, &designDataCount); err != nil {
 		return nil, err
 	}
 	if designDataCount > uint32(^uint32(0)>>1) {
@@ -126,7 +131,9 @@ func parseDesignIndex(data []byte, version indexVersion) (*DesignIndex, error) {
 	// Each file record has a fixed minimum size. Reject implausible counts
 	// before allocating from data read off disk.
 	minRecordSize := uint64(4 + 16 + 8 + 4 + 3)
-	if version == indexV3 {
+	if version == indexV4 {
+		minRecordSize = 8 + 16 + 8 + 4 + 2 + 1
+	} else if version == indexV3 {
 		minRecordSize += 4
 	}
 	if version == indexV1 {
@@ -150,13 +157,24 @@ func parseDesignIndex(data []byte, version indexVersion) (*DesignIndex, error) {
 		}
 		index.FileList = append(index.FileList, entry)
 	}
+	if version == indexV4 && r.Len() != 0 {
+		return nil, fmt.Errorf("index has %d trailing bytes", r.Len())
+	}
 	return index, nil
 }
 
 func parseFileEntry(r *bytes.Reader, version indexVersion) (FileEntry, error) {
 	var entry FileEntry
-	if err := binary.Read(r, binary.BigEndian, &entry.NameHash); err != nil {
-		return entry, err
+	if version == indexV4 {
+		if err := binary.Read(r, binary.BigEndian, &entry.NameHash); err != nil {
+			return entry, err
+		}
+	} else {
+		var nameHash int32
+		if err := binary.Read(r, binary.BigEndian, &nameHash); err != nil {
+			return entry, err
+		}
+		entry.NameHash = int64(nameHash)
 	}
 	if version == indexV3 {
 		var extra uint32
@@ -185,7 +203,7 @@ func parseFileEntry(r *bytes.Reader, version indexVersion) (FileEntry, error) {
 		return entry, fmt.Errorf("data entry count %d exceeds supported range", dataCount)
 	}
 	entrySize := uint64(12)
-	if version == indexV3 {
+	if version == indexV3 || version == indexV4 {
 		entrySize = 16
 	}
 	if uint64(dataCount) > uint64(r.Len())/entrySize {
@@ -195,7 +213,7 @@ func parseFileEntry(r *bytes.Reader, version indexVersion) (FileEntry, error) {
 	entry.DataEntries = make([]DataEntry, 0, dataCount)
 	for i := uint32(0); i < dataCount; i++ {
 		var dataEntry DataEntry
-		if version == indexV3 {
+		if version == indexV3 || version == indexV4 {
 			if err := binary.Read(r, binary.BigEndian, &dataEntry.NameHash); err != nil {
 				return entry, err
 			}
@@ -218,6 +236,25 @@ func parseFileEntry(r *bytes.Reader, version indexVersion) (FileEntry, error) {
 		entry.DataEntries = append(entry.DataEntries, dataEntry)
 	}
 
+	if version == indexV4 {
+		var languageLength uint16
+		if err := binary.Read(r, binary.BigEndian, &languageLength); err != nil {
+			return entry, err
+		}
+		if int(languageLength)+1 > r.Len() {
+			return entry, fmt.Errorf("language field length %d exceeds remaining index data", languageLength)
+		}
+		language := make([]byte, languageLength)
+		if _, err := io.ReadFull(r, language); err != nil {
+			return entry, err
+		}
+		var flag [1]byte
+		if _, err := io.ReadFull(r, flag[:]); err != nil {
+			return entry, err
+		}
+		entry.Unk = flag[0]
+		return entry, nil
+	}
 	paddingSize := 3
 	if version == indexV1 {
 		paddingSize = 1

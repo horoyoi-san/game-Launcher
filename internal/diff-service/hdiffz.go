@@ -1,6 +1,7 @@
 package diffService
 
 import (
+	"Cyrene-launcher/pkg/Cyrene"
 	"Cyrene-launcher/pkg/constant"
 	"Cyrene-launcher/pkg/hpatchz"
 	"Cyrene-launcher/pkg/models"
@@ -70,6 +71,18 @@ func (h *DiffService) VersionValidate(gamePath, patchPath string) (bool, string)
 	if _, err := os.Stat(constant.TempUrl); os.IsNotExist(err) {
 		if err := os.MkdirAll(constant.TempUrl, os.ModePerm); err != nil {
 			return false, err.Error()
+		}
+	}
+
+	// LDiff manifests and HDiff maps carry the source hash for each changed
+	// game file. Check those against the installed game before extraction or
+	// patching; BinaryVersion alone cannot detect a diff from another update.
+	if ok, _ := sevenzip.IsFileIn7z(patchPath, "manifest"); ok {
+		return validateLDiffSources(gamePath, patchPath)
+	}
+	if ok, _ := sevenzip.IsFileIn7z(patchPath, "hdiffmap.json"); ok {
+		if ok, message := validateHDiffMapSources(gamePath, patchPath); !ok {
+			return false, message
 		}
 	}
 
@@ -214,6 +227,116 @@ func (h *DiffService) VersionValidate(gamePath, patchPath string) (bool, string)
 	return true, "validated"
 }
 
+func validatePatchSourceFile(gamePath, relativePath, expectedMD5 string, expectedSize int64) (string, string, error) {
+	if relativePath == "" || expectedMD5 == "" {
+		return "", "", fmt.Errorf("diff metadata is missing the source path or source MD5")
+	}
+
+	sourcePath := filepath.Join(gamePath, filepath.FromSlash(relativePath))
+	relative, err := filepath.Rel(gamePath, sourcePath)
+	if err != nil || relative == ".." || strings.HasPrefix(relative, ".."+string(os.PathSeparator)) || filepath.IsAbs(relative) {
+		return "", "", fmt.Errorf("diff source path escapes the selected game folder: %s", relativePath)
+	}
+
+	info, err := os.Stat(sourcePath)
+	if err != nil {
+		return "", "", err
+	}
+	actualMD5, err := verifier.FileMD5(sourcePath)
+	if err != nil {
+		return "", "", err
+	}
+	if !strings.EqualFold(actualMD5, expectedMD5) {
+		return expectedMD5, actualMD5, fmt.Errorf("source MD5 mismatch for %s", relativePath)
+	}
+	if expectedSize > 0 && info.Size() != expectedSize {
+		return fmt.Sprint(expectedSize), fmt.Sprint(info.Size()), fmt.Errorf("source size mismatch for %s", relativePath)
+	}
+	return expectedMD5, actualMD5, nil
+}
+
+func sourceVersionError(gamePath, file, expected, actual string, cause error) string {
+	currentVersion := "ไม่ทราบเวอร์ชัน"
+	versionPath := filepath.Join(gamePath, "StarRail_Data", "StreamingAssets", "BinaryVersion.bytes")
+	if version, err := models.ParseBinaryVersion(versionPath); err == nil && version != nil {
+		currentVersion = version.String()
+	}
+	payload := map[string]interface{}{
+		"code":               "PATCH_SOURCE_VERSION_MISMATCH",
+		"title":              "ไฟล์ diff ไม่ตรงกับเวอร์ชันเกมปัจจุบัน",
+		"stage":              "Version Validate",
+		"file":               file,
+		"currentGameVersion": currentVersion,
+		"expectedMd5":        expected,
+		"actualMd5":          actual,
+		"message":            cause.Error(),
+		"reason":             "ไฟล์ diff นี้สร้างจากไฟล์เกมต้นทางคนละเวอร์ชัน หรือไฟล์เกมเดิมถูกแก้ไข/เสียหาย จึงหยุดก่อนนำ diff ไปใช้",
+		"suggestions": []string{
+			"เลือก diff ที่สร้างจากเวอร์ชันเกมที่ติดตั้งอยู่",
+			"ตรวจสอบความสมบูรณ์ของไฟล์เกมก่อนลองอีกครั้ง",
+		},
+	}
+	data, _ := json.Marshal(payload)
+	return string(data)
+}
+
+func validateHDiffMapSources(gamePath, patchPath string) (bool, string) {
+	mapPath := filepath.Join(constant.TempUrl, "hdiffmap.json")
+	if err := sevenzip.ExtractAFileFromZip(patchPath, "hdiffmap.json", constant.TempUrl); err != nil {
+		return false, err.Error()
+	}
+	defer os.Remove(mapPath)
+
+	data, err := os.ReadFile(mapPath)
+	if err != nil {
+		return false, err.Error()
+	}
+	var patchMap struct {
+		DiffMap []*models.DiffMapType `json:"diff_map"`
+	}
+	if err := json.Unmarshal(data, &patchMap); err != nil {
+		return false, err.Error()
+	}
+	for _, entry := range patchMap.DiffMap {
+		if entry == nil || entry.SourceFileName == "" {
+			continue
+		}
+		expected, actual, err := validatePatchSourceFile(gamePath, entry.SourceFileName, entry.SourceFileMD5, entry.SourceFileSize)
+		if err != nil {
+			return false, sourceVersionError(gamePath, entry.SourceFileName, expected, actual, err)
+		}
+	}
+	return true, "validated"
+}
+
+func validateLDiffSources(gamePath, patchPath string) (bool, string) {
+	manifestPath := filepath.Join(constant.TempUrl, "manifest")
+	if err := sevenzip.ExtractAFileFromZip(patchPath, "manifest", constant.TempUrl); err != nil {
+		return false, err.Error()
+	}
+	defer os.Remove(manifestPath)
+
+	manifest, err := Cyrene.LoadManifestProto(manifestPath)
+	if err != nil {
+		return false, err.Error()
+	}
+	for _, asset := range manifest.Assets {
+		if asset == nil || asset.AssetData == nil {
+			continue
+		}
+		for _, chunk := range asset.AssetData.Assets {
+			if chunk == nil || chunk.OriginalFilePath == "" {
+				continue
+			}
+			expected, actual, err := validatePatchSourceFile(gamePath, chunk.OriginalFilePath, chunk.OriginalFileMd5, chunk.OriginalFileSize)
+			if err != nil {
+				return false, sourceVersionError(gamePath, chunk.OriginalFilePath, expected, actual, err)
+			}
+		}
+	}
+	return true, "validated"
+}
+
 func (h *DiffService) HDiffPatchData(gamePath string) (bool, string) {
 	hdiffMapPath := filepath.Join(gamePath, "hdiffmap.json")
 	hdiffFilesPath := filepath.Join(gamePath, "hdifffiles.txt")
@@ -274,20 +397,48 @@ func (h *DiffService) HDiffPatchData(gamePath string) (bool, string) {
 		targetFile := filepath.Join(gamePath, entry.TargetFileName)
 
 		if _, err := os.Stat(patchFile); os.IsNotExist(err) {
-			continue
+			return false, fmt.Sprintf("required diff file is missing: %s", entry.PatchFileName)
+		}
+		if entry.PatchFileMD5 != "" {
+			patchMD5, err := verifier.FileMD5(patchFile)
+			if err != nil {
+				return false, err.Error()
+			}
+			if !strings.EqualFold(patchMD5, entry.PatchFileMD5) {
+				return false, fmt.Sprintf("diff file MD5 mismatch for %s: expected %s, got %s", entry.PatchFileName, entry.PatchFileMD5, patchMD5)
+			}
 		}
 
 		if entry.SourceFileName == "" {
-			hpatchz.ApplyPatchEmpty(patchFile, targetFile)
+			if err := hpatchz.ApplyPatchEmpty(patchFile, targetFile); err != nil {
+				return false, err.Error()
+			}
+			if err := verifyPatchTarget(targetFile, entry.TargetFileMD5, entry.TargetFileSize); err != nil {
+				return false, err.Error()
+			}
 			os.Remove(patchFile)
 			continue
 		}
 
 		if _, err := os.Stat(sourceFile); os.IsNotExist(err) {
-			continue
+			return false, fmt.Sprintf("required source game file is missing: %s", entry.SourceFileName)
+		}
+		if entry.SourceFileMD5 != "" {
+			sourceMD5, err := verifier.FileMD5(sourceFile)
+			if err != nil {
+				return false, err.Error()
+			}
+			if !strings.EqualFold(sourceMD5, entry.SourceFileMD5) {
+				return false, fmt.Sprintf("source game file MD5 mismatch for %s: expected %s, got %s", entry.SourceFileName, entry.SourceFileMD5, sourceMD5)
+			}
 		}
 
-		hpatchz.ApplyPatch(sourceFile, patchFile, targetFile)
+		if err := hpatchz.ApplyPatch(sourceFile, patchFile, targetFile); err != nil {
+			return false, err.Error()
+		}
+		if err := verifyPatchTarget(targetFile, entry.TargetFileMD5, entry.TargetFileSize); err != nil {
+			return false, err.Error()
+		}
 		if entry.SourceFileName != entry.TargetFileName {
 			os.Remove(sourceFile)
 		}
@@ -298,6 +449,29 @@ func (h *DiffService) HDiffPatchData(gamePath string) (bool, string) {
 	os.Remove(filepath.Join(gamePath, "hdifffiles.txt"))
 	os.Remove(filepath.Join(gamePath, "hdifffiles.json"))
 	return true, "patching completed"
+}
+
+func verifyPatchTarget(path, expectedMD5 string, expectedSize int64) error {
+	if expectedMD5 == "" && expectedSize == 0 {
+		return nil
+	}
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	if expectedSize > 0 && info.Size() != expectedSize {
+		return fmt.Errorf("patched game file size mismatch for %s: expected %d, got %d", path, expectedSize, info.Size())
+	}
+	if expectedMD5 != "" {
+		actualMD5, err := verifier.FileMD5(path)
+		if err != nil {
+			return err
+		}
+		if !strings.EqualFold(actualMD5, expectedMD5) {
+			return fmt.Errorf("patched game file MD5 mismatch for %s: expected %s, got %s", path, expectedMD5, actualMD5)
+		}
+	}
+	return nil
 }
 
 func (h *DiffService) DeleteFiles(gamePath string) (bool, string) {

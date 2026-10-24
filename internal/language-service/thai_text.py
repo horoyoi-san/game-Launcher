@@ -1,16 +1,16 @@
 """Thai text for the 4.7 beta client (CN client, e.g. StarRail_4.6.53_CN_ReversedRooms).
 
 The beta only ships English, Chinese, Japanese and Korean text, but its language table still has the Thai row
-(Thai fonts and Thai line breaking). This script builds a Thai TextMap for the beta from the live client's Thai
-TextMap, turns Thai on in the beta client and has the dispatch serve it:
+(Thai fonts and Thai line breaking). This script builds a Thai TextMap for the beta from the public TurnBasedGameData
+Thai JSON, a Live client's Thai TextMap, or a previous Cyrene build, then turns Thai on and has dispatch serve it:
 
     python thai_text.py build    # (re)build and switch the beta's text language to Thai
     python thai_text.py restore  # back to what the client had before build (e.g. hsrlingo's English)
 
-Paths default to the ones below; pass --beta / --live to use others.
+Pass --beta / --live to choose folders. Live is optional; Thai TextMaps are downloaded and cached on the server.
 
-Which text a row gets: every row of the beta's English TextMap is kept, in the beta's order. A row takes the live
-Thai text when the live client has Thai for that key. Rows without a matching Thai key stay in English.
+Which text a row gets: every row of the beta's English TextMap is kept, in the beta's order. A row takes Thai text
+when the source contains that key. Rows without a matching Thai key stay in English.
 
 What build does:
 - reads the beta's design data index from the CDN URL in the local server's versions.json, adds the two Thai TextMap
@@ -57,7 +57,6 @@ import urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 DEFAULT_BETA = r'D:\Games\StarRail_4.6.53_CN_ReversedRooms'
-DEFAULT_LIVE = r'H:\Games\Star Rail Games'
 
 # Table hashes. They are hashes of the table names and the same in every client version.
 EN_MAIN, EN_MAIN_INDEX = 0x12676d4ed6e604f2, 0x8cb9a9c1c48a185f  # full English TextMap, file lang "en"
@@ -68,6 +67,10 @@ START_CONFIG = 0x058690e656a0f775  # StreamingAssets-only config file (language 
 REGION_TABLE = 0xb804dbc76d81fb75  # its text/voice language list per region
 
 PLACEHOLDER = '...'
+THAI_TEXTMAP_SOURCES = {
+    TH_MAIN: 'https://gitlab.com/Dimbreath/turnbasedgamedata/-/raw/main/TextMap/TextMapTH.json',
+    TH_START: 'https://gitlab.com/Dimbreath/turnbasedgamedata/-/raw/main/TextMap/TextMapMainTH.json',
+}
 
 
 # ---------------------------------------------------------------- varints
@@ -390,10 +393,107 @@ def design_file(base, client, f):
 def client_index(client):
     """The index the client itself last saved (its Persistent copy)."""
     folder = design_dir(client, 'Persistent')
-    with open(os.path.join(folder, 'M_DesignV.bytes'), 'rb') as fh:
+    m_designv_path = os.path.join(folder, 'M_DesignV.bytes')
+    if not os.path.isfile(m_designv_path):
+        raise SystemExit(
+            'Live game folder is missing Persistent/DesignData/Windows/M_DesignV.bytes: '
+            f'{m_designv_path}; select the Live game root and let the game download its design data first'
+        )
+    with open(m_designv_path, 'rb') as fh:
         md5, _ = parse_m_designv(fh.read())
-    with open(os.path.join(folder, f'DesignV_{md5}.bytes'), 'rb') as fh:
+    index_path = os.path.join(folder, f'DesignV_{md5}.bytes')
+    if not os.path.isfile(index_path):
+        raise SystemExit(
+            f'Live game folder is missing its indexed design data: {index_path}; '
+            'start the Live game and let its assets finish downloading first'
+        )
+    with open(index_path, 'rb') as fh:
         return parse_designv(fh.read())[1]
+
+
+def cached_thai_text(dispatch_root):
+    """Reuse a previously generated Thai TextMap so rebuilding does not need a Live install."""
+    root = os.path.join(dispatch_root, 'design_override')
+    candidates = []
+    if not os.path.isdir(root):
+        return None
+    for version in os.listdir(root):
+        version_dir = os.path.join(root, version)
+        if not os.path.isfile(os.path.join(version_dir, '.cyrene-thai-text')):
+            continue
+        try:
+            for cdn_folder in os.listdir(version_dir):
+                windows = os.path.join(version_dir, cdn_folder, 'client', 'Windows')
+                if not os.path.isdir(windows):
+                    continue
+                for name in os.listdir(windows):
+                    if not re.fullmatch(r'DesignV_[0-9a-f]{32}\.bytes', name):
+                        continue
+                    index_path = os.path.join(windows, name)
+                    candidates.append((os.path.getmtime(index_path), version, windows, index_path))
+        except OSError:
+            continue
+
+    for _, version, windows, index_path in sorted(candidates, reverse=True):
+        try:
+            with open(index_path, 'rb') as fh:
+                _, files = parse_designv(fh.read())
+            f = file_by_hash(files, TH_MAIN)
+            path = os.path.join(windows, f['lang'], f'{f["md5"]}.bytes') if f['lang'] else \
+                os.path.join(windows, f'{f["md5"]}.bytes')
+            with open(path, 'rb') as fh:
+                data = fh.read()
+            if md5_hex(data) != f['md5']:
+                continue
+            rows = parse_textmap(table_bytes(data, f, TH_MAIN))
+            print(f'reusing Thai TextMap cached from previous build {version}: {path}')
+            return rows
+        except (OSError, ValueError, AssertionError, SystemExit, KeyError, struct.error):
+            continue
+    return None
+
+
+def downloaded_thai_text(dispatch_root, table_hash):
+    """Fetch the public Thai TextMap JSON, keyed by the same 64-bit IDs as the binary rows."""
+    url = THAI_TEXTMAP_SOURCES[table_hash]
+    cache_name = 'TextMapTH.json' if table_hash == TH_MAIN else 'TextMapMainTH.json'
+    cache_path = os.path.join(dispatch_root, 'thai_text_cache', cache_name)
+    raw = fetch(url, cache_path)
+    try:
+        source = json.loads(raw)
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise SystemExit(f'Thai TextMap source is not valid JSON ({url}): {exc}') from exc
+    if not isinstance(source, dict) or len(source) < 100:
+        raise SystemExit(f'Thai TextMap source is empty or has an unexpected format: {url}')
+    translations = {}
+    for key, value in source.items():
+        try:
+            hash64 = int(key)
+        except (TypeError, ValueError):
+            continue
+        if isinstance(value, str) and value:
+            translations[hash64] = value
+    if len(translations) < 100:
+        raise SystemExit(f'Thai TextMap source has too few usable entries: {url}')
+    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+    with open(cache_path, 'wb') as fh:
+        fh.write(raw)
+    print(f'Thai text source: {url} ({len(translations)} entries)')
+    return translations
+
+
+def merge_downloaded(beta_rows, translations, stats):
+    """Overlay downloaded Thai strings by the binary TextMap's 64-bit row key."""
+    rows = []
+    for mask, h32, h64, text, has_param in beta_rows:
+        translated = translations.get(h64)
+        if translated is None:
+            stats['untranslated'] += 1
+            rows.append((mask, h32, h64, text, has_param))
+        else:
+            stats['thai'] += 1
+            rows.append((mask, h32, h64, translated, has_param))
+    return rows
 
 
 def write(path, data):
@@ -441,17 +541,46 @@ def build(beta, live, dispatch_root, hotfix_path):
     beta_en = parse_textmap(table_bytes(design_file(base, beta, en_main), en_main, EN_MAIN))
     beta_en_start = parse_textmap(table_bytes(design_file(base, beta, en_start), en_start, EN_START))
 
-    live_files = client_index(live)
-    f = file_by_hash(live_files, TH_MAIN)
-    data = local_file(live, f)
-    if data is None:
-        raise SystemExit('the live client has no Thai TextMap: set its text language to Thai once and let it download')
-    live_th = parse_textmap(table_bytes(data, f, TH_MAIN))
+    live_th = None
+    downloaded_maps = None
+    if live and os.path.isdir(live):
+        try:
+            live_files = client_index(live)
+            f = file_by_hash(live_files, TH_MAIN)
+            data = local_file(live, f)
+            if data is not None:
+                live_th = parse_textmap(table_bytes(data, f, TH_MAIN))
+                print(f'using Thai TextMap from Live installation: {live}')
+        except (OSError, ValueError, AssertionError, SystemExit, KeyError, struct.error) as exc:
+            print(f'Live Thai TextMap unavailable; checking local build cache: {exc}')
+    if live_th is None:
+        try:
+            downloaded_maps = (
+                downloaded_thai_text(dispatch_root, TH_MAIN),
+                downloaded_thai_text(dispatch_root, TH_START),
+            )
+        except (OSError, urllib.error.URLError, SystemExit) as exc:
+            print(f'Could not download public Thai TextMaps; checking previous build cache: {exc}')
+            downloaded_maps = None
+            live_th = cached_thai_text(dispatch_root)
+    if live_th is None and downloaded_maps is None:
+        raise SystemExit('no Thai TextMap source is available. Check internet access to GitLab or provide a Live folder / previous build cache.')
 
     stats = {'thai': 0, 'untranslated': 0}
-    th_rows = merge(beta_en, live_th, stats)
+    if downloaded_maps:
+        th_rows = merge_downloaded(beta_en, downloaded_maps[0], stats)
+    else:
+        th_rows = merge(beta_en, live_th, stats)
+    if stats['thai'] < len(beta_en) // 2:
+        raise SystemExit(
+            f'Thai source matched only {stats["thai"]} of {len(beta_en)} Beta TextMap rows; '
+            'refusing to build from a likely mismatched or outdated source.'
+        )
     start_stats = dict.fromkeys(stats, 0)
-    th_start_rows = merge(beta_en_start, live_th, start_stats)
+    if downloaded_maps:
+        th_start_rows = merge_downloaded(beta_en_start, downloaded_maps[1], start_stats)
+    else:
+        th_start_rows = merge(beta_en_start, live_th, start_stats)
     total = len(th_rows)
     thai = stats['thai']
     print(f'TextMap rows {total}: Thai {thai}, untranslated {stats["untranslated"]} '
@@ -670,7 +799,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('command', choices=['build', 'restore'])
     ap.add_argument('--beta', default=DEFAULT_BETA, help='the beta client folder (has StarRail.exe)')
-    ap.add_argument('--live', default=DEFAULT_LIVE, help='the live client folder with Thai text downloaded')
+    ap.add_argument('--live', default='', help='optional live client folder with Thai text downloaded; otherwise reuse a cached Thai build')
     ap.add_argument('--dispatch-root', default=os.getcwd(), help='server working directory (contains versions.json)')
     args = ap.parse_args()
     versions_path = os.path.join(args.dispatch_root, 'versions.json')

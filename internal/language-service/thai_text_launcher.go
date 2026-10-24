@@ -28,9 +28,6 @@ func runThaiTextTool(action, betaRoot, liveRoot, dispatchRoot string) (bool, str
 	if strings.TrimSpace(betaRoot) == "" || strings.TrimSpace(dispatchRoot) == "" {
 		return false, "Beta game folder and server folder are required"
 	}
-	if action == "build" && strings.TrimSpace(liveRoot) == "" {
-		return false, "select the Live game folder that has Thai and English text downloaded"
-	}
 	if runtime.GOOS == "windows" {
 		if output, err := exec.Command("tasklist", "/FI", "IMAGENAME eq StarRail.exe").Output(); err == nil && strings.Contains(strings.ToLower(string(output)), "starrail.exe") {
 			return false, "close StarRail before building or restoring Thai text"
@@ -46,9 +43,11 @@ func runThaiTextTool(action, betaRoot, liveRoot, dispatchRoot string) (bool, str
 		return false, fmt.Errorf("resolve server folder: %w", err).Error()
 	}
 	if action == "build" {
-		liveRoot, err = filepath.Abs(filepath.Clean(liveRoot))
-		if err != nil {
-			return false, fmt.Errorf("resolve Live folder: %w", err).Error()
+		if strings.TrimSpace(liveRoot) != "" {
+			liveRoot, err = filepath.Abs(filepath.Clean(liveRoot))
+			if err != nil {
+				return false, fmt.Errorf("resolve Live folder: %w", err).Error()
+			}
 		}
 		if _, err := os.Stat(filepath.Join(dispatchRoot, "versions.json")); err != nil {
 			return false, fmt.Errorf("server version data not found in %s: %w", dispatchRoot, err).Error()
@@ -80,7 +79,7 @@ func runThaiTextTool(action, betaRoot, liveRoot, dispatchRoot string) (bool, str
 	}
 
 	args := append(pythonArgs, scriptPath, action, "--beta", betaRoot, "--dispatch-root", dispatchRoot)
-	if action == "build" {
+	if action == "build" && strings.TrimSpace(liveRoot) != "" {
 		args = append(args, "--live", liveRoot)
 	}
 	command := exec.Command(python, args...)

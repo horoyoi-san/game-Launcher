@@ -132,7 +132,7 @@ export default function DiffPage() {
             if (!handleResult(isOk, errorType, 'Check Type HDiff')) return
             setProgressUpdate(1)
 
-            if (['hdiffmap.json', 'hdifffiles.txt', 'hdifffiles.json'].includes(validType)) {
+            if (['hdiffmap.json', 'hdifffiles.txt', 'hdifffiles.json', 'manifest'].includes(validType)) {
                 setStageType('Version Validate')
                 setProgressUpdate(0)
                 setMaxProgressUpdate(1)

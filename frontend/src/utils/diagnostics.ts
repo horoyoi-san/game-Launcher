@@ -151,6 +151,27 @@ export function diagnoseServerError(errorStr: string): DiagnosticErrorInfo {
 export function diagnoseLanguageError(errorStr: string, gameDir?: string, stage?: string): DiagnosticErrorInfo {
     const lower = (errorStr || "").toLowerCase()
 
+    const missingLiveDesignIndex = lower.includes("live game folder is missing")
+        && lower.includes("persistent")
+        && lower.includes("designdata")
+    if (missingLiveDesignIndex) {
+        return {
+            category: "language",
+            stage: stage || "Build Thai Beta Text",
+            title: "ไม่พบข้อมูล Design ของเกม Live",
+            reason: "โฟลเดอร์ Live ที่เลือกไม่มีดัชนี DesignData ใน Persistent จึงอ่าน TextMap ภาษาไทยต้นทางไม่ได้",
+            items: [
+                { label: "โฟลเดอร์ Beta", value: gameDir || "ไม่ระบุโฟลเดอร์", icon: "📁" },
+                { label: "ไฟล์ที่ขาด", value: "StarRail_Data/Persistent/DesignData/Windows/M_DesignV.bytes ในโฟลเดอร์ Live", icon: "🔍" },
+            ],
+            suggestions: [
+                "เลือกโฟลเดอร์หลักของเกม Live ที่มี StarRail_Data อยู่ด้านใน",
+                "เปิดเกม Live และรอให้ดาวน์โหลดข้อมูลเกม/ภาษาให้เสร็จก่อน จากนั้นลอง Build อีกครั้ง",
+            ],
+            technical: errorStr,
+        }
+    }
+
     const missingPath = lower.includes("no such file or directory")
         || lower.includes("filenotfounderror")
         || lower.includes("cannot find the path")
