@@ -68,7 +68,13 @@ REGION_TABLE = 0xb804dbc76d81fb75  # its text/voice language list per region
 
 PLACEHOLDER = '...'
 THAI_TEXTMAP_SOURCES = {
-    TH_MAIN: 'https://gitlab.com/Dimbreath/turnbasedgamedata/-/raw/main/TextMap/TextMapTH.json',
+    # TurnBasedGameData split the full Thai map into numbered files. Keep the
+    # old monolithic URL as a fallback for older revisions of the repository.
+    TH_MAIN: (
+        'https://gitlab.com/Dimbreath/turnbasedgamedata/-/raw/main/TextMap/TextMapTH_0.json',
+        'https://gitlab.com/Dimbreath/turnbasedgamedata/-/raw/main/TextMap/TextMapTH_1.json',
+        'https://gitlab.com/Dimbreath/turnbasedgamedata/-/raw/main/TextMap/TextMapTH.json',
+    ),
     TH_START: 'https://gitlab.com/Dimbreath/turnbasedgamedata/-/raw/main/TextMap/TextMapMainTH.json',
 }
 
@@ -454,31 +460,44 @@ def cached_thai_text(dispatch_root):
 
 
 def downloaded_thai_text(dispatch_root, table_hash):
-    """Fetch the public Thai TextMap JSON, keyed by the same 64-bit IDs as the binary rows."""
-    url = THAI_TEXTMAP_SOURCES[table_hash]
-    cache_name = 'TextMapTH.json' if table_hash == TH_MAIN else 'TextMapMainTH.json'
-    cache_path = os.path.join(dispatch_root, 'thai_text_cache', cache_name)
-    raw = fetch(url, cache_path)
-    try:
-        source = json.loads(raw)
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise SystemExit(f'Thai TextMap source is not valid JSON ({url}): {exc}') from exc
-    if not isinstance(source, dict) or len(source) < 100:
-        raise SystemExit(f'Thai TextMap source is empty or has an unexpected format: {url}')
+    """Fetch and combine the public Thai TextMap JSON source file(s)."""
+    urls = THAI_TEXTMAP_SOURCES[table_hash]
+    if isinstance(urls, str):
+        urls = (urls,)
+    cache_dir = os.path.join(dispatch_root, 'thai_text_cache')
     translations = {}
-    for key, value in source.items():
+    loaded = []
+    errors = []
+    for url in urls:
+        cache_name = url.rsplit('/', 1)[-1]
+        cache_path = os.path.join(cache_dir, cache_name)
         try:
-            hash64 = int(key)
-        except (TypeError, ValueError):
+            raw = fetch(url, cache_path)
+            source = json.loads(raw)
+            if not isinstance(source, dict) or len(source) < 100:
+                raise ValueError('source is empty or has an unexpected format')
+        except (OSError, urllib.error.URLError, SystemExit, UnicodeDecodeError,
+                json.JSONDecodeError, ValueError) as exc:
+            errors.append(f'{cache_name}: {exc}')
             continue
-        if isinstance(value, str) and value:
-            translations[hash64] = value
+
+        loaded.append(url)
+        for key, value in source.items():
+            try:
+                hash64 = int(key)
+            except (TypeError, ValueError):
+                continue
+            if isinstance(value, str) and value:
+                # Later numbered files take precedence if keys overlap.
+                translations[hash64] = value
+        os.makedirs(cache_dir, exist_ok=True)
+        with open(cache_path, 'wb') as fh:
+            fh.write(raw)
+
     if len(translations) < 100:
-        raise SystemExit(f'Thai TextMap source has too few usable entries: {url}')
-    os.makedirs(os.path.dirname(cache_path), exist_ok=True)
-    with open(cache_path, 'wb') as fh:
-        fh.write(raw)
-    print(f'Thai text source: {url} ({len(translations)} entries)')
+        detail = '; '.join(errors) or 'all sources were empty'
+        raise SystemExit(f'no usable Thai TextMap source found ({detail})')
+    print(f'Thai text sources: {", ".join(loaded)} ({len(translations)} entries)')
     return translations
 
 
