@@ -10,8 +10,8 @@ func TestInstallPatchFilesBacksUpOriginalsAndKeepsFirstBackup(t *testing.T) {
 	gameDir := t.TempDir()
 	patchDir := t.TempDir()
 	patchFiles := []patchFile{
-		{source: filepath.Join(patchDir, "launcher.exe"), destination: filepath.Join(gameDir, "launcher.exe")},
-		{source: filepath.Join(patchDir, "hkrpg.dll"), destination: filepath.Join(gameDir, "hkrpg.dll")},
+		{source: filepath.Join(patchDir, "Sunbringer.exe"), destination: filepath.Join(gameDir, "Sunbringer.exe")},
+		{source: filepath.Join(patchDir, "Roscaelifer.dll"), destination: filepath.Join(gameDir, "Roscaelifer.dll")},
 	}
 	originalContents := []string{"original launcher", "original dll"}
 	patchContents := []string{"patched launcher", "patched dll"}
@@ -31,7 +31,7 @@ func TestInstallPatchFilesBacksUpOriginalsAndKeepsFirstBackup(t *testing.T) {
 
 	for index, patch := range patchFiles {
 		assertFileContents(t, patch.destination, patchContents[index])
-		assertFileContents(t, patch.destination+".cyrene-backup", originalContents[index])
+		assertFileContents(t, patch.destination+".sunbringer-backup", originalContents[index])
 	}
 
 	if err := installPatchFiles(gameDir, patchFiles); err != nil {
@@ -39,15 +39,15 @@ func TestInstallPatchFilesBacksUpOriginalsAndKeepsFirstBackup(t *testing.T) {
 	}
 	for index, patch := range patchFiles {
 		assertFileContents(t, patch.destination, patchContents[index])
-		assertFileContents(t, patch.destination+".cyrene-backup", originalContents[index])
+		assertFileContents(t, patch.destination+".sunbringer-backup", originalContents[index])
 	}
 }
 
 func TestInstallPatchFilesRestoresOriginalsAfterStagingFailure(t *testing.T) {
 	gameDir := t.TempDir()
 	patchDir := t.TempDir()
-	firstSource := filepath.Join(patchDir, "launcher.exe")
-	firstDestination := filepath.Join(gameDir, "launcher.exe")
+	firstSource := filepath.Join(patchDir, "Sunbringer.exe")
+	firstDestination := filepath.Join(gameDir, "Sunbringer.exe")
 	if err := os.WriteFile(firstSource, []byte("patched launcher"), 0600); err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func TestInstallPatchFilesRestoresOriginalsAfterStagingFailure(t *testing.T) {
 
 	err := installPatchFiles(gameDir, []patchFile{
 		{source: firstSource, destination: firstDestination},
-		{source: filepath.Join(patchDir, "missing.dll"), destination: filepath.Join(gameDir, "hkrpg.dll")},
+		{source: filepath.Join(patchDir, "missing.dll"), destination: filepath.Join(gameDir, "Roscaelifer.dll")},
 	})
 	if err == nil {
 		t.Fatal("installPatchFiles() expected an error for a missing patch asset")

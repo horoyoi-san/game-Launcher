@@ -1,7 +1,7 @@
 package sevenzip
 
 import (
-	"Cyrene-launcher/pkg/constant"
+	"sunbringer-launcher/pkg/constant"
 	"bytes"
 	"fmt"
 	"os"

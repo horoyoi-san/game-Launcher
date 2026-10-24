@@ -21,7 +21,7 @@ func gameSelectionPath() (string, error) {
 		return "", fmt.Errorf("resolve user config directory: %w", err)
 	}
 
-	return filepath.Join(configDir, "Cyrene-launcher", "game-selection.json"), nil
+	return filepath.Join(configDir, "sunbringer-launcher", "game-selection.json"), nil
 }
 
 func (f *FSService) GetSavedGameSelection() (string, string, error) {

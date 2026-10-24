@@ -191,7 +191,7 @@ func backupAndApplyThaiPatch(gameRoot string, updates map[string][]byte) (string
 	}
 	sort.Strings(paths)
 
-	backupDir, err := os.MkdirTemp(gameRoot, "Cyrene-Thai-Backup-")
+	backupDir, err := os.MkdirTemp(gameRoot, "Sunbringer-Thai-Backup-")
 	if err != nil {
 		return "", fmt.Errorf("create backup folder: %w", err)
 	}

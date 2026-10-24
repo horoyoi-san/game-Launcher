@@ -1,21 +1,91 @@
 package fsService
 
 import (
-	"Cyrene-launcher/pkg/constant"
-	"Cyrene-launcher/pkg/sevenzip"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"sync"
+	"sunbringer-launcher/pkg/constant"
+	"sunbringer-launcher/pkg/sevenzip"
+	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"golang.org/x/sys/windows"
 )
 
 type FSService struct{}
+
+const napOffsetsFile = `D:\Horoyoisan\PS\nap\CNBetaWin3.3.4\offsets.zon`
+const napUIDCustomFile = `D:\Horoyoisan\PS\nap\CNBetaWin3.3.4\uid_custom.txt`
+const thaumielOffsetsURL = "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/sunbringer-launcher/offsets.zon"
+
+func (f *FSService) FetchUpstreamOffsetsFile() (string, error) {
+	client := &http.Client{Timeout: 20 * time.Second}
+	response, err := client.Get(thaumielOffsetsURL)
+	if err != nil {
+		return "", fmt.Errorf("fetch upstream offsets.zon: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("fetch upstream offsets.zon: server returned %s", response.Status)
+	}
+	content, err := io.ReadAll(io.LimitReader(response.Body, 2<<20))
+	if err != nil {
+		return "", fmt.Errorf("read upstream offsets.zon: %w", err)
+	}
+	if len(content) == 0 {
+		return "", fmt.Errorf("upstream offsets.zon is empty")
+	}
+	return string(content), nil
+}
+
+func (f *FSService) ReadOffsetsFile() (string, error) {
+	content, err := os.ReadFile(napOffsetsFile)
+	if err != nil {
+		return "", fmt.Errorf("read offsets.zon at %s: %w", napOffsetsFile, err)
+	}
+	return string(content), nil
+}
+
+func (f *FSService) WriteOffsetsFile(content string) error {
+	info, err := os.Stat(napOffsetsFile)
+	if err != nil {
+		return fmt.Errorf("locate offsets.zon at %s: %w", napOffsetsFile, err)
+	}
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("offsets.zon is not a regular file: %s", napOffsetsFile)
+	}
+	if err := os.WriteFile(napOffsetsFile, []byte(content), info.Mode().Perm()); err != nil {
+		return fmt.Errorf("save offsets.zon at %s: %w", napOffsetsFile, err)
+	}
+	return nil
+}
+
+func (f *FSService) ReadUIDCustomFile() (string, error) {
+	content, err := os.ReadFile(napUIDCustomFile)
+	if err != nil {
+		return "", fmt.Errorf("read uid_custom.txt at %s: %w", napUIDCustomFile, err)
+	}
+	return string(content), nil
+}
+
+func (f *FSService) WriteUIDCustomFile(content string) error {
+	info, err := os.Stat(napUIDCustomFile)
+	if err != nil {
+		return fmt.Errorf("locate uid_custom.txt at %s: %w", napUIDCustomFile, err)
+	}
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("uid_custom.txt is not a regular file: %s", napUIDCustomFile)
+	}
+	if err := os.WriteFile(napUIDCustomFile, []byte(content), info.Mode().Perm()); err != nil {
+		return fmt.Errorf("save uid_custom.txt at %s: %w", napUIDCustomFile, err)
+	}
+	return nil
+}
 
 func (f *FSService) PickFolder() (string, error) {
 	dialog := application.Get().Dialog.OpenFile().
@@ -86,7 +156,7 @@ func (f *FSService) StartApp(path string) (bool, string) {
 		return false, err.Error()
 	}
 
-	if strings.HasSuffix(path, "StarRail.exe") {
+	if strings.HasSuffix(path, "ZenlessZoneZeroBeta.exe") {
 		go func() {
 			_ = cmd.Wait()
 			application.Get().Event.Emit("game:exit")
@@ -109,44 +179,31 @@ func (f *FSService) StartWithConsole(path string) (bool, string) {
 	go func() {
 		_ = cmd.Wait()
 		switch strings.ToLower(filepath.Base(absPath)) {
-		case "launcher.exe":
+		case "launcher.exe", "sunbringer.exe":
 			application.Get().Event.Emit("game:exit")
-		case "firefly-go_win.exe", constant.HKRPGServerExecutable, constant.HKRPGSDKServerExecutable:
+		case "firefly-go_win.exe", constant.NAPServerExecutable, constant.NAPSDKServerExecutable:
 			application.Get().Event.Emit("server:exit")
-		case "firefly-go-proxy.exe", "proxy.exe":
-			application.Get().Event.Emit("proxy:exit")
 		}
 	}()
 	return true, ""
 }
 
-func (f *FSService) StartHKRPGServer() (bool, string) {
-	serverExecutables := []string{
-		filepath.Join(constant.ServerStorageUrl, constant.HKRPGSDKServerExecutable),
-		filepath.Join(constant.ServerStorageUrl, constant.HKRPGServerExecutable),
+func (f *FSService) StartNAPServer() (bool, string) {
+	command, _, err := startConsoleProcess(constant.ZigExecutable)
+	if err != nil {
+		return false, fmt.Errorf("prepare Remielle server command: %w", err).Error()
 	}
-	commands := make([]*exec.Cmd, 0, len(serverExecutables))
-	for _, executable := range serverExecutables {
-		command, _, err := startConsoleProcess(executable)
-		if err != nil {
-			stopStartedProcesses(commands)
-			return false, fmt.Errorf("prepare server process %s: %w", executable, err).Error()
-		}
-		if err := command.Start(); err != nil {
-			stopStartedProcesses(commands)
-			return false, fmt.Errorf("start server process %s: %w", executable, err).Error()
-		}
-		commands = append(commands, command)
+	serverDir, err := filepath.Abs(constant.RemielleStorageDir)
+	if err != nil {
+		return false, fmt.Errorf("resolve Remielle source folder: %w", err).Error()
 	}
-
+	command.Dir = serverDir
+	command.Args = append(command.Args, "build", "serve-all")
+	if err := command.Start(); err != nil {
+		return false, fmt.Errorf("start Remielle with zig build serve-all: %w", err).Error()
+	}
 	go func() {
-		var waitGroup sync.WaitGroup
-		for _, command := range commands {
-			waitGroup.Go(func() {
-				_ = command.Wait()
-			})
-		}
-		waitGroup.Wait()
+		_ = command.Wait()
 		application.Get().Event.Emit("server:exit")
 	}()
 	return true, ""
@@ -177,15 +234,6 @@ func startConsoleProcess(path string) (*exec.Cmd, string, error) {
 		NoInheritHandles: true,
 	}
 	return cmd, absPath, nil
-}
-
-func stopStartedProcesses(commands []*exec.Cmd) {
-	for _, command := range commands {
-		if command.Process != nil {
-			_ = command.Process.Kill()
-			_ = command.Wait()
-		}
-	}
 }
 
 func (f *FSService) OpenFolder(path string) (bool, string) {

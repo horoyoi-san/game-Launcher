@@ -7,7 +7,7 @@ includes:
   linux: ./build/linux/Taskfile.yml
 
 vars:
-  APP_NAME: "Cyrene-launcher"
+  APP_NAME: "sunbringer-launcher"
   BIN_DIR: "bin"
   VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
 
@@ -17,7 +17,7 @@ tasks:
     cmds:
       - task: "{{OS}}:build"
         vars:
-          BUILD_VERSION: '{{.BUILD_VERSION | default "2.1.0"}}'
+          BUILD_VERSION: '{{.BUILD_VERSION | default "1.0.0"}}'
 
   package:
     summary: Packages a production build of the application

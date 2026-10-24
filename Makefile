@@ -34,6 +34,6 @@ release:
 
 update:
 	@echo Updating build assets...
-	wails3 update build-assets -name "Cyrene-launcher" -binaryname "Cyrene-launcher" -config build/config.yml
+	wails3 update build-assets -name "sunbringer-launcher" -binaryname "sunbringer-launcher" -config build/config.yml
 	@echo Done!
 

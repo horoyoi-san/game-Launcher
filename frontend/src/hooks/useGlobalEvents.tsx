@@ -3,18 +3,17 @@ import { useEffect } from "react";
 import { Events } from "@wailsio/runtime";
 import { toast } from "react-toastify";
 import useSettingStore from "@/stores/settingStore";
-import { AppService } from "@bindings/Cyrene-launcher/internal/app-service";
+import { AppService } from "@bindings/sunbringer-launcher/internal/app-service";
 import useModalStore from "@/stores/modalStore";
 import useLauncherStore from "@/stores/launcherStore";
 
 export function useGlobalEvents() {
     const { setIsOpenCloseModal } = useModalStore()
-    const { setGameRunning, setServerRunning, setProxyRunning, setProgressDownload, setDownloadSpeed } = useLauncherStore()
+    const { setGameRunning, setServerRunning, setProgressDownload, setDownloadSpeed } = useLauncherStore()
 
     useEffect(() => {
         const onGameExit = () => setGameRunning(false);
         const onServerExit = () => setServerRunning(false);
-        const onProxyExit = () => setProxyRunning(false);
 
         const onDownload = (event: any) => {
             const { percent, speed } = event.data;
@@ -23,11 +22,9 @@ export function useGlobalEvents() {
         };
 
         Events.On("download:server", onDownload);
-        Events.On("download:proxy", onDownload);
         Events.On("download:patch", onDownload);
         Events.On("game:exit", onGameExit);
         Events.On("server:exit", onServerExit);
-        Events.On("proxy:exit", onProxyExit);
         Events.On("window:close", async () => {
             const option = useSettingStore.getState().closingOption
             if (option.isAsk) {
@@ -45,11 +42,9 @@ export function useGlobalEvents() {
 
         return () => {
             Events.Off("download:server");
-            Events.Off("download:proxy");
             Events.Off("download:patch");
             Events.Off("game:exit");
             Events.Off("server:exit");
-            Events.Off("proxy:exit");
             Events.Off("version:check");
             Events.Off("window:close");
         };

@@ -8,7 +8,7 @@ export default function AboutPage() {
         <section className="about-hero">
           <div className="about-hero__profile">
             <div className="about-hero__logo-wrap">
-              <img src="/appicon.png" alt="Cyrene Launcher logo" />
+              <img src="/appicon.png" alt="Sunbringer logo" />
               <span><Sparkles size={15} /></span>
             </div>
             <div className="about-hero__identity">
@@ -27,7 +27,7 @@ export default function AboutPage() {
             <span className="about-kicker"><span /> ABOUT THE PROJECT</span>
             <h2>A calmer way to<br /><em>start playing.</em></h2>
             <p>
-              Cyrene Launcher is a lightweight companion for launching and managing
+              Sunbringer is a lightweight companion for launching and managing
               your game. It brings the everyday tools together in one place, so you
               can spend less time setting things up and more time in-game.
             </p>
@@ -50,7 +50,7 @@ export default function AboutPage() {
           </div>
           <p>
             From launching the game to adjusting language settings and applying
-            updates, Cyrene keeps the essential tools close at hand in a clean,
+            updates, Sunbringer keeps the essential tools close at hand in a clean,
             focused interface.
           </p>
           <div className="about-tech">
@@ -79,7 +79,7 @@ export default function AboutPage() {
               <Github size={18} /><span>GitHub</span><ArrowUpRight size={13} />
             </a>
           </nav>
-          <span className="about-footer__credit">CYRENE LAUNCHER <span>·</span> BY HOROYOI-SAN</span>
+          <span className="about-footer__credit">SUNBRINGER <span>·</span> BY HOROYOI-SAN</span>
         </footer>
       </main>
     </div>

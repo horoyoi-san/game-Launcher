@@ -1,7 +1,7 @@
 package languageService
 
 import (
-	excelLanguage "Cyrene-launcher/pkg/language-patch/excel-language"
+	excelLanguage "sunbringer-launcher/pkg/language-patch/excel-language"
 	"testing"
 )
 

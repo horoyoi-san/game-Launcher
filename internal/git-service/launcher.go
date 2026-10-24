@@ -1,7 +1,7 @@
 package gitService
 
 import (
-	"Cyrene-launcher/pkg/constant"
+	"sunbringer-launcher/pkg/constant"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
@@ -56,7 +56,7 @@ func (g *GitService) UpdateLauncherProgress(version string) (bool, string) {
 		return false, fmt.Sprintf("download launcher update: server returned %s", response.Status)
 	}
 
-	temporaryFile, err := os.CreateTemp("", "cyrene-launcher-update-*.exe")
+	temporaryFile, err := os.CreateTemp("", "sunbringer-launcher-update-*.exe")
 	if err != nil {
 		return false, fmt.Errorf("create temporary launcher update: %w", err).Error()
 	}

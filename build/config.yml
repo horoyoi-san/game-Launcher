@@ -5,12 +5,12 @@ version: '3'
 
 # This information is used to generate the build assets.
 info:
-  companyName: "Cyrene Shelter" # The name of the company
-  productName: "Cyrene Launcher" # The name of the application
-  productIdentifier: "com.Cyreneshelter.Cyrenelauncher" # The unique product identifier
-  description: "Cyrene Launcher" # The application description
-  copyright: "@ 2025, Cyrene Shelter" # Copyright text
-  comments: "Cyrene Launcher" # Comments
+  companyName: "Sunbringer" # The name of the company
+  productName: "Sunbringer Launcher" # The name of the application
+  productIdentifier: "com.horoyoisan.sunbringerlauncher" # The unique product identifier
+  description: "Sunbringer Launcher" # The application description
+  copyright: "@ 2025, Sunbringer" # Copyright text
+  comments: "Sunbringer" # Comments
   version: "1.0.0" # The application version
 
 # Dev mode configuration

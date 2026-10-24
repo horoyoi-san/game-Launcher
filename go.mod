@@ -1,4 +1,4 @@
-module Cyrene-launcher
+module sunbringer-launcher
 
 go 1.25.5
 

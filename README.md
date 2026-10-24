@@ -1,4 +1,4 @@
-# 🚀 Cyrene Launcher
+# 🚀 Sunbringer Launcher
 
 
 ![alt text](image.png)
@@ -11,10 +11,10 @@ A lightweight and modern launcher for Anime game — designed to make launching,
 
 ## ✨ Features
 
-- 🔄 Download the HKRPG server and choose either proxy or patched-launcher connectivity
-- 🎮 Start the HKRPG game and SDK server processes together
-- 🛡️ Preserve original `launcher.exe` and `hkrpg.dll` files as `.cyrene-backup` copies before patching
-- 🔔 Check for Cyrene Launcher updates automatically and install verified releases
+- 🔄 Download the NAP server and install the patched-launcher files
+- 🎮 Start the NAP game and SDK server processes together
+- 🛡️ Preserve original `launcher.exe` and `hkrpg.dll` files as `.sunbringer-backup` copies before patching
+- 🔔 Check for Sunbringer updates automatically and install verified releases
 - 🎮 Launch the game with correct parameters and environment
 - 🌐 Switch in-game language (EN, JP, CN, KR) via Language Tools
 - 📦 Apply game patches using Hdiffz Tool (HDiffPatch-based)
@@ -24,7 +24,7 @@ A lightweight and modern launcher for Anime game — designed to make launching,
 ## 🧑‍💻 About the Developer
 
 Hi! I'm **Horoyoi-san**, a developer passionate about building simple and powerful tools.  
-Cyrene Launcher is built with:
+Sunbringer is built with:
 
 - ⚙️ **Go + Wails** for backend/frontend integration  
 - 🎨 **Tailwind CSS** + **DaisyUI** for a clean, responsive UI
@@ -65,9 +65,9 @@ wails3 build
 wails3 package
 ```
 
-## 🔄 Cyrene Launcher Updates
+## 🔄 Sunbringer Updates
 
-The `Cyrene.yml` workflow in the Hoyo repository increments the launcher version, embeds it in the Windows build, and publishes the executable together with a SHA-256 `latest.json` manifest to the existing `hkrpg` release. The launcher checks for updates on startup and periodically while it is open. Development builds display `Development` and cannot replace their executable.
+The `Sunbringer.yml` workflow in the Hoyo repository increments the launcher version, embeds it in the Windows build, and publishes the executable together with a SHA-256 `latest.json` manifest to the existing `hkrpg` release. The launcher checks for updates on startup and periodically while it is open. Development builds display `Development` and cannot replace their executable.
 
 ---
 

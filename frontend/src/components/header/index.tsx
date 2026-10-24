@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import useModalStore from "@/stores/modalStore";
 import { BookOpen, Diff, Home, Image, Info, Languages, Minus, Settings, X } from "lucide-react";
-import { AppService } from "@bindings/Cyrene-launcher/internal/app-service";
+import { AppService } from "@bindings/sunbringer-launcher/internal/app-service";
 import { motion } from "motion/react";
 import usePanelStore from "@/stores/panelStore";
 
@@ -9,18 +9,18 @@ const webLinks = [
     {
         label: "HoYoLAB",
         url: "https://hoyoplay.hoyoverse.com",
-        image: "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/hoyoverse-icon.png",
+        image: "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/sunbringer-launcher/frontend/public/icon/hoyoverse-icon.png",
     },
     {
         label: "HoYoverse Games",
         url: "https://hoyoverse-game.vercel.app",
-        image: "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/hoyo-game-logo.png",
+        image: "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/sunbringer-launcher/frontend/public/icon/hoyo-game-logo.png",
     },
     { label: "Nanoka", url: "https://nanoka.cc", image: "https://nanoka.cc/logo.svg" },
     {
-        label: "SR Tools",
-        url: "https://srtools.neonteam.dev",
-        image: "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/cyrene-launcher/frontend/public/icon/AvatarIcon.webp",
+        label: "Agent",
+        url: "https://pssetup.zenless.app",
+        image: "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/sunbringer-launcher/frontend/public/icon/zzz_character.webp",
     },
 ];
 
@@ -55,16 +55,17 @@ export default function Header() {
     return (
         <>
             <aside className="app-sidebar">
-                <Link to="/" className="app-sidebar__brand" activeOptions={{ exact: true }} title="Cyrene Launcher">
-                    <img src="/appicon.png" alt="Cyrene Launcher" className="h-11 w-11 rounded-xl" />
+                <Link to="/" className="app-sidebar__brand" activeOptions={{ exact: true }} title="Sunbringer">
+                    <img src="/appicon.png" alt="Sunbringer" className="h-11 w-11 rounded-xl" />
                     <div className="app-sidebar__brand-name">
-                        <div className="text-[15px] font-bold tracking-wide text-white">CYRENE</div>
+                        <div className="text-[15px] font-bold tracking-wide text-white">SUNBRINGER</div>
                         <div className="mt-0.5 text-[10px] tracking-[0.16em] text-violet-200/60">GAME LAUNCHER</div>
                     </div>
                 </Link>
 
                 <nav className="app-sidebar__nav" aria-label="Main navigation">
-                    <div className="app-sidebar__label">Library</div>
+                    <div className="app-sidebar__group">
+                    <div className="app-sidebar__label"><span>01</span> Play</div>
                     <Link
                         to="/"
                         activeOptions={{ exact: true }}
@@ -77,7 +78,9 @@ export default function Header() {
                         <span>Home</span>
                     </Link>
 
-                    <div className="app-sidebar__label">Tools</div>
+                    </div>
+                    <div className="app-sidebar__group">
+                    <div className="app-sidebar__label"><span>02</span> Systems</div>
                     <Link to="/language" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Language" aria-label="Language">
                         <Languages size={18} />
                         <span>Language</span>
@@ -94,8 +97,9 @@ export default function Header() {
                         <Info size={18} />
                         <span>About</span>
                     </Link>
-
-                    <div className="app-sidebar__label">Web shortcuts</div>
+                    </div>
+                    <div className="app-sidebar__group app-sidebar__group--web">
+                    <div className="app-sidebar__label"><span>03</span> Network</div>
                     {webLinks.map((item) => (
                         <button
                             key={item.label}
@@ -119,7 +123,9 @@ export default function Header() {
                         <Image size={18} />
                         <span>Background Gallery</span>
                     </button>
+                    </div>
                 </nav>
+                <div className="app-sidebar__footer"><span className="app-sidebar__footer-dot" /><span>NAP BETA NODE</span><b>ONLINE</b></div>
             </aside>
 
             <div className="app-window-controls">

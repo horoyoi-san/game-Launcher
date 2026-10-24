@@ -5,19 +5,19 @@
 !include "FileFunc.nsh"
 
 !ifndef INFO_PROJECTNAME
-    !define INFO_PROJECTNAME "Cyrene-launcher"
+    !define INFO_PROJECTNAME "sunbringer-launcher"
 !endif
 !ifndef INFO_COMPANYNAME
-    !define INFO_COMPANYNAME "Cyrene Shelter"
+    !define INFO_COMPANYNAME "Sunbringer"
 !endif
 !ifndef INFO_PRODUCTNAME
-    !define INFO_PRODUCTNAME "Cyrene Launcher"
+    !define INFO_PRODUCTNAME "Sunbringer"
 !endif
 !ifndef INFO_PRODUCTVERSION
     !define INFO_PRODUCTVERSION "1.0.0"
 !endif
 !ifndef INFO_COPYRIGHT
-    !define INFO_COPYRIGHT "@ 2025, Cyrene Shelter"
+    !define INFO_COPYRIGHT "@ 2025, Sunbringer"
 !endif
 !ifndef PRODUCT_EXECUTABLE
     !define PRODUCT_EXECUTABLE "${INFO_PROJECTNAME}.exe"

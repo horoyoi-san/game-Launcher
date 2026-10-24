@@ -1,7 +1,7 @@
 package gitService
 
 import (
-	"Cyrene-launcher/pkg/constant"
+	"sunbringer-launcher/pkg/constant"
 	"fmt"
 	"net/http"
 	"net/http/httptest"

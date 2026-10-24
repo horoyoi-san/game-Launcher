@@ -125,7 +125,7 @@ func TestInstallThaiPatchForBeta451(t *testing.T) {
 	if !ok {
 		t.Fatalf("InstallThaiPatch() failed: %s", result)
 	}
-	if !bytes.Contains([]byte(result), []byte("Cyrene-Thai-Backup-")) {
+	if !bytes.Contains([]byte(result), []byte("Sunbringer-Thai-Backup-")) {
 		t.Fatalf("install result does not include backup path: %s", result)
 	}
 

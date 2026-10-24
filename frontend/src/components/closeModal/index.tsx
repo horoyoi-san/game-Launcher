@@ -1,4 +1,4 @@
-import { AppService } from "@bindings/Cyrene-launcher/internal/app-service"
+import { AppService } from "@bindings/sunbringer-launcher/internal/app-service"
 import { toast } from "react-toastify"
 import useSettingStore from "@/stores/settingStore"
 import { Minus, Power, X } from "lucide-react"
@@ -15,13 +15,13 @@ export default function CloseModal({
 
     return (
         <div
-            className="cyrene-dialog-overlay"
+            className="sunbringer-dialog-overlay"
             onMouseDown={(event) => {
                 if (event.target === event.currentTarget) onClose()
             }}
         >
             <section
-                className="cyrene-dialog"
+                className="sunbringer-dialog"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="close-dialog-title"
@@ -31,15 +31,15 @@ export default function CloseModal({
                     if (event.key === "Escape") onClose()
                 }}
             >
-                <header className="cyrene-dialog__header">
-                    <span className="cyrene-dialog__icon"><Power size={19} /></span>
+                <header className="sunbringer-dialog__header">
+                    <span className="sunbringer-dialog__icon"><Power size={19} /></span>
                     <div>
-                        <span className="eyebrow">CYRENE LAUNCHER</span>
+                        <span className="eyebrow">SUNBRINGER</span>
                         <h2 id="close-dialog-title">Confirm Action</h2>
                     </div>
                     <button
                         type="button"
-                        className="cyrene-dialog__close"
+                        className="sunbringer-dialog__close"
                         onClick={onClose}
                         aria-label="Dismiss close confirmation"
                     >
@@ -47,10 +47,10 @@ export default function CloseModal({
                     </button>
                 </header>
 
-                <div className="cyrene-dialog__body">
+                <div className="sunbringer-dialog__body">
                     <p>Would you like to minimize the launcher to the system tray or close it completely?</p>
 
-                    <label className="cyrene-dialog__remember">
+                    <label className="sunbringer-dialog__remember">
                         <input
                             type="checkbox"
                             checked={!closingOption.isAsk}
@@ -62,10 +62,10 @@ export default function CloseModal({
                         <span>Do not ask me again</span>
                     </label>
 
-                    <div className="cyrene-dialog__actions cyrene-dialog__actions--split">
+                    <div className="sunbringer-dialog__actions sunbringer-dialog__actions--split">
                         <button
                             type="button"
-                            className="cyrene-dialog__button cyrene-dialog__button--primary"
+                            className="sunbringer-dialog__button sunbringer-dialog__button--primary"
                             onClick={async () => {
                                 onClose()
                                 const [success, message] = await AppService.HideApp()
@@ -80,7 +80,7 @@ export default function CloseModal({
                         </button>
                         <button
                             type="button"
-                            className="cyrene-dialog__button cyrene-dialog__button--danger"
+                            className="sunbringer-dialog__button sunbringer-dialog__button--danger"
                             onClick={async () => {
                                 onClose()
                                 const [success, message] = await AppService.CloseApp()

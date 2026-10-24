@@ -1,8 +1,8 @@
 package gitService
 
 import (
-	"Cyrene-launcher/pkg/constant"
-	"Cyrene-launcher/pkg/models"
+	"sunbringer-launcher/pkg/constant"
+	"sunbringer-launcher/pkg/models"
 	"encoding/json"
 	"fmt"
 	"io"

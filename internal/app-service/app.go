@@ -1,7 +1,7 @@
 package appService
 
 import (
-	"Cyrene-launcher/pkg/constant"
+	"sunbringer-launcher/pkg/constant"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"

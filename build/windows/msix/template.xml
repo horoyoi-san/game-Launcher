@@ -8,7 +8,7 @@
         AllowPromptForPassword="false">
     </Settings>
     <Installer
-        Path="Cyrene-launcher.exe"
+        Path="sunbringer-launcher.exe"
         Arguments=""
         InstallLocation="C:\Program Files\My Company\My Product">
     </Installer>
@@ -25,10 +25,10 @@
         </Capabilities>
         <Applications>
             <Application
-                Id="com.wails.Cyrene-launcher"
+                Id="com.horoyoisan.sunbringerlauncher"
                 Description="My Product Description"
                 DisplayName="My Product"
-                ExecutableName="Cyrene-launcher.exe"
+                ExecutableName="sunbringer-launcher.exe"
                 EntryPoint="Windows.FullTrustApplication">
                 
             </Application>
@@ -47,7 +47,7 @@
             <Logo>Assets\AppIcon.png</Logo>
         </Properties>
     </PackageInformation>
-    <SaveLocation PackagePath="Cyrene-launcher.msix" />
+    <SaveLocation PackagePath="sunbringer-launcher.msix" />
     <PackageIntegrity>
         <CertificatePath></CertificatePath>
     </PackageIntegrity>

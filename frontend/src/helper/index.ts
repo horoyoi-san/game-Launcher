@@ -1,5 +1,4 @@
 export * from "./server"
 export * from "./patch"
-export * from "./proxy"
 export * from "./sleep"
 export * from "./launcher"

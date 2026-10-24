@@ -1,9 +1,9 @@
 package languageService
 
 import (
-	assetMeta "Cyrene-launcher/pkg/language-patch/asset-meta"
-	excelLanguage "Cyrene-launcher/pkg/language-patch/excel-language"
-	"Cyrene-launcher/pkg/models"
+	assetMeta "sunbringer-launcher/pkg/language-patch/asset-meta"
+	excelLanguage "sunbringer-launcher/pkg/language-patch/excel-language"
+	"sunbringer-launcher/pkg/models"
 	"bytes"
 	"fmt"
 	"os"
@@ -112,9 +112,9 @@ func (l *LanguageService) GetLanguage(path string) (bool, string, string, string
 	return true, currentTextLang, currentVoiceLang, ""
 }
 
-func (l *LanguageService) SetLanguage(path string, text, voice string) (bool, string) {
-	if !isValidLang(text) || !isValidLang(voice) || voice == "th" {
-		return false, "unsupported text or voice language"
+func (l *LanguageService) SetLanguage(path string, _ string, voice string) (bool, string) {
+	if !isValidLang(voice) || voice == "th" {
+		return false, "unsupported voice language"
 	}
 
 	indexHash, err := assetMeta.GetIndexHash(path)
@@ -136,33 +136,15 @@ func (l *LanguageService) SetLanguage(path string, text, voice string) (bool, st
 		return false, fmt.Errorf("parse language data: %w", err).Error()
 	}
 
-	if text == "th" {
-		streamingAssetsPath := filepath.Dir(filepath.Dir(path))
-		gameVersion, err := models.ParseBinaryVersion(filepath.Join(streamingAssetsPath, "BinaryVersion.bytes"))
-		if err != nil {
-			return false, fmt.Errorf("read game version to verify Thai text support: %w", err).Error()
-		}
-		gameArea := "os"
-		if strings.Contains(gameVersion.Name, "CN") {
-			gameArea = "cn"
-		}
-		if !supportsTextLanguage(languageRows, gameArea, text) {
-			return false, "Thai text is not available in this game installation"
-		}
-	}
-
 	pairs := []struct {
 		area string
 		typ  *uint8
 		lang string
 	}{
-		{"os", nil, text},
 		{"cn", func() *uint8 { v := uint8(1); return &v }(), voice},
 		{"os", func() *uint8 { v := uint8(1); return &v }(), voice},
-		{"cn", nil, text},
 	}
 
-	textUpdated := false
 	voiceUpdated := false
 	for _, p := range pairs {
 		var found *excelLanguage.LanguageRow
@@ -181,14 +163,12 @@ func (l *LanguageService) SetLanguage(path string, text, voice string) (bool, st
 
 		found.DefaultLanguage = &p.lang
 		found.LanguageList = []string{p.lang}
-		if p.typ == nil {
-			textUpdated = true
-		} else if *p.typ == 1 {
+		if p.typ != nil && *p.typ == 1 {
 			voiceUpdated = true
 		}
 	}
-	if !textUpdated || !voiceUpdated {
-		return false, "language text or voice row not found in game data"
+	if !voiceUpdated {
+		return false, "voice language row not found in game data"
 	}
 
 	data, err := allowedLanguage.Unmarshal(languageRows)

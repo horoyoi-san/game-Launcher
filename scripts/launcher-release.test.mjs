@@ -17,7 +17,7 @@ test("rejects versions outside the three-number sequence", () => {
 });
 
 test("creates a manifest with the executable SHA-256", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "cyrene-release-test-"));
+  const directory = await mkdtemp(join(tmpdir(), "sunbringer-release-test-"));
   const executablePath = join(directory, "launcher.exe");
 
   try {

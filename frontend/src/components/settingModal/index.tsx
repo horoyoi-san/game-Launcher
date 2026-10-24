@@ -1,7 +1,7 @@
 import { useState } from "react"
-import { AppService } from '@bindings/Cyrene-launcher/internal/app-service'
+import { AppService } from '@bindings/sunbringer-launcher/internal/app-service'
 import useSettingStore from "@/stores/settingStore"
-import { Check, Download, Languages, LoaderCircle, Monitor, Power, RefreshCw, Server, X } from "lucide-react"
+import { Check, Download, Languages, LoaderCircle, Monitor, Power, RefreshCw, Server, X, Sparkles } from "lucide-react"
 import i18n from "i18next"
 import { CheckUpdateLauncher, UpdateLauncher } from "@/helper"
 
@@ -12,7 +12,7 @@ export default function SettingModal({
     isOpen: boolean
     onClose: () => void
 }) {
-    const { closingOption, setClosingOption, connectionMode, setConnectionMode } = useSettingStore()
+    const { closingOption, setClosingOption } = useSettingStore()
     const activeLanguage = i18n.resolvedLanguage ?? i18n.language
     const [isCheckingUpdates, setIsCheckingUpdates] = useState(false)
     const [isInstallingUpdate, setIsInstallingUpdate] = useState(false)
@@ -20,6 +20,7 @@ export default function SettingModal({
     const [availableLauncherVersion, setAvailableLauncherVersion] = useState("")
     const [updateMessage, setUpdateMessage] = useState("")
     const [updateError, setUpdateError] = useState("")
+    const [activeSection, setActiveSection] = useState("connection")
 
     if (!isOpen) return null
 
@@ -90,8 +91,25 @@ export default function SettingModal({
                     </button>
                 </header>
 
-                <div className="settings-modal__content">
-                    <section className="settings-section">
+                <div className="settings-console">
+                    <nav className="settings-console__rail" aria-label="Settings sections">
+                        <span className="settings-console__rail-label">SYSTEM</span>
+                        {[
+                            { id: "connection", label: "Launch mode", sub: "PATCHED CLIENT", icon: Server },
+                            { id: "display", label: "Display", sub: "WINDOW", icon: Monitor },
+                            { id: "language", label: "Language", sub: "INTERFACE", icon: Languages },
+                            { id: "updates", label: "Updates", sub: "VERSION", icon: RefreshCw },
+                            { id: "closing", label: "Shutdown", sub: "BEHAVIOR", icon: Power },
+                        ].map(({ id, label, sub, icon: Icon }) => (
+                            <button key={id} type="button" className={`settings-console__nav ${activeSection === id ? "is-active" : ""}`} onClick={() => setActiveSection(id)} aria-current={activeSection === id ? "page" : undefined}>
+                                <Icon size={17} /><span><strong>{label}</strong><small>{sub}</small></span><i />
+                            </button>
+                        ))}
+                        <div className="settings-console__signal"><span /><b>LOCAL CONFIG</b><small>SUNBRINGER / NAP</small></div>
+                    </nav>
+                    <div className="settings-modal__content settings-console__page">
+                    <div className="settings-console__page-head"><span>CONTROL NODE / 0{["connection", "display", "language", "updates", "closing"].indexOf(activeSection) + 1}</span><Sparkles size={16} /></div>
+                    {activeSection === "updates" && <section className="settings-section settings-section--console">
                         <div className="settings-section__heading">
                             <span className="settings-section__icon"><RefreshCw size={17} /></span>
                             <div>
@@ -127,9 +145,9 @@ export default function SettingModal({
                         </div>
                         {updateMessage && <p className="mt-3 text-sm text-slate-300">{updateMessage}</p>}
                         {updateError && <p role="alert" className="mt-3 text-sm text-rose-300">{updateError}</p>}
-                    </section>
+                    </section>}
 
-                    <section className="settings-section">
+                    {activeSection === "display" && <section className="settings-section settings-section--console">
                         <div className="settings-section__heading">
                             <span className="settings-section__icon"><Monitor size={17} /></span>
                             <div>
@@ -149,41 +167,23 @@ export default function SettingModal({
                                 <small>Full screen</small>
                             </button>
                         </div>
-                    </section>
+                    </section>}
 
-                    <section className="settings-section">
+                    {activeSection === "connection" && <section className="settings-section settings-section--console">
                         <div className="settings-section__heading">
                             <span className="settings-section__icon"><Server size={17} /></span>
                             <div>
-                                <h3>HKRPG connection method</h3>
-                                <p>Choose how the launcher connects the game to the server.</p>
+                                <h3>Patched launcher</h3>
+                                <p>Sunbringer launches the game with the NAP patch installed.</p>
                             </div>
                         </div>
-                        <div className="settings-choice-grid">
-                            <button
-                                type="button"
-                                className={`settings-choice ${connectionMode === "proxy" ? "is-selected" : ""}`}
-                                onClick={() => setConnectionMode("proxy")}
-                                aria-pressed={connectionMode === "proxy"}
-                            >
-                                <span>RECOMMENDED</span>
-                                <strong>Proxy</strong>
-                                <small>Run the proxy beside the game</small>
-                            </button>
-                            <button
-                                type="button"
-                                className={`settings-choice ${connectionMode === "patch" ? "is-selected" : ""}`}
-                                onClick={() => setConnectionMode("patch")}
-                                aria-pressed={connectionMode === "patch"}
-                            >
-                                <span>PATCH</span>
-                                <strong>Patched launcher</strong>
-                                <small>Install launcher.exe and hkrpg.dll</small>
-                            </button>
+                        <div className="settings-patch-info">
+                            <Check size={18} />
+                            <span><strong>NAP patch route active</strong><small>Install or repair the patch from the Home screen before launching.</small></span>
                         </div>
-                    </section>
+                    </section>}
 
-                    <section className="settings-section">
+                    {activeSection === "language" && <section className="settings-section settings-section--console">
                         <div className="settings-section__heading">
                             <span className="settings-section__icon"><Languages size={17} /></span>
                             <div>
@@ -213,9 +213,9 @@ export default function SettingModal({
                                 {activeLanguage.startsWith("en") && <Check size={16} />}
                             </button>
                         </div>
-                    </section>
+                    </section>}
 
-                    <section className="settings-section settings-section--closing">
+                    {activeSection === "closing" && <section className="settings-section settings-section--console settings-section--closing">
                         <div className="settings-section__heading">
                             <span className="settings-section__icon"><Power size={17} /></span>
                             <div>
@@ -242,11 +242,12 @@ export default function SettingModal({
                                 }}
                             />
                         </label>
-                    </section>
+                    </section>}
+                    </div>
                 </div>
 
                 <footer className="settings-modal__footer">
-                    <span>Cyrene Launcher</span>
+                    <span>Sunbringer</span>
                     <button type="button" onClick={onClose}>Done</button>
                 </footer>
             </section>

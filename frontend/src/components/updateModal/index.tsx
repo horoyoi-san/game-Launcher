@@ -18,13 +18,13 @@ export default function UpdateModal({ isOpen, title, message, buttons, onClose }
 
   return (
     <div
-      className="cyrene-dialog-overlay"
+      className="sunbringer-dialog-overlay"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose()
       }}
     >
       <section
-        className="cyrene-dialog"
+        className="sunbringer-dialog"
         role="dialog"
         aria-modal="true"
         aria-labelledby="update-dialog-title"
@@ -35,15 +35,15 @@ export default function UpdateModal({ isOpen, title, message, buttons, onClose }
           if (event.key === "Escape") onClose()
         }}
       >
-        <header className="cyrene-dialog__header">
-          <span className="cyrene-dialog__icon"><Download size={19} /></span>
+        <header className="sunbringer-dialog__header">
+          <span className="sunbringer-dialog__icon"><Download size={19} /></span>
           <div>
-            <span className="eyebrow">CYRENE LAUNCHER</span>
+            <span className="eyebrow">SUNBRINGER</span>
             <h2 id="update-dialog-title">{title}</h2>
           </div>
           <button
             type="button"
-            className="cyrene-dialog__close"
+            className="sunbringer-dialog__close"
             onClick={onClose}
             aria-label="Close dialog"
           >
@@ -51,20 +51,20 @@ export default function UpdateModal({ isOpen, title, message, buttons, onClose }
           </button>
         </header>
 
-        <div className="cyrene-dialog__body">
+        <div className="sunbringer-dialog__body">
           <p id="update-dialog-message">{message}</p>
-          <div className="cyrene-dialog__actions">
+          <div className="sunbringer-dialog__actions">
             {buttons.map((btn, index) => (
               <button
                 key={`${btn.text}-${index}`}
                 type="button"
                 disabled={btn.disabled}
-                className={`cyrene-dialog__button ${
+                className={`sunbringer-dialog__button ${
                   btn.variant === "primary"
-                    ? "cyrene-dialog__button--primary"
+                    ? "sunbringer-dialog__button--primary"
                     : btn.variant === "error"
-                      ? "cyrene-dialog__button--danger"
-                      : "cyrene-dialog__button--outline"
+                      ? "sunbringer-dialog__button--danger"
+                      : "sunbringer-dialog__button--outline"
                 }`}
                 onClick={btn.onClick}
               >

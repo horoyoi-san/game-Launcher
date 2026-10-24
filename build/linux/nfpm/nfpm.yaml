@@ -3,26 +3,26 @@
 #
 # The lines below are called `modelines`. See `:help modeline`
 
-name: "Cyrene-launcher"
+name: "sunbringer-launcher"
 arch: ${GOARCH}
 platform: "linux"
 version: "1.0.0"
 section: "default"
 priority: "extra"
 maintainer: ${GIT_COMMITTER_NAME} <${GIT_COMMITTER_EMAIL}>
-description: "Cyrene Launcher"
-vendor: "Cyrene Shelter"
+description: "Sunbringer Launcher"
+vendor: "Sunbringer"
 homepage: "https://wails.io"
 license: "MIT"
 release: "1"
 
 contents:
-  - src: "./bin/Cyrene-launcher"
-    dst: "/usr/local/bin/Cyrene-launcher"
+  - src: "./bin/sunbringer-launcher"
+    dst: "/usr/local/bin/sunbringer-launcher"
   - src: "./build/appicon.png"
-    dst: "/usr/share/icons/hicolor/128x128/apps/Cyrene-launcher.png"
-  - src: "./build/linux/Cyrene-launcher.desktop"
-    dst: "/usr/share/applications/Cyrene-launcher.desktop"
+    dst: "/usr/share/icons/hicolor/128x128/apps/sunbringer-launcher.png"
+  - src: "./build/linux/sunbringer-launcher.desktop"
+    dst: "/usr/share/applications/sunbringer-launcher.desktop"
 
 # Default dependencies for Debian 12/Ubuntu 22.04+ with WebKit 4.1
 depends:

@@ -4,15 +4,15 @@
         <key>CFBundlePackageType</key>
             <string>APPL</string>
         <key>CFBundleName</key>
-            <string>Cyrene Launcher</string>
+            <string>Sunbringer Launcher</string>
         <key>CFBundleExecutable</key>
-            <string>Cyrene-launcher</string>
+            <string>sunbringer-launcher</string>
         <key>CFBundleIdentifier</key>
-            <string>com.Cyreneshelter.Cyrenelauncher</string>
+            <string>com.horoyoisan.sunbringerlauncher</string>
         <key>CFBundleVersion</key>
             <string>1.0.0</string>
         <key>CFBundleGetInfoString</key>
-            <string>Cyrene Launcher</string>
+            <string>Sunbringer Launcher</string>
         <key>CFBundleShortVersionString</key>
             <string>1.0.0</string>
         <key>CFBundleIconFile</key>
@@ -22,6 +22,6 @@
         <key>NSHighResolutionCapable</key>
             <string>true</string>
         <key>NSHumanReadableCopyright</key>
-            <string>@ 2025, Cyrene Shelter</string>
+            <string>@ 2025, Sunbringer</string>
     </dict>
 </plist>

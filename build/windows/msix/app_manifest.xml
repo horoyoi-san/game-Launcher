@@ -6,15 +6,15 @@
   xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10">
   
   <Identity 
-    Name="com.wails.Cyrene-launcher"
+    Name="com.horoyoisan.sunbringerlauncher"
     Publisher="CN=My Company"
     Version="0.1.0.0" 
     ProcessorArchitecture="x64" />
   
   <Properties>
-    <DisplayName>My Product</DisplayName>
+    <DisplayName>Sunbringer Launcher</DisplayName>
     <PublisherDisplayName>My Company</PublisherDisplayName>
-    <Description>My Product Description</Description>
+    <Description>Sunbringer Launcher</Description>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   
@@ -27,10 +27,10 @@
   </Resources>
   
   <Applications>
-    <Application Id="com.wails.Cyrene-launcher" Executable="Cyrene-launcher.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="com.horoyoisan.sunbringerlauncher" Executable="sunbringer-launcher.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
-        DisplayName="My Product"
-        Description="My Product Description"
+        DisplayName="Sunbringer Launcher"
+        Description="Sunbringer Launcher"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
@@ -39,7 +39,7 @@
       </uap:VisualElements>
       
       <Extensions>
-        <desktop:Extension Category="windows.fullTrustProcess" Executable="Cyrene-launcher.exe" />
+        <desktop:Extension Category="windows.fullTrustProcess" Executable="sunbringer-launcher.exe" />
         
       </Extensions>
     </Application>

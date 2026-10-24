@@ -1,7 +1,7 @@
 package diffService
 
 import (
-	"Cyrene-launcher/pkg/constant"
+	"sunbringer-launcher/pkg/constant"
 	"archive/zip"
 	"fmt"
 	"io"

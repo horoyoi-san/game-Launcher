@@ -13,7 +13,7 @@ function getSavedBackground(): Background {
         return { url, type };
     }
 
-    return { url: "/video2.mp4", type: "video" };
+    return { url: "/video1.mp4", type: "video" };
 }
 
 export default function PageBackground() {

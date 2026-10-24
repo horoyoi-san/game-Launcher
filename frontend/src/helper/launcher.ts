@@ -1,5 +1,5 @@
-import { AppService } from "@bindings/Cyrene-launcher/internal/app-service";
-import { GitService } from "@bindings/Cyrene-launcher/internal/git-service";
+import { AppService } from "@bindings/sunbringer-launcher/internal/app-service";
+import { GitService } from "@bindings/sunbringer-launcher/internal/git-service";
 import useLauncherStore from "@/stores/launcherStore";
 import { sleep } from "./sleep";
 
