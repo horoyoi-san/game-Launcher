@@ -85,10 +85,14 @@ func (g *GitService) ExtractNAPServer() (bool, string) {
 }
 
 func ensureRemielleSource() error {
+	gitPath, err := ensureGit()
+	if err != nil {
+		return fmt.Errorf("Git is required to download the Remielle source: %w", err)
+	}
 	repositoryDir := constant.RemielleStorageDir
 	if regularFileExists(filepath.Join(repositoryDir, "build.zig")) {
-		gitPull := exec.Command("git", "-C", repositoryDir, "pull", "--ff-only", "origin", constant.RemielleBranch)
-		if output, err := gitPull.CombinedOutput(); err != nil {
+		gitPull := gitCommand(gitPath, "-C", repositoryDir, "pull", "--ff-only", "--progress", "origin", constant.RemielleBranch)
+		if output, err := runGitWithProgress(gitPull, "Updating Remielle source"); err != nil {
 			return fmt.Errorf("update Remielle branch %s: %w\n%s", constant.RemielleBranch, err, strings.TrimSpace(string(output)))
 		}
 		return nil
@@ -106,8 +110,8 @@ func ensureRemielleSource() error {
 	}
 	defer os.RemoveAll(stagingRoot)
 	stagingRepository := filepath.Join(stagingRoot, "remielle")
-	clone := exec.Command("git", "clone", "--branch", constant.RemielleBranch, "--single-branch", constant.RemielleRepositoryURL, stagingRepository)
-	output, err := clone.CombinedOutput()
+	clone := gitCommand(gitPath, "clone", "--progress", "--branch", constant.RemielleBranch, "--single-branch", constant.RemielleRepositoryURL, stagingRepository)
+	output, err := runGitWithProgress(clone, "Downloading Remielle source")
 	if err != nil {
 		return fmt.Errorf("clone Remielle branch %s: %w\n%s", constant.RemielleBranch, err, strings.TrimSpace(string(output)))
 	}

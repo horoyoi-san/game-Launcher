@@ -1544,6 +1544,15 @@ a,
     font-size: 11px;
 }
 
+.server-progress-indeterminate {
+    animation: server-progress-sweep 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes server-progress-sweep {
+    from { transform: translateX(-90%); }
+    to { transform: translateX(260%); }
+}
+
 @media (max-width: 900px) {
     .language-layout,
     .patch-layout {

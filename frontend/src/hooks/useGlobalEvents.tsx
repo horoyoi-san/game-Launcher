@@ -9,16 +9,17 @@ import useLauncherStore from "@/stores/launcherStore";
 
 export function useGlobalEvents() {
     const { setIsOpenCloseModal } = useModalStore()
-    const { setGameRunning, setServerRunning, setProgressDownload, setDownloadSpeed } = useLauncherStore()
+    const { setGameRunning, setServerRunning, setProgressDownload, setDownloadSpeed, setDownloadType } = useLauncherStore()
 
     useEffect(() => {
         const onGameExit = () => setGameRunning(false);
         const onServerExit = () => setServerRunning(false);
 
         const onDownload = (event: any) => {
-            const { percent, speed } = event.data;
+            const { percent, speed, message } = event.data;
             setProgressDownload(Number(percent));
             setDownloadSpeed(speed);
+            if (message) setDownloadType(message);
         };
 
         Events.On("download:server", onDownload);

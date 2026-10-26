@@ -300,6 +300,7 @@ export default function LauncherPage() {
         downloadType,
         serverReady,
         isDownloading,
+        downloadProgressIndeterminate,
         serverRunning,
         gameRunning,
         progressDownload,
@@ -563,6 +564,7 @@ export default function LauncherPage() {
 
     const handlerUpdateData = async () => {
         if (isDownloading) return
+        setIsOpenDownloadDataModal(false)
         setIsDownloading(true)
         const nextUpdateData = { ...updateData }
         try {
@@ -589,6 +591,7 @@ export default function LauncherPage() {
             toast.error(`Could not prepare NAP: ${error instanceof Error ? error.message : String(error)}`)
         } finally {
             setDownloadType("")
+            useLauncherStore.getState().setDownloadProgressIndeterminate(false)
             setIsDownloading(false)
         }
     }
@@ -877,19 +880,19 @@ export default function LauncherPage() {
                             <span>{downloadType}</span>
                             <div className="flex items-center gap-4 ml-4">
                                 <span className="text-cyan-400 font-semibold">{downloadSpeed}</span>
-                                <span className="text-white font-bold">{progressDownload.toFixed(1)}%</span>
+                                <span className="text-white font-bold">{downloadProgressIndeterminate ? "" : `${progressDownload.toFixed(1)}%`}</span>
                             </div>
                         </div>
                         <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
                             <motion.div
-                                className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
+                                className={`h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full ${downloadProgressIndeterminate ? "server-progress-indeterminate" : ""}`}
                                 initial={{ width: 0 }}
-                                animate={{ width: `${progressDownload}%` }}
-                                transition={{ type: "tween", ease: "linear", duration: 0.03 }}
+                                animate={{ width: downloadProgressIndeterminate ? "38%" : `${progressDownload}%` }}
+                                transition={{ type: "tween", ease: "linear", duration: downloadProgressIndeterminate ? 0 : 0.03 }}
                             />
                         </div>
                         <div className="text-center text-xs text-white/60">
-                            {progressDownload < 100 ? 'Please wait...' : 'Complete!'}
+                            {downloadProgressIndeterminate ? 'Building server...' : progressDownload < 100 ? 'Please wait...' : 'Complete!'}
                         </div>
                     </div>
                 </div>

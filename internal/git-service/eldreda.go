@@ -72,10 +72,14 @@ func (g *GitService) BuildEldredaServer() (bool, string) {
 }
 
 func ensureEldredaSource() error {
+	gitPath, err := ensureGit()
+	if err != nil {
+		return fmt.Errorf("Git is required to download the Eldreda source: %w", err)
+	}
 	repositoryDir := constant.EldredaStorageDir
 	if regularFileExists(filepath.Join(repositoryDir, "build.zig")) {
-		gitPull := exec.Command("git", "-C", repositoryDir, "pull", "--ff-only")
-		if output, err := gitPull.CombinedOutput(); err != nil {
+		gitPull := gitCommand(gitPath, "-C", repositoryDir, "pull", "--ff-only", "--progress")
+		if output, err := runGitWithProgress(gitPull, "Updating Eldreda source"); err != nil {
 			return fmt.Errorf("update Eldreda source: %w\n%s", err, strings.TrimSpace(string(output)))
 		}
 		return nil
@@ -91,8 +95,8 @@ func ensureEldredaSource() error {
 	}
 	defer os.RemoveAll(stagingRoot)
 	stagingRepository := filepath.Join(stagingRoot, "eldreda")
-	clone := exec.Command("git", "clone", "--single-branch", constant.EldredaRepositoryURL, stagingRepository)
-	output, err := clone.CombinedOutput()
+	clone := gitCommand(gitPath, "clone", "--progress", "--single-branch", constant.EldredaRepositoryURL, stagingRepository)
+	output, err := runGitWithProgress(clone, "Downloading Eldreda source")
 	if err != nil {
 		return fmt.Errorf("clone Eldreda source: %w\n%s", err, strings.TrimSpace(string(output)))
 	}

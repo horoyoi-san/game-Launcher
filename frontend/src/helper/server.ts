@@ -36,7 +36,7 @@ export async function CheckUpdateServer(
 
 
 export async function UpdateServer(serverChoice: NAPServerChoice = "remielle"): Promise<boolean> {
-    const { setDownloadType } = useLauncherStore.getState()
+    const { setDownloadType, setProgressDownload, setDownloadProgressIndeterminate } = useLauncherStore.getState()
     const { setServerPath, setServerVersion } = useSettingStore.getState()
 
     const isEldreda = serverChoice === "eldreda"
@@ -54,9 +54,12 @@ export async function UpdateServer(serverChoice: NAPServerChoice = "remielle"): 
     }
 
     setDownloadType(`Building ${serverName} with Zig ${isEldreda ? "0.17.0" : "0.16.0"}...`)
+    setProgressDownload(0)
+    setDownloadProgressIndeterminate(true)
     const [extracted, extractError] = isEldreda
         ? await GitService.BuildEldredaServer()
         : await GitService.ExtractNAPServer()
+    setDownloadProgressIndeterminate(false)
     if (!extracted) {
         toast.error(extractError || `Could not build the ${serverName} server`)
         setDownloadType("Build server failed")

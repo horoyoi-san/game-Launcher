@@ -9,6 +9,7 @@ interface LauncherState {
     isLoading: boolean;
     gameRunning: boolean;
     progressDownload: number;
+    downloadProgressIndeterminate: boolean;
     downloadSpeed: string;
     updateData: Record<'server' | 'launcher', { isUpdate: boolean, isExists: boolean, version: string }>;
     setDownloadType: (value: string) => void;
@@ -18,6 +19,7 @@ interface LauncherState {
     setIsLoading: (value: boolean) => void;
     setGameRunning: (value: boolean) => void;
     setProgressDownload: (value: number) => void;
+    setDownloadProgressIndeterminate: (value: boolean) => void;
     setDownloadSpeed: (value: string) => void;
     setUpdateData: (value: Record<'server' | 'launcher', { isUpdate: boolean, isExists: boolean, version: string }>) => void;
 }
@@ -32,6 +34,7 @@ const useLauncherStore = create<LauncherState>((set, get) => ({
 
     
     progressDownload: 0,
+    downloadProgressIndeterminate: false,
     downloadSpeed: "",
     updateData: {
         server: { isUpdate: false, isExists: false, version: "" },
@@ -44,6 +47,7 @@ const useLauncherStore = create<LauncherState>((set, get) => ({
     setServerRunning: (value: boolean) => set({ serverRunning: value }),
     setGameRunning: (value: boolean) => set({ gameRunning: value }),
     setProgressDownload: (value: number) => set({ progressDownload: value }),
+    setDownloadProgressIndeterminate: (value: boolean) => set({ downloadProgressIndeterminate: value }),
     setDownloadSpeed: (value: string) => set({ downloadSpeed: value }),
     setUpdateData: (value: Record<'server' | 'launcher', { isUpdate: boolean, isExists: boolean, version: string }>) => set({ updateData: value }),
 }));
