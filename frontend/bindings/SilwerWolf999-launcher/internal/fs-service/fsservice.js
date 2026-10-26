@@ -26,6 +26,13 @@ export function DirExists(path) {
 }
 
 /**
+ * @returns {$CancellablePromise<void>}
+ */
+export function DownloadSophon() {
+    return $Call.ByID(3850145416);
+}
+
+/**
  * @param {string} path
  * @returns {$CancellablePromise<boolean>}
  */
@@ -51,10 +58,28 @@ export function GetDir(path) {
 }
 
 /**
+ * @param {string} gameID
+ * @returns {$CancellablePromise<$models.GameConfig>}
+ */
+export function GetGameConfig(gameID) {
+    return $Call.ByID(3722410457, gameID).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * @returns {$CancellablePromise<string>}
  */
 export function GetLauncherDir() {
     return $Call.ByID(1772893036);
+}
+
+/**
+ * GetSophonVersion returns the installed and latest Sophon Downloader versions.
+ * @returns {$CancellablePromise<[string, string, boolean]>}
+ */
+export function GetSophonVersion() {
+    return $Call.ByID(1488174842);
 }
 
 /**
@@ -64,7 +89,7 @@ export function GetLauncherDir() {
  */
 export function GetSophonVersions(gameIDs, region) {
     return $Call.ByID(737472939, gameIDs, region).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }));
 }
 
@@ -152,5 +177,6 @@ export function StartWithConsole(path) {
 }
 
 // Private type creation functions
-const $$createType0 = $models.SophonVersion.createFrom;
-const $$createType1 = $Create.Array($$createType0);
+const $$createType0 = $models.GameConfig.createFrom;
+const $$createType1 = $models.SophonVersion.createFrom;
+const $$createType2 = $Create.Array($$createType1);

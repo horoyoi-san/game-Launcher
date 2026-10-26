@@ -6,6 +6,73 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+export class GameConfig {
+    /**
+     * Creates a new GameConfig instance.
+     * @param {Partial<GameConfig>} [$$source = {}] - The source object to create the GameConfig.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("package" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["package"] = "";
+        }
+        if (!("region" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["region"] = "";
+        }
+        if (!("gameIds" in $$source)) {
+            /**
+             * @member
+             * @type {{ [_: string]: string[] }}
+             */
+            this["gameIds"] = {};
+        }
+        if (!("output" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["output"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new GameConfig instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {GameConfig}
+     */
+    static createFrom($$source = {}) {
+        const $$createField4_0 = $$createType1;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("gameIds" in $$parsedSource) {
+            $$parsedSource["gameIds"] = $$createField4_0($$parsedSource["gameIds"]);
+        }
+        return new GameConfig(/** @type {Partial<GameConfig>} */($$parsedSource));
+    }
+}
+
 export class SophonVersion {
     /**
      * Creates a new SophonVersion instance.
@@ -61,3 +128,7 @@ export class SophonVersion {
         return new SophonVersion(/** @type {Partial<SophonVersion>} */($$parsedSource));
     }
 }
+
+// Private type creation functions
+const $$createType0 = $Create.Array($Create.Any);
+const $$createType1 = $Create.Map($Create.Any, $$createType0);

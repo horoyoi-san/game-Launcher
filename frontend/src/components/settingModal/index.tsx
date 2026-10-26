@@ -4,6 +4,7 @@ import { CheckUpdateLauncher } from "@/helper"
 import useSettingStore from "@/stores/settingStore"
 import { toast } from "react-toastify"
 import { AppService } from "@bindings/SilwerWolf999-launcher/internal/app-service"
+import { FSService } from "@bindings/SilwerWolf999-launcher/internal/fs-service"
 
 type UpdateStatus = "idle" | "checking"
 
@@ -20,6 +21,9 @@ export default function SettingModal({
     const { closingOption, setClosingOption } = useSettingStore()
     const [updateStatus, setUpdateStatus] = useState<UpdateStatus>("idle")
     const [updateError, setUpdateError] = useState("")
+    const [sophonStatus, setSophonStatus] = useState<"idle" | "checking" | "updating">("idle")
+    const [sophonError, setSophonError] = useState("")
+    const [sophonVersions, setSophonVersions] = useState<{ installed: string; latest: string; updateAvailable: boolean } | null>(null)
 
     if (!isOpen) return null
 
@@ -49,6 +53,33 @@ export default function SettingModal({
 
     const handleResize = (width: number, height: number) => {
         AppService.SetWindowSize(width, height)
+    }
+
+    const checkSophonVersion = async () => {
+        setSophonStatus("checking")
+        setSophonError("")
+        try {
+            const [installed, latest, updateAvailable] = await FSService.GetSophonVersion()
+            setSophonVersions({ installed, latest, updateAvailable })
+        } catch (error) {
+            setSophonError(error instanceof Error ? error.message : "Unable to check Sophon Downloader version")
+        } finally {
+            setSophonStatus("idle")
+        }
+    }
+
+    const updateSophon = async () => {
+        setSophonStatus("updating")
+        setSophonError("")
+        try {
+            await FSService.DownloadSophon()
+            const [installed, latest, updateAvailable] = await FSService.GetSophonVersion()
+            setSophonVersions({ installed, latest, updateAvailable })
+            toast.success("Sophon Downloader updated")
+        } catch (error) {
+            setSophonError(error instanceof Error ? error.message : "Unable to update Sophon Downloader")
+            setSophonStatus("idle")
+        }
     }
 
     return (
@@ -90,6 +121,33 @@ export default function SettingModal({
                 </header>
 
                 <div className="min-h-0 space-y-4 overflow-y-auto px-5 py-5 sm:px-6">
+                    <section className={cardClassName} aria-labelledby="sophon-update-title">
+                        <div className="flex gap-3">
+                            <div className={iconClassName}><RefreshCw size={18} /></div>
+                            <div className="min-w-0 flex-1">
+                                <h3 id="sophon-update-title" className="font-bold">Sophon Downloader</h3>
+                                <p className="mt-1 text-sm leading-relaxed text-white/55">
+                                    {sophonVersions
+                                        ? `Installed ${sophonVersions.installed || "not installed"} · Latest ${sophonVersions.latest}${sophonVersions.updateAvailable ? " · Update available" : " · Up to date"}`
+                                        : "Check and update the downloader used to install game files."}
+                                </p>
+                                {sophonError && (
+                                    <div role="alert" className="mt-3 flex gap-2 border border-rose-300/25 bg-rose-300/10 p-3 text-xs leading-relaxed text-rose-100">
+                                        <AlertTriangle size={15} className="mt-0.5 shrink-0 text-rose-200" />
+                                        <span>{sophonError}</span>
+                                    </div>
+                                )}
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                    <button type="button" disabled={sophonStatus !== "idle"} onClick={checkSophonVersion} className="arcade-button inline-flex min-h-10 items-center gap-2 px-4 text-xs text-white disabled:opacity-60">
+                                        {sophonStatus === "checking" ? <><LoaderCircle size={16} className="animate-spin" /> Checking...</> : "Check version"}
+                                    </button>
+                                    <button type="button" disabled={sophonStatus !== "idle"} onClick={updateSophon} className="arcade-button inline-flex min-h-10 items-center gap-2 bg-gradient-to-r from-fuchsia-600 to-cyan-600 px-4 text-xs text-white disabled:opacity-60">
+                                        {sophonStatus === "updating" ? <><LoaderCircle size={16} className="animate-spin" /> Updating...</> : "Update Sophon"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                     <section className={cardClassName} aria-labelledby="launcher-update-title">
                         <div className="flex gap-3">
                             <div className={iconClassName}><RefreshCw size={18} /></div>

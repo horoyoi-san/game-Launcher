@@ -4,6 +4,7 @@ const ProxyGitUrl = "https://gist.githubusercontent.com/horoyoi-san/87f26bc84cf3
 const ServerGitUrl = "https://git.kain.io.vn/api/v1/repos/Firefly-Shelter/FireflyGo_Local_Archive/releases"
 const LauncherManifestURL = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/latest.json"
 const SophonGitUrl = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/Sophon.Downloader.zip"
+const SophonManifestURL = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/sophon.json"
 const DiffUpdaterGitUrl = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/diff.zip"
 const ServerStorageUrl = "./server"
 const SophonStorageUrl = "./Sophon"

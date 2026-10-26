@@ -192,12 +192,19 @@ func (f *FSService) ensureSophonInstalled() (string, error) {
 
 	exePath := filepath.Join(sophonDir, "net9.0/Sophon.Downloader.exe")
 
-	// ✅ 1. check folder exists
-	if _, err := os.Stat(exePath); err == nil {
+	latestVersion, err := getLatestSophonVersion()
+	if err != nil {
+		if _, statErr := os.Stat(exePath); statErr == nil {
+			return exePath, nil
+		}
+		return "", err
+	}
+	installedVersion, _ := readSophonVersion(sophonDir)
+	if _, err := os.Stat(exePath); err == nil && installedVersion == latestVersion {
 		return exePath, nil
 	}
 
-	fmt.Println("Sophon not found → downloading...")
+	fmt.Printf("Installing Sophon Downloader %s...\n", latestVersion)
 
 	if err := downloadAndExtractSophon(sophonDir); err != nil {
 		return "", err
@@ -206,23 +213,45 @@ func (f *FSService) ensureSophonInstalled() (string, error) {
 	if _, err := os.Stat(exePath); err != nil {
 		return "", fmt.Errorf("Sophon install failed: expected executable at %s: %w", exePath, err)
 	}
+	if err := writeSophonVersion(sophonDir, latestVersion); err != nil {
+		return "", err
+	}
 
 	return exePath, nil
 }
 
-func DownloadSophon() error {
+// GetSophonVersion returns the installed and latest Sophon Downloader versions.
+func (f *FSService) GetSophonVersion() (installed, latest string, updateAvailable bool, err error) {
+	exe, err := os.Executable()
+	if err != nil {
+		return "", "", false, err
+	}
+	sophonDir := filepath.Join(filepath.Dir(exe), constant.SophonStorageUrl)
+	installed, _ = readSophonVersion(sophonDir)
+	latest, err = getLatestSophonVersion()
+	if err != nil {
+		return installed, "", false, err
+	}
+	return installed, latest, installed != latest, nil
+}
+
+func (f *FSService) DownloadSophon() error {
 	exe, err := os.Executable()
 	if err != nil {
 		return err
 	}
 	destination := filepath.Join(filepath.Dir(exe), constant.SophonStorageUrl)
+	version, err := getLatestSophonVersion()
+	if err != nil {
+		return err
+	}
 	if err := downloadAndExtractSophon(destination); err != nil {
 		return err
 	}
 	if _, err := os.Stat(filepath.Join(destination, "net9.0", "Sophon.Downloader.exe")); err != nil {
 		return fmt.Errorf("Sophon executable not found after extraction: %w", err)
 	}
-	return nil
+	return writeSophonVersion(destination, version)
 }
 
 func downloadAndExtractSophon(destination string) error {

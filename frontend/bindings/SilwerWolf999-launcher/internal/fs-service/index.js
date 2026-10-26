@@ -8,5 +8,6 @@ export {
 };
 
 export {
+    GameConfig,
     SophonVersion
 } from "./models.js";

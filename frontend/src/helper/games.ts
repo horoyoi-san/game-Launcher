@@ -1,5 +1,3 @@
-import gameCatalog from "../../../game.json";
-
 export const launcherGames = [
     { id: "PetitPlanet", name: "Petit Planet", route: "/hyg", icon: "/icon/hyg.png" },
     { id: "Nexusanima", name: "Honkai: Nexus Anima", route: "/abc", icon: "/icon/abc.png" },
@@ -9,5 +7,3 @@ export const launcherGames = [
     { id: "Impact3rd", name: "Honkai Impact 3rd", route: "/bh3", icon: "/icon/bh3.png" },
     { id: "TheWeavers", name: "The Weavers", route: "/kl", icon: "/icon/kl.png" },
 ] as const;
-
-export default gameCatalog;

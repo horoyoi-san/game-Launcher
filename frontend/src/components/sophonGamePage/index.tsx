@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { FSService } from "@bindings/SilwerWolf999-launcher/internal/fs-service";
-import gameCatalog, { launcherGames } from "@/helper/games";
+import { launcherGames } from "@/helper/games";
 import SophonBuildSelector, { type SophonBuild } from "@/components/sophonBuildSelector";
 
 type GameConfig = {
@@ -68,7 +68,8 @@ function parseProgress(line: string): DownloadProgress | null {
 }
 
 export default function SophonGamePage({ gameId }: SophonGamePageProps) {
-  const game = gameCatalog.games.find((item) => item.id === gameId) as GameConfig | undefined;
+  const [game, setGame] = useState<GameConfig | undefined>();
+  const [gameConfigError, setGameConfigError] = useState("");
   const gameShortcut = launcherGames.find((item) => item.id === gameId);
   const [selectedBuild, setSelectedBuild] = useState<SophonBuild | null>(null);
   const [downloading, setDownloading] = useState(false);
@@ -82,6 +83,22 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
   const [downloadProcessReady, setDownloadProcessReady] = useState(false);
   const [cancelingDownload, setCancelingDownload] = useState(false);
   const cancelRequested = useRef(false);
+
+  useEffect(() => {
+    let active = true;
+    setGame(undefined);
+    setGameConfigError("");
+    FSService.GetGameConfig(gameId)
+      .then((config) => {
+        if (active) setGame(config as unknown as GameConfig);
+      })
+      .catch((error: unknown) => {
+        if (active) setGameConfigError(error instanceof Error ? error.message : "Could not load game configuration.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [gameId]);
 
   useEffect(() => {
     setInstallPath(localStorage.getItem(`installPath:${gameId}`) || game?.output || "");
@@ -249,7 +266,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
                 }}
               />
             ) : (
-              <p className="text-sm text-rose-200">Game configuration could not be found.</p>
+              <p className="text-sm text-rose-200">{gameConfigError || "Loading game configuration..."}</p>
             )}
             <label className="mt-4 block text-sm">
               <span className="arcade-kicker mb-2 block">Voice language</span>
