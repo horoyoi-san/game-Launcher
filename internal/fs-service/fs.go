@@ -89,8 +89,19 @@ func (f *FSService) WriteOffsetsFile(gameDir, content string) error {
 	return nil
 }
 
-func (f *FSService) ReadUIDCustomFile(gameDir string) (string, error) {
-	filePath, err := napConfigFile(gameDir, "uid_custom.txt")
+func resolveCustomConfigFile(gameDir, target string) (string, error) {
+	target = strings.TrimSpace(target)
+	if target == "" {
+		return "", fmt.Errorf("no file specified")
+	}
+	if filepath.IsAbs(target) {
+		return filepath.Clean(target), nil
+	}
+	return napConfigFile(gameDir, target)
+}
+
+func (f *FSService) ReadCustomConfigFile(gameDir, target string) (string, error) {
+	filePath, err := resolveCustomConfigFile(gameDir, target)
 	if err != nil {
 		return "", err
 	}
@@ -99,29 +110,63 @@ func (f *FSService) ReadUIDCustomFile(gameDir string) (string, error) {
 		return "", nil
 	}
 	if err != nil {
-		return "", fmt.Errorf("read uid_custom.txt at %s: %w", filePath, err)
+		return "", fmt.Errorf("read %s at %s: %w", filepath.Base(filePath), filePath, err)
 	}
 	return string(content), nil
 }
 
-func (f *FSService) WriteUIDCustomFile(gameDir, content string) error {
-	filePath, err := napConfigFile(gameDir, "uid_custom.txt")
+func (f *FSService) WriteCustomConfigFile(gameDir, target, content string) error {
+	filePath, err := resolveCustomConfigFile(gameDir, target)
 	if err != nil {
 		return err
 	}
 	mode := os.FileMode(0644)
 	if info, err := os.Stat(filePath); err == nil {
 		if !info.Mode().IsRegular() {
-			return fmt.Errorf("uid_custom.txt is not a regular file: %s", filePath)
+			return fmt.Errorf("%s is not a regular file: %s", filepath.Base(filePath), filePath)
 		}
 		mode = info.Mode().Perm()
 	} else if !os.IsNotExist(err) {
-		return fmt.Errorf("locate uid_custom.txt at %s: %w", filePath, err)
+		return fmt.Errorf("locate %s at %s: %w", filepath.Base(filePath), filePath, err)
+	}
+	if err := os.MkdirAll(filepath.Dir(filePath), 0755); err != nil {
+		return fmt.Errorf("create directory for %s: %w", filepath.Base(filePath), err)
 	}
 	if err := os.WriteFile(filePath, []byte(content), mode); err != nil {
-		return fmt.Errorf("save uid_custom.txt at %s: %w", filePath, err)
+		return fmt.Errorf("save %s at %s: %w", filepath.Base(filePath), filePath, err)
 	}
 	return nil
+}
+
+func (f *FSService) GetExistingConfigFiles(gameDir string, fileNames []string) []string {
+	var found []string
+	if strings.TrimSpace(gameDir) == "" {
+		return found
+	}
+	entries, err := os.ReadDir(gameDir)
+	if err != nil {
+		return found
+	}
+	lookup := make(map[string]bool)
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			lookup[entry.Name()] = true
+		}
+	}
+	for _, name := range fileNames {
+		if lookup[name] {
+			found = append(found, name)
+		}
+	}
+	return found
+}
+
+func (f *FSService) ReadUIDCustomFile(gameDir string) (string, error) {
+	return f.ReadCustomConfigFile(gameDir, "uid_custom.txt")
+}
+
+func (f *FSService) WriteUIDCustomFile(gameDir, content string) error {
+	return f.WriteCustomConfigFile(gameDir, "uid_custom.txt", content)
 }
 
 func (f *FSService) PickFolder() (string, error) {
@@ -137,14 +182,19 @@ func (f *FSService) PickFolder() (string, error) {
 	return dialog.PromptForSingleSelection()
 }
 
-func (f *FSService) PickFile(filter string) (string, error) {
+func (f *FSService) PickFileWithDirectory(filter, defaultDir string) (string, error) {
 	dialog := application.Get().Dialog.OpenFile().
 		CanChooseFiles(true).
 		ResolvesAliases(true)
+	if strings.TrimSpace(defaultDir) != "" {
+		if abs, err := filepath.Abs(defaultDir); err == nil && f.DirExists(abs) {
+			dialog.SetDirectory(abs)
+		}
+	}
 	if runtime.GOOS == "darwin" {
-		dialog.SetMessage("Select a file/directory")
+		dialog.SetMessage("Select a file")
 	} else {
-		dialog.SetTitle("Select a file/directory")
+		dialog.SetTitle("Select a file")
 	}
 	if filter == "exe" {
 		dialog.AddFilter("Executable Files (*.exe)", "*.exe")
@@ -152,11 +202,20 @@ func (f *FSService) PickFile(filter string) (string, error) {
 		dialog.AddFilter("ZIP archives (*.zip)", "*.zip")
 	} else if filter == "patch" {
 		dialog.AddFilter("Patch files (*.zip;*.7z;*.ziff)", "*.zip;*.7z;*.ziff")
+	} else if filter == "config" || filter == "txt" {
+		dialog.AddFilter("Config and Text Files (*.txt;*.zon;*.json;*.ini;*.cfg;*)", "*.txt;*.zon;*.json;*.ini;*.cfg;*.*")
+		dialog.AddFilter("All Files (*.*)", "*.*")
+	} else {
+		dialog.AddFilter("All Files (*.*)", "*.*")
 	}
 	if path, err := dialog.PromptForSingleSelection(); err == nil {
 		return path, nil
 	}
 	return "", nil
+}
+
+func (f *FSService) PickFile(filter string) (string, error) {
+	return f.PickFileWithDirectory(filter, "")
 }
 
 func (f *FSService) DirExists(path string) bool {

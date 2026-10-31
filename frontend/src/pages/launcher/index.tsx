@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Play, Menu, Minus, FolderOpen, Sparkles, Crown, X, ExternalLink, Server, ImagePlus, Image, RotateCcw, Music2, FileText, Copy, Download } from 'lucide-react';
+import { Play, Menu, Minus, FolderOpen, Sparkles, Crown, X, ExternalLink, Server, ImagePlus, Image, RotateCcw, Music2, FileText, Copy, Download, Plus, FileCode, Palette, Eye, EyeOff, Bold, Italic } from 'lucide-react';
 import { AppService } from '@bindings/sunbringer-launcher/internal/app-service';
 import { FSService } from '@bindings/sunbringer-launcher/internal/fs-service';
 import { toast } from 'react-toastify';
@@ -22,8 +22,56 @@ type CombinedLink = {
     onClick?: () => void;
 };
 
-const napConfigPath = (gameDir: string, fileName: string) =>
-    gameDir ? `${gameDir.replace(/[\\/]+$/, "")}\\${fileName}` : "Select a game folder first";
+const PRESET_CONFIG_FILES = [
+    "uid_custom.txt",
+    "UID_Custom.txt",
+    "uid_custom",
+    "crypto_custom.txt",
+    "Crypto_Custom.txt",
+    "crypto_custom",
+    "message.txt",
+] as const;
+
+const COLOR_PRESETS = [
+    "#A200FF", // Purple (from screenshot)
+    "#00FF00", // Green
+    "#00F0FF", // Neon Cyan
+    "#FFE066", // Gold
+    "#FF3366", // Red / Coral
+    "#FF0080", // Pink
+    "#FF9900", // Orange
+    "#38BDF8", // Sky Blue
+    "#FFFFFF", // White
+] as const;
+
+function renderUnityRichText(raw: string) {
+    if (!raw) return "";
+    let safe = raw
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    safe = safe.replace(/&lt;color=(#?[0-9a-fA-F]{3,8}|[a-zA-Z]+)&gt;([\s\S]*?)&lt;\/color&gt;/gi, (_, color, inner) => {
+        const c = color.startsWith("#") || /^[0-9a-fA-F]{3,8}$/i.test(color)
+            ? (color.startsWith("#") ? color : `#${color}`)
+            : color;
+        return `<span style="color:${c}">${inner}</span>`;
+    });
+
+    safe = safe.replace(/&lt;b&gt;([\s\S]*?)&lt;\/b&gt;/gi, "<strong>$1</strong>");
+    safe = safe.replace(/&lt;i&gt;([\s\S]*?)&lt;\/i&gt;/gi, "<em>$1</em>");
+    safe = safe.replace(/&lt;size=(\d+)&gt;([\s\S]*?)&lt;\/size&gt;/gi, `<span style="font-size: clamp(10px, $1px, 28px)">$2</span>`);
+
+    return safe;
+}
+
+const napConfigPath = (gameDir: string, fileName: string) => {
+    if (!fileName) return "Select a game folder first";
+    if (fileName.includes(":") || fileName.startsWith("\\\\") || fileName.startsWith("/")) {
+        return fileName;
+    }
+    return gameDir ? `${gameDir.replace(/[\\/]+$/, "")}\\${fileName}` : "Select a game folder first";
+};
 
 export default function LauncherPage() {
     const gameSelectionChanged = useRef(false);
@@ -45,11 +93,16 @@ export default function LauncherPage() {
     const [offsetsError, setOffsetsError] = useState("");
     const [offsetsRemoteError, setOffsetsRemoteError] = useState("");
     const [isUIDCustomDialogOpen, setIsUIDCustomDialogOpen] = useState(false);
+    const [selectedConfigFile, setSelectedConfigFile] = useState<string>("uid_custom.txt");
+    const [existingConfigFiles, setExistingConfigFiles] = useState<string[]>([]);
     const [uidCustomContent, setUIDCustomContent] = useState("");
     const [savedUIDCustomContent, setSavedUIDCustomContent] = useState("");
     const [isLoadingUIDCustom, setIsLoadingUIDCustom] = useState(false);
     const [isSavingUIDCustom, setIsSavingUIDCustom] = useState(false);
     const [uidCustomError, setUIDCustomError] = useState("");
+    const configTextareaRef = useRef<HTMLTextAreaElement>(null);
+    const [currentColor, setCurrentColor] = useState<string>("#A200FF");
+    const [showColorPreview, setShowColorPreview] = useState<boolean>(true);
 
     const [videoSrc, setVideoSrc] = useState("/video1.mp4");
     const [isBackgroundDialogOpen, setIsBackgroundDialogOpen] = useState(false);
@@ -203,11 +256,26 @@ export default function LauncherPage() {
         }
     };
 
-    const loadUIDCustomFile = async () => {
+    const checkExistingConfigFiles = async () => {
+        if (!gameDir) {
+            setExistingConfigFiles([]);
+            return [];
+        }
+        try {
+            const found = await FSService.GetExistingConfigFiles(gameDir, [...PRESET_CONFIG_FILES]);
+            setExistingConfigFiles(found || []);
+            return found || [];
+        } catch {
+            setExistingConfigFiles([]);
+            return [];
+        }
+    };
+
+    const loadUIDCustomFile = async (targetFile: string = selectedConfigFile) => {
         setIsLoadingUIDCustom(true);
         setUIDCustomError("");
         try {
-            const content = await FSService.ReadUIDCustomFile(gameDir);
+            const content = await FSService.ReadCustomConfigFile(gameDir, targetFile);
             setUIDCustomContent(content);
             setSavedUIDCustomContent(content);
         } catch (error: unknown) {
@@ -218,19 +286,81 @@ export default function LauncherPage() {
     };
 
     const saveUIDCustomFile = async () => {
+        if (!selectedConfigFile) return;
         setIsSavingUIDCustom(true);
         setUIDCustomError("");
+        const fileName = selectedConfigFile.split(/[\\/]/).pop() || selectedConfigFile;
         try {
-            await FSService.WriteUIDCustomFile(gameDir, uidCustomContent);
+            await FSService.WriteCustomConfigFile(gameDir, selectedConfigFile, uidCustomContent);
             setSavedUIDCustomContent(uidCustomContent);
-            toast.success("uid_custom.txt saved");
+            toast.success(`${fileName} saved`);
+            void checkExistingConfigFiles();
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : String(error);
             setUIDCustomError(message);
-            toast.error(`Could not save uid_custom.txt: ${message}`);
+            toast.error(`Could not save ${fileName}: ${message}`);
         } finally {
             setIsSavingUIDCustom(false);
         }
+    };
+
+    const handleSelectConfigFile = (nextFile: string) => {
+        if (nextFile === selectedConfigFile) return;
+        if (uidCustomContent !== savedUIDCustomContent) {
+            const currentName = selectedConfigFile.split(/[\\/]/).pop() || selectedConfigFile;
+            const nextName = nextFile.split(/[\\/]/).pop() || nextFile;
+            if (!window.confirm(`Discard unsaved changes to ${currentName} and switch to ${nextName}?`)) {
+                return;
+            }
+        }
+        setSelectedConfigFile(nextFile);
+        void loadUIDCustomFile(nextFile);
+    };
+
+    const handlePickCustomFile = async () => {
+        try {
+            const picked = await FSService.PickFileWithDirectory("config", gameDir);
+            if (!picked) return;
+            if (uidCustomContent !== savedUIDCustomContent) {
+                const currentName = selectedConfigFile.split(/[\\/]/).pop() || selectedConfigFile;
+                const nextName = picked.split(/[\\/]/).pop() || picked;
+                if (!window.confirm(`Discard unsaved changes to ${currentName} and open ${nextName}?`)) {
+                    return;
+                }
+            }
+            setSelectedConfigFile(picked);
+            void loadUIDCustomFile(picked);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            toast.error(`Could not open file: ${message}`);
+        }
+    };
+
+    const handleCustomNamePrompt = () => {
+        const name = window.prompt("Enter configuration file name to edit/create in game folder (e.g. custom.txt):");
+        if (!name || !name.trim()) return;
+        const trimmed = name.trim();
+        handleSelectConfigFile(trimmed);
+    };
+
+    const insertConfigFormatting = (openTag: string, closeTag: string = "") => {
+        const textarea = configTextareaRef.current;
+        if (!textarea) return;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selected = uidCustomContent.slice(start, end) || "text";
+        const next = `${uidCustomContent.slice(0, start)}${openTag}${selected}${closeTag}${uidCustomContent.slice(end)}`;
+        setUIDCustomContent(next);
+        requestAnimationFrame(() => {
+            textarea.focus();
+            const caret = start + openTag.length + selected.length + closeTag.length;
+            textarea.setSelectionRange(caret, caret);
+        });
+    };
+
+    const insertConfigColor = (color: string) => {
+        setCurrentColor(color);
+        insertConfigFormatting(`<color=${color}>`, "</color>");
     };
 
 
@@ -280,15 +410,17 @@ export default function LauncherPage() {
         setGameDir,
         serverChoice,
         patchChoice,
-    serverPath,
-    serverVersion,
-    gameDir,
-    patchInstalledGameDir,
+        serverPath,
+        serverVersion,
+        gameDir,
+        patchInstalledGameDir,
 
     } = useSettingStore()
 
     const offsetsFilePath = napConfigPath(gameDir, "offsets.zon");
-    const uidCustomFilePath = napConfigPath(gameDir, "uid_custom.txt");
+    const uidCustomFilePath = napConfigPath(gameDir, selectedConfigFile);
+    const isSelectedFileCustom = !PRESET_CONFIG_FILES.includes(selectedConfigFile as any);
+    const currentConfigFileName = selectedConfigFile.split(/[\\/]/).pop() || selectedConfigFile;
 
     const {
         isOpenDownloadDataModal,
@@ -841,10 +973,16 @@ export default function LauncherPage() {
                                     setIsOffsetsDialogOpen(true);
                                     void loadOffsetsFile();
                                 }}><FileText aria-hidden="true" />Edit offsets.zon</button></li>
-                                <li><button onClick={() => {
+                                <li><button onClick={async () => {
                                     setIsUIDCustomDialogOpen(true);
-                                    void loadUIDCustomFile();
-                                }}><FileText aria-hidden="true" />Edit UID Custom</button></li>
+                                    const existing = await checkExistingConfigFiles();
+                                    let target = selectedConfigFile;
+                                    if (existing && existing.length > 0 && !existing.includes(selectedConfigFile) && PRESET_CONFIG_FILES.includes(selectedConfigFile as any)) {
+                                        target = existing[0];
+                                        setSelectedConfigFile(target);
+                                    }
+                                    void loadUIDCustomFile(target);
+                                }}><FileText aria-hidden="true" />Edit Config Files (UID Custom)</button></li>
                                 <li>
                                     <button onClick={() => void handlePickFile()}>
                                         <FolderOpen aria-hidden="true" />
@@ -973,35 +1111,122 @@ export default function LauncherPage() {
                     }}>
                         <header className="sunbringer-dialog__header">
                             <span className="sunbringer-dialog__icon"><FileText size={19} /></span>
-                            <div><span className="eyebrow">GAME CONFIGURATION / NAP</span><h2 id="uid-custom-dialog-title">Edit UID Custom</h2></div>
-                            <button type="button" className="sunbringer-dialog__close" onClick={() => setIsUIDCustomDialogOpen(false)} aria-label="Close UID Custom editor"><X size={17} /></button>
+                            <div><span className="eyebrow">GAME CONFIGURATION / NAP</span><h2 id="uid-custom-dialog-title">Edit Config Files</h2></div>
+                            <button type="button" className="sunbringer-dialog__close" onClick={() => setIsUIDCustomDialogOpen(false)} aria-label="Close Config Files editor"><X size={17} /></button>
                         </header>
                         <div className="sunbringer-dialog__body">
-                            <p>Edit the custom UID list. The file is resolved from the selected game folder; if it does not exist yet, it will be created when you save.</p>
-                            <div className="offsets-dialog__path"><span>FILE TARGET</span><code>{uidCustomFilePath}</code></div>
+                            <p>Edit game configuration files (UID custom, Crypto, message, etc.) in the selected game folder, or choose any other file to edit. If a file does not exist yet, it will be created when you save.</p>
+
+                            <div className="config-file-selector">
+                                <div className="config-file-selector__header">
+                                    <span className="config-file-selector__title">Preset and Custom Files</span>
+                                    {existingConfigFiles.length > 0 && (
+                                        <span className="config-file-pill__badge">{existingConfigFiles.length} on disk</span>
+                                    )}
+                                </div>
+                                <div className="config-file-selector__pills">
+                                    {PRESET_CONFIG_FILES.map((fileName) => {
+                                        const isSelected = selectedConfigFile === fileName;
+                                        const isExisting = existingConfigFiles.includes(fileName);
+                                        return (
+                                            <button
+                                                key={fileName}
+                                                type="button"
+                                                className={`config-file-pill ${isSelected ? "is-selected" : ""} ${isExisting ? "is-existing" : ""}`}
+                                                onClick={() => handleSelectConfigFile(fileName)}
+                                                title={isExisting ? `${fileName} (Found in game directory)` : `${fileName} (Not found, will create on save)`}
+                                            >
+                                                <span className="config-file-pill__dot" />
+                                                <span className="config-file-pill__name">{fileName}</span>
+                                                {isExisting && <span className="config-file-pill__badge">on disk</span>}
+                                            </button>
+                                        );
+                                    })}
+                                    {isSelectedFileCustom && (
+                                        <div className="config-file-pill is-selected is-custom" title={selectedConfigFile}>
+                                            <FileCode size={12} />
+                                            <span className="config-file-pill__name">{currentConfigFileName}</span>
+                                            <span className="config-file-pill__badge">custom</span>
+                                        </div>
+                                    )}
+                                    <button
+                                        type="button"
+                                        className="config-file-action-btn"
+                                        onClick={() => void handlePickCustomFile()}
+                                        title="Browse and select any file from disk"
+                                    >
+                                        <FolderOpen size={12} />
+                                        Select other file…
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="config-file-action-btn"
+                                        onClick={handleCustomNamePrompt}
+                                        title="Enter a custom file name to edit in the game folder"
+                                    >
+                                        <Plus size={12} />
+                                        Custom name…
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="offsets-dialog__path">
+                                <span>FILE TARGET</span>
+                                <code>{uidCustomFilePath}</code>
+                            </div>
                             <div className="offsets-editor__toolbar">
-                                <span>{isLoadingUIDCustom ? "READING FILE…" : uidCustomError ? "FILE ERROR" : uidCustomContent !== savedUIDCustomContent ? "UNSAVED CHANGES" : "FILE LOADED"}</span>
+                                <span>
+                                    {isLoadingUIDCustom
+                                        ? "READING FILE…"
+                                        : uidCustomError
+                                            ? "FILE ERROR"
+                                            : uidCustomContent !== savedUIDCustomContent
+                                                ? "UNSAVED CHANGES"
+                                                : !existingConfigFiles.includes(selectedConfigFile) && !selectedConfigFile.includes(":") && !selectedConfigFile.includes("\\") && !selectedConfigFile.includes("/")
+                                                    ? "NEW FILE (CREATES ON SAVE)"
+                                                    : "FILE LOADED"}
+                                </span>
                                 <button type="button" onClick={() => {
-                                    if (uidCustomContent !== savedUIDCustomContent && !window.confirm("Discard unsaved changes and reload uid_custom.txt?")) return
+                                    if (uidCustomContent !== savedUIDCustomContent && !window.confirm(`Discard unsaved changes and reload ${currentConfigFileName}?`)) return
                                     void loadUIDCustomFile()
                                 }} disabled={isLoadingUIDCustom || isSavingUIDCustom}><RotateCcw size={13} />Reload</button>
                             </div>
                             {uidCustomError && <div className="offsets-editor__error" role="alert">{uidCustomError}</div>}
-                            <textarea className="offsets-editor__input" spellCheck={false} value={uidCustomContent} onChange={(event) => setUIDCustomContent(event.target.value)} placeholder={isLoadingUIDCustom ? "Loading uid_custom.txt…" : "File contents will appear here"} disabled={isLoadingUIDCustom || Boolean(uidCustomError)} aria-label="uid_custom.txt contents" />
+                            <div className="offsets-editor__toolbar" aria-label="Text formatting">
+                                <span>TEXT COLOR & FORMATTING</span>
+                                <input type="color" value={currentColor} onChange={(event) => setCurrentColor(event.target.value)} aria-label="Choose text color" />
+                                <button type="button" onClick={() => insertConfigColor(currentColor)} disabled={isLoadingUIDCustom || Boolean(uidCustomError)}><Palette size={13} />Color</button>
+                                {COLOR_PRESETS.map((color) => <button key={color} type="button" title={`Insert ${color}`} aria-label={`Insert ${color}`} onClick={() => insertConfigColor(color)} disabled={isLoadingUIDCustom || Boolean(uidCustomError)} style={{ width: 22, height: 22, minWidth: 22, padding: 0, borderRadius: "50%", background: color, border: "1px solid rgba(255,255,255,.5)" }} />)}
+                                <button type="button" onClick={() => insertConfigFormatting("<b>", "</b>")} disabled={isLoadingUIDCustom || Boolean(uidCustomError)}><Bold size={13} /></button>
+                                <button type="button" onClick={() => insertConfigFormatting("<i>", "</i>")} disabled={isLoadingUIDCustom || Boolean(uidCustomError)}><Italic size={13} /></button>
+                                <button type="button" onClick={() => setShowColorPreview((show) => !show)} aria-label={showColorPreview ? "Hide preview" : "Show preview"}>{showColorPreview ? <EyeOff size={13} /> : <Eye size={13} />}{showColorPreview ? "Hide preview" : "Preview"}</button>
+                            </div>
+                            <textarea
+                                ref={configTextareaRef}
+                                className="offsets-editor__input"
+                                spellCheck={false}
+                                value={uidCustomContent}
+                                onChange={(event) => setUIDCustomContent(event.target.value)}
+                                placeholder={isLoadingUIDCustom ? `Loading ${currentConfigFileName}…` : `Contents of ${currentConfigFileName} will appear here. Edit or type new content and click "Save changes".`}
+                                disabled={isLoadingUIDCustom || Boolean(uidCustomError)}
+                                aria-label={`${currentConfigFileName} contents`}
+                            />
+                            {showColorPreview && <div className="offsets-editor__preview" aria-label="Formatted text preview"><span>PREVIEW</span><div dangerouslySetInnerHTML={{ __html: renderUnityRichText(uidCustomContent) }} /></div>}
                             <div className="sunbringer-dialog__actions offsets-dialog__actions">
                                 <button type="button" className="sunbringer-dialog__button sunbringer-dialog__button--outline" onClick={async () => {
                                     try {
                                         await navigator.clipboard.writeText(uidCustomFilePath)
-                                        toast.success("UID Custom path copied")
+                                        toast.success("File path copied")
                                     } catch {
-                                        toast.error("Could not copy the UID Custom path")
+                                        toast.error("Could not copy the file path")
                                     }
-                                }} disabled={!gameDir}><Copy size={15} />Copy path</button>
-                                <button type="button" className="sunbringer-dialog__button sunbringer-dialog__button--primary" onClick={() => void saveUIDCustomFile()} disabled={!gameDir || isLoadingUIDCustom || isSavingUIDCustom || Boolean(uidCustomError) || uidCustomContent === savedUIDCustomContent}><FileText size={15} />{isSavingUIDCustom ? "Saving…" : "Save changes"}</button>
+                                }} disabled={!uidCustomFilePath || uidCustomFilePath === "Select a game folder first"}><Copy size={15} />Copy path</button>
+                                <button type="button" className="sunbringer-dialog__button sunbringer-dialog__button--primary" onClick={() => void saveUIDCustomFile()} disabled={(!gameDir && !selectedConfigFile.includes(":")) || isLoadingUIDCustom || isSavingUIDCustom || Boolean(uidCustomError) || uidCustomContent === savedUIDCustomContent}><FileText size={15} />{isSavingUIDCustom ? "Saving…" : "Save changes"}</button>
                                 <button type="button" className="sunbringer-dialog__button sunbringer-dialog__button--outline" onClick={async () => {
-                                    const [ok, message] = await FSService.OpenFolder(await FSService.GetDir(uidCustomFilePath))
-                                    if (!ok) toast.error(message || "Could not open the UID Custom folder")
-                                }} disabled={!gameDir}><FolderOpen size={15} />Show folder</button>
+                                    const dir = await FSService.GetDir(uidCustomFilePath);
+                                    const [ok, message] = await FSService.OpenFolder(dir);
+                                    if (!ok) toast.error(message || "Could not open the file folder");
+                                }} disabled={!uidCustomFilePath || uidCustomFilePath === "Select a game folder first"}><FolderOpen size={15} />Show folder</button>
                             </div>
                         </div>
                     </section>

@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "assets": {
+    "Kafka.exe": {
+      "sha256": "fdbdd28ca6967b267c9de4a228e4c3b05d5600b223fe9fd37aa84cff0fd5238c",
+      "size": 56320
+    },
+    "Unknown_Realm.dll": {
+      "sha256": "67ae5489d02133ad71801f6a31493fe8029a309a20587f61156ef2a5b3127b24",
+      "size": 470528
+    }
+  }
+}

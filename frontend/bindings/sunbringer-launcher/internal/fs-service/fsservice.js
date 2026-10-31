@@ -47,6 +47,17 @@ export function GetDir(path) {
 }
 
 /**
+ * @param {string} gameDir
+ * @param {string[]} fileNames
+ * @returns {$CancellablePromise<string[]>}
+ */
+export function GetExistingConfigFiles(gameDir, fileNames) {
+    return $Call.ByID(787829261, gameDir, fileNames).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * @returns {$CancellablePromise<[string, string]>}
  */
 export function GetSavedGameSelection() {
@@ -78,10 +89,28 @@ export function PickFile(filter) {
 }
 
 /**
+ * @param {string} filter
+ * @param {string} defaultDir
+ * @returns {$CancellablePromise<string>}
+ */
+export function PickFileWithDirectory(filter, defaultDir) {
+    return $Call.ByID(2158573523, filter, defaultDir);
+}
+
+/**
  * @returns {$CancellablePromise<string>}
  */
 export function PickFolder() {
     return $Call.ByID(263905070);
+}
+
+/**
+ * @param {string} gameDir
+ * @param {string} target
+ * @returns {$CancellablePromise<string>}
+ */
+export function ReadCustomConfigFile(gameDir, target) {
+    return $Call.ByID(1982124156, gameDir, target);
 }
 
 /**
@@ -149,6 +178,16 @@ export function StartWithConsole(path) {
 
 /**
  * @param {string} gameDir
+ * @param {string} target
+ * @param {string} content
+ * @returns {$CancellablePromise<void>}
+ */
+export function WriteCustomConfigFile(gameDir, target, content) {
+    return $Call.ByID(594657353, gameDir, target, content);
+}
+
+/**
+ * @param {string} gameDir
  * @param {string} content
  * @returns {$CancellablePromise<void>}
  */
@@ -164,3 +203,6 @@ export function WriteOffsetsFile(gameDir, content) {
 export function WriteUIDCustomFile(gameDir, content) {
     return $Call.ByID(1444216753, gameDir, content);
 }
+
+// Private type creation functions
+const $$createType0 = $Create.Array($Create.Any);

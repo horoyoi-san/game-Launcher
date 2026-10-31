@@ -58,71 +58,71 @@ export default function Header() {
                 <Link to="/" className="app-sidebar__brand" activeOptions={{ exact: true }} title="Sunbringer">
                     <img src="/appicon.png" alt="Sunbringer" className="h-11 w-11 rounded-xl" />
                     <div className="app-sidebar__brand-name">
-                        <div className="text-[15px] font-bold tracking-wide text-white">SUNBRINGER</div>
+                        <div className="text-[12px] font-bold tracking-wide text-white">SUNBRINGER</div>
                         <div className="mt-0.5 text-[10px] tracking-[0.16em] text-violet-200/60">GAME LAUNCHER</div>
                     </div>
                 </Link>
 
                 <nav className="app-sidebar__nav" aria-label="Main navigation">
                     <div className="app-sidebar__group">
-                    <div className="app-sidebar__label"><span>01</span> Play</div>
-                    <Link
-                        to="/"
-                        activeOptions={{ exact: true }}
-                        className="sidebar-link"
-                        activeProps={{ className: "sidebar-link is-active" }}
-                        title="Home"
-                        aria-label="Home"
-                    >
-                        <Home size={18} />
-                        <span>Home</span>
-                    </Link>
+                        <div className="app-sidebar__label"><span>01</span> Play</div>
+                        <Link
+                            to="/"
+                            activeOptions={{ exact: true }}
+                            className="sidebar-link"
+                            activeProps={{ className: "sidebar-link is-active" }}
+                            title="Home"
+                            aria-label="Home"
+                        >
+                            <Home size={18} />
+                            <span>Home</span>
+                        </Link>
 
                     </div>
                     <div className="app-sidebar__group">
-                    <div className="app-sidebar__label"><span>02</span> Systems</div>
-                    <Link to="/language" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Language" aria-label="Language">
-                        <Languages size={18} />
-                        <span>Language</span>
-                    </Link>
-                    <Link to="/diff" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Diff Update" aria-label="Diff Update">
-                        <Diff size={18} />
-                        <span>Diff Update</span>
-                    </Link>
-                    <Link to="/howto" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Guides" aria-label="Guides">
-                        <BookOpen size={18} />
-                        <span>Guides</span>
-                    </Link>
-                    <Link to="/about" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="About" aria-label="About">
-                        <Info size={18} />
-                        <span>About</span>
-                    </Link>
+                        <div className="app-sidebar__label"><span>02</span> Systems</div>
+                        <Link to="/language" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Language" aria-label="Language">
+                            <Languages size={18} />
+                            <span>Language</span>
+                        </Link>
+                        <Link to="/diff" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Diff Update" aria-label="Diff Update">
+                            <Diff size={18} />
+                            <span>Diff Update</span>
+                        </Link>
+                        <Link to="/howto" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Guides" aria-label="Guides">
+                            <BookOpen size={18} />
+                            <span>Guides</span>
+                        </Link>
+                        <Link to="/about" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="About" aria-label="About">
+                            <Info size={18} />
+                            <span>About</span>
+                        </Link>
                     </div>
                     <div className="app-sidebar__group app-sidebar__group--web">
-                    <div className="app-sidebar__label"><span>03</span> Network</div>
-                    {webLinks.map((item) => (
+                        <div className="app-sidebar__label"><span>03</span> Network</div>
+                        {webLinks.map((item) => (
+                            <button
+                                key={item.label}
+                                type="button"
+                                className="sidebar-link w-full text-left"
+                                onClick={() => openWebPanel(item.url)}
+                                title={item.label}
+                                aria-label={item.label}
+                            >
+                                <img src={item.image} alt="" />
+                                <span>{item.label}</span>
+                            </button>
+                        ))}
                         <button
-                            key={item.label}
                             type="button"
                             className="sidebar-link w-full text-left"
-                            onClick={() => openWebPanel(item.url)}
-                            title={item.label}
-                            aria-label={item.label}
+                            onClick={() => openWebPanel("https://hoyogame-background.vercel.app")}
+                            title="Background Gallery"
+                            aria-label="Background Gallery"
                         >
-                            <img src={item.image} alt="" />
-                            <span>{item.label}</span>
+                            <Image size={18} />
+                            <span>Background Gallery</span>
                         </button>
-                    ))}
-                    <button
-                        type="button"
-                        className="sidebar-link w-full text-left"
-                        onClick={() => openWebPanel("https://hoyogame-background.vercel.app")}
-                        title="Background Gallery"
-                        aria-label="Background Gallery"
-                    >
-                        <Image size={18} />
-                        <span>Background Gallery</span>
-                    </button>
                     </div>
                 </nav>
                 <div className="app-sidebar__footer"><span className="app-sidebar__footer-dot" /><span>NAP BETA NODE</span><b>ONLINE</b></div>
