@@ -91,9 +91,17 @@ func ensureRemielleSource() error {
 	}
 	repositoryDir := constant.RemielleStorageDir
 	if regularFileExists(filepath.Join(repositoryDir, "build.zig")) {
-		gitPull := gitCommand(gitPath, "-C", repositoryDir, "pull", "--ff-only", "--progress", "origin", constant.RemielleBranch)
-		if output, err := runGitWithProgress(gitPull, "Updating Remielle source"); err != nil {
-			return fmt.Errorf("update Remielle branch %s: %w\n%s", constant.RemielleBranch, err, strings.TrimSpace(string(output)))
+		gitFetch := gitCommand(gitPath, "-C", repositoryDir, "fetch", "--progress", "origin", constant.RemielleBranch)
+		if output, err := runGitWithProgress(gitFetch, "Updating Remielle source"); err != nil {
+			return fmt.Errorf("fetch Remielle branch %s: %w\n%s", constant.RemielleBranch, err, strings.TrimSpace(string(output)))
+		}
+		gitReset := gitCommand(gitPath, "-C", repositoryDir, "reset", "--hard", "FETCH_HEAD")
+		if output, err := gitReset.CombinedOutput(); err != nil {
+			return fmt.Errorf("replace Remielle source with branch %s: %w\n%s", constant.RemielleBranch, err, strings.TrimSpace(string(output)))
+		}
+		gitClean := gitCommand(gitPath, "-C", repositoryDir, "clean", "-fdx")
+		if output, err := gitClean.CombinedOutput(); err != nil {
+			return fmt.Errorf("remove files not in Remielle branch %s: %w\n%s", constant.RemielleBranch, err, strings.TrimSpace(string(output)))
 		}
 		return nil
 	}
