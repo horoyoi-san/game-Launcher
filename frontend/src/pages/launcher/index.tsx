@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Play, Menu, Minus, FolderOpen, Sparkles, Crown, X, ExternalLink, Server, ImagePlus, Image, RotateCcw, Music2, FileText, Copy, Download, Plus, FileCode, Palette, Eye, EyeOff, Bold, Italic } from 'lucide-react';
+import { Play, Menu, Minus, FolderOpen, Sparkles, Crown, X, ExternalLink, Server, ImagePlus, Image, RotateCcw, Music2, FileText, Copy, Download, Plus, FileCode, Palette, Eye, EyeOff, Bold, Italic, RefreshCw } from 'lucide-react';
 import { AppService } from '@bindings/sunbringer-launcher/internal/app-service';
 import { FSService } from '@bindings/sunbringer-launcher/internal/fs-service';
 import { toast } from 'react-toastify';
@@ -112,9 +112,11 @@ export default function LauncherPage() {
         activeUrl,
         showPanel,
         isMinimized,
+        reloadToken,
         setActiveUrl,
         setShowPanel,
-        setIsMinimized
+        setIsMinimized,
+        reloadPanel
     } = usePanelStore();
 
     const [, setIsVideoLoading] = useState(false);
@@ -1280,6 +1282,16 @@ export default function LauncherPage() {
 
                             {/* ❌ ลบ createPortal ออกไปแล้ว */}
 
+                            <button
+                                type="button"
+                                onClick={reloadPanel}
+                                className="text-white hover:text-cyan-300"
+                                title="Refresh website"
+                                aria-label="Refresh website"
+                            >
+                                <RefreshCw className="w-5 h-5" />
+                            </button>
+
                             {/* ✅ ปุ่มย่อ */}
                             <button onClick={() => AppService.MinimizeApp()}>
                                 <Minus className="w-5 h-5 text-white" />
@@ -1297,8 +1309,10 @@ export default function LauncherPage() {
 
                         {/* iframe */}
                         <iframe
+                            key={`${activeUrl}-${reloadToken}`}
                             src={activeUrl}
                             className="w-full h-full border-none bg-black"
+                            title="Launcher website panel"
                         />
                     </div>
                 </div>

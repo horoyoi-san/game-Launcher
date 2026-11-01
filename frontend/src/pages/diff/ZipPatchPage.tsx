@@ -153,7 +153,7 @@ export default function ZipPatchPage() {
         <img src={bgUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
       )}
       <div className="zip-patch-page__veil absolute inset-0 z-0" />
-      <main className="zip-patch-page__scroll absolute inset-0 z-10 overflow-y-auto pl-20 sm:pl-24">
+      <main className="zip-patch-page__scroll absolute inset-0 z-10 overflow-y-auto">
         <div className="zip-patch-page__layout mx-auto w-full max-w-6xl px-5 pb-10 pt-20 sm:px-8 sm:pt-24">
           <header className="zip-patch-header">
             <div className="zip-patch-header__orbit"><FileArchive size={19} /></div>

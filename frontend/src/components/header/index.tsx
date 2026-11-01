@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import useModalStore from "@/stores/modalStore";
-import { BookOpen, Diff, Home, Image, Info, Languages, Minus, Settings, X } from "lucide-react";
+import { BookOpen, Diff, Home, Image, Info, Minus, Settings, X } from "lucide-react";
 import { AppService } from "@bindings/sunbringer-launcher/internal/app-service";
 import { motion } from "motion/react";
 import usePanelStore from "@/stores/panelStore";
@@ -81,10 +81,6 @@ export default function Header() {
                     </div>
                     <div className="app-sidebar__group">
                         <div className="app-sidebar__label"><span>02</span> Systems</div>
-                        <Link to="/language" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Language" aria-label="Language">
-                            <Languages size={18} />
-                            <span>Language</span>
-                        </Link>
                         <Link to="/diff" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Diff Update" aria-label="Diff Update">
                             <Diff size={18} />
                             <span>Diff Update</span>

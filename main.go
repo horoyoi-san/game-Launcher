@@ -3,18 +3,18 @@ package main
 import (
 	"embed"
 	_ "embed"
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"runtime"
 
 	appService "sunbringer-launcher/internal/app-service"
 	diffService "sunbringer-launcher/internal/diff-service"
 	fsService "sunbringer-launcher/internal/fs-service"
 	gitService "sunbringer-launcher/internal/git-service"
 	languageService "sunbringer-launcher/internal/language-service"
-
 	"sunbringer-launcher/pkg/constant"
-	"fmt"
-	"log"
-	"os"
-	"path/filepath"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
@@ -44,6 +44,38 @@ func extractFile(embedPath, outPath string) error {
 	return os.WriteFile(outPath, data, 0755)
 }
 
+func resetWebViewProfile(executablePath string) error {
+	if runtime.GOOS != "windows" {
+		return nil
+	}
+
+	appData := os.Getenv("APPDATA")
+	if appData == "" {
+		return fmt.Errorf("APPDATA is not set")
+	}
+
+	appDirectory := filepath.Join(appData, filepath.Base(executablePath))
+	markerPath := filepath.Join(appDirectory, ".webview-profile-reset-v1")
+	if _, err := os.Stat(markerPath); err == nil {
+		return nil
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("can't check WebView reset marker %s: %w", markerPath, err)
+	}
+
+	profilePath := filepath.Join(appDirectory, "EBWebView")
+	if err := os.RemoveAll(profilePath); err != nil {
+		return fmt.Errorf("can't reset WebView profile %s: %w", profilePath, err)
+	}
+	if err := os.MkdirAll(appDirectory, 0755); err != nil {
+		return fmt.Errorf("can't create WebView data directory %s: %w", appDirectory, err)
+	}
+	if err := os.WriteFile(markerPath, []byte("reset"), 0600); err != nil {
+		return fmt.Errorf("can't write WebView reset marker %s: %w", markerPath, err)
+	}
+
+	return nil
+}
+
 func main() {
 	// Extract required files
 	for outPath, embedPath := range constant.RequiredFiles {
@@ -57,14 +89,20 @@ func main() {
 
 	// Remove old executable
 	exePath, err := os.Executable()
-	if err == nil {
-		dir := filepath.Dir(exePath)
-		base := filepath.Base(exePath)
-		oldPath := filepath.Join(dir, "."+base+".old")
-
-		fmt.Println("Old executable path:", oldPath)
-		os.Remove(oldPath)
+	if err != nil {
+		log.Fatalf("Could not locate launcher executable: %v", err)
 	}
+	if resetErr := resetWebViewProfile(exePath); resetErr != nil {
+		log.Fatalf("Could not reset WebView profile: %v", resetErr)
+	}
+
+	dir := filepath.Dir(exePath)
+	base := filepath.Base(exePath)
+	oldPath := filepath.Join(dir, "."+base+".old")
+
+	fmt.Println("Old executable path:", oldPath)
+	os.Remove(oldPath)
+
 	// Create application
 	app := application.New(application.Options{
 		Name:        "sunbringer-launcher",

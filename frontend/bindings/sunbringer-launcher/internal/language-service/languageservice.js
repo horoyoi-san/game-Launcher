@@ -7,28 +7,10 @@
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 /**
- * @param {string} path
- * @returns {$CancellablePromise<[boolean, string, string, string]>}
- */
-export function GetLanguage(path) {
-    return $Call.ByID(268041345, path);
-}
-
-/**
  * @param {string} gameRoot
  * @param {string} packageRoot
  * @returns {$CancellablePromise<[boolean, string]>}
  */
 export function InstallThaiPatch(gameRoot, packageRoot) {
     return $Call.ByID(4282415672, gameRoot, packageRoot);
-}
-
-/**
- * @param {string} path
- * @param {string} $1
- * @param {string} voice
- * @returns {$CancellablePromise<[boolean, string]>}
- */
-export function SetLanguage(path, $1, voice) {
-    return $Call.ByID(2924725181, path, $1, voice);
 }

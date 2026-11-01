@@ -1,9 +1,9 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, AudioLines, BookOpen, FolderCog, Gamepad2, HardDrive, ShieldCheck, Sparkles, Wrench } from 'lucide-react';
+import { ArrowRight, BookOpen, FolderCog, Gamepad2, HardDrive, Server, ShieldCheck, Sparkles, Wrench } from 'lucide-react';
 
 const guideSteps = [
-    { number: '01', icon: FolderCog, title: 'Connect your game', body: 'Open Language from the sidebar, then choose the main Zenless Zone Zero Beta folder. Sunbringer detects the game data folder for you.', tag: 'ONE-TIME SETUP' },
-    { number: '02', icon: AudioLines, title: 'Choose a voice pack', body: 'Pick a voice language that is already installed in the game. Text and interface language remain controlled by the game client.', tag: 'VOICE SETTINGS' },
+    { number: '01', icon: FolderCog, title: 'Connect your game', body: 'Choose the main Zenless Zone Zero Beta folder on Home. Sunbringer detects the game data folder for you.', tag: 'ONE-TIME SETUP' },
+    { number: '02', icon: Server, title: 'Choose a server', body: 'Open Settings and select the NAP server profile you want to use. Sunbringer matches it with the correct client patch.', tag: 'SERVER SETTINGS' },
     { number: '03', icon: Gamepad2, title: 'Launch into the game', body: 'Return Home and use the main action. Sunbringer checks the selected game location and prepares the configured launcher services.', tag: 'READY TO PLAY' },
 ];
 
@@ -38,7 +38,6 @@ export default function HowToPage() {
                     </div>
                     <div className="sun-guide__tools">
                         <span className="sun-guide__eyebrow">QUICK ACCESS</span>
-                        <Link to="/language"><AudioLines size={17} /><span><strong>Voice setup</strong><small>Choose an installed voice pack</small></span><ArrowRight size={16} /></Link>
                         <Link to="/diff"><Wrench size={17} /><span><strong>Patch utility</strong><small>Apply a compatible archive</small></span><ArrowRight size={16} /></Link>
                         <div className="sun-guide__storage"><HardDrive size={15} /> Game files stay in your selected install folder.</div>
                     </div>

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
 import { AppService } from '@bindings/sunbringer-launcher/internal/app-service'
+import useLauncherStore from "@/stores/launcherStore"
 import useSettingStore from "@/stores/settingStore"
 import { Check, Download, Languages, LoaderCircle, Monitor, Power, RefreshCw, Server, X, Sparkles, ShieldCheck } from "lucide-react"
 import i18n from "i18next"
-import { CheckUpdateLauncher, UpdateLauncher } from "@/helper"
+import { CheckUpdateLauncher, UpdateLauncher, UpdateServer } from "@/helper"
 import { GitService } from "@bindings/sunbringer-launcher/internal/git-service"
 import { UpdatePatch } from "@/helper/patch"
 
@@ -15,6 +16,7 @@ export default function SettingModal({
     onClose: () => void
 }) {
     const { closingOption, setClosingOption, gameDir, serverChoice, setServerChoice, patchChoice, setPatchChoice } = useSettingStore()
+    const serverRunning = useLauncherStore(state => state.serverRunning)
     const activeLanguage = i18n.resolvedLanguage ?? i18n.language
     const [isCheckingUpdates, setIsCheckingUpdates] = useState(false)
     const [isInstallingUpdate, setIsInstallingUpdate] = useState(false)
@@ -29,7 +31,7 @@ export default function SettingModal({
     const [patchUpdateError, setPatchUpdateError] = useState("")
     const [serverGameVersion, setServerGameVersion] = useState("")
     const [serverGameVersionError, setServerGameVersionError] = useState("")
-    const [isCheckingServerGameVersion, setIsCheckingServerGameVersion] = useState(false)
+    const [isUpdatingServer, setIsUpdatingServer] = useState(false)
     const [activeSection, setActiveSection] = useState("connection")
 
     useEffect(() => {
@@ -105,6 +107,31 @@ export default function SettingModal({
         } catch (error) {
             setUpdateError(error instanceof Error ? error.message : "Launcher update failed")
             setIsInstallingUpdate(false)
+        }
+    }
+
+    const updateServer = async () => {
+        if (isUpdatingServer) return
+        if (serverRunning) {
+            setServerGameVersionError("Close the game and server before updating.")
+            return
+        }
+        setIsUpdatingServer(true)
+        setServerGameVersion("")
+        setServerGameVersionError("")
+        try {
+            if (!(await UpdateServer(serverChoice))) return
+
+            const [version, error] = await GitService.GetNAPServerGameVersion(serverChoice)
+            if (error) {
+                setServerGameVersionError(error)
+                return
+            }
+            setServerGameVersion(version)
+        } catch (error: unknown) {
+            setServerGameVersionError(error instanceof Error ? error.message : "Unable to update server")
+        } finally {
+            setIsUpdatingServer(false)
         }
     }
 
@@ -298,42 +325,39 @@ export default function SettingModal({
                             <span><strong>Matched client patch</strong><small>{patchChoice === "kafka" ? "Kafka.exe + Unknown_Realm.dll" : "Sunbringer.exe + Roscaelifer.dll"}</small></span>
                         </div>
                         <div className="settings-update-card__target settings-server-version">
-                            <span>SUPPORTED GAME VERSION · {serverChoice === "eldreda" ? "ELDREDA" : "REMIELLE"}</span>
-                            <code>{serverGameVersion || (serverGameVersionError ? "Version unavailable" : "Checking…")}</code>
-                            <button
-                                type="button"
-                                className="settings-version-check"
-                                onClick={async () => {
-                                    setIsCheckingServerGameVersion(true)
-                                    setServerGameVersion("")
-                                    setServerGameVersionError("")
-                                    try {
-                                        const [version, error] = await GitService.GetNAPServerGameVersion(serverChoice)
-                                        if (error) setServerGameVersionError(error)
-                                        else setServerGameVersion(version)
-                                    } catch (error) {
-                                        setServerGameVersionError(error instanceof Error ? error.message : "Unable to read server game version")
-                                    } finally {
-                                        setIsCheckingServerGameVersion(false)
-                                    }
-                                }}
-                                disabled={isCheckingServerGameVersion}
-                            >
-                                {isCheckingServerGameVersion
-                                    ? <LoaderCircle size={14} className="animate-spin" />
-                                    : <RefreshCw size={14} />}
-                                {isCheckingServerGameVersion ? "Checking…" : "Check version"}
-                            </button>
+                            <div className="settings-server-version__heading">
+                                <span>SERVER VERSION · {serverChoice === "eldreda" ? "ELDREDA" : "REMIELLE"}</span>
+                                <small>SUPPORTED BUILD</small>
+                            </div>
+                            <div className="settings-server-version__body">
+                                <div className="settings-server-version__value">
+                                    <code>{serverGameVersion || (serverGameVersionError ? "Unavailable" : "Checking…")}</code>
+                                    <small>Client version configured by this server</small>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="settings-version-check"
+                                    onClick={() => void updateServer()}
+                                    disabled={isUpdatingServer || serverRunning}
+                                    title={serverRunning ? "Close the game and server before updating." : undefined}
+                                >
+                                    {isUpdatingServer
+                                        ? <LoaderCircle size={14} className="animate-spin" />
+                                        : <RefreshCw size={14} />}
+                                    {isUpdatingServer ? "Updating…" : "Update source"}
+                                </button>
+                            </div>
+                            <small className="settings-server-version__hint">Fetches the latest server source and rebuilds it.</small>
                             {serverGameVersionError && <small className="settings-update-card__message is-error">{serverGameVersionError}</small>}
                         </div>
                         <div className="settings-choice-grid settings-server-options" aria-label="Choose NAP server">
-                            <button type="button" className={`settings-choice ${serverChoice === "remielle" ? "is-selected" : ""}`} onClick={() => { setServerChoice("remielle"); setPatchChoice("sunbringer") }} aria-pressed={serverChoice === "remielle"}>
+                            <button type="button" className={`settings-choice ${serverChoice === "remielle" ? "is-selected" : ""}`} onClick={() => { setServerChoice("remielle"); setPatchChoice("sunbringer") }} aria-pressed={serverChoice === "remielle"} disabled={isUpdatingServer}>
                                 <span>SERVER 01 <i>·</i> PATCH 01</span>
                                 <strong>Remielle</strong>
                                 <small>Sunbringer.exe + Roscaelifer.dll</small>
                                 {serverChoice === "remielle" && <Check size={15} />}
                             </button>
-                            <button type="button" className={`settings-choice ${serverChoice === "eldreda" ? "is-selected" : ""}`} onClick={() => { setServerChoice("eldreda"); setPatchChoice("kafka") }} aria-pressed={serverChoice === "eldreda"}>
+                            <button type="button" className={`settings-choice ${serverChoice === "eldreda" ? "is-selected" : ""}`} onClick={() => { setServerChoice("eldreda"); setPatchChoice("kafka") }} aria-pressed={serverChoice === "eldreda"} disabled={isUpdatingServer}>
                                 <span>SERVER 02 <i>·</i> PATCH 02</span>
                                 <strong>Eldreda</strong>
                                 <small>Kafka.exe + Unknown_Realm.dll</small>

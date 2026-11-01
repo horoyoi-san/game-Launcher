@@ -19,7 +19,7 @@ import (
 
 type FSService struct{}
 
-const thaumielOffsetsURL = "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/sunbringer-launcher/offsets.zon"
+const thaumielOffsetsURL = "https://git.xeondev.com/remielle/thaumiel/raw/branch/master/assets/offsets.zon"
 
 func napConfigFile(gameDir, name string) (string, error) {
 	if strings.TrimSpace(gameDir) == "" {

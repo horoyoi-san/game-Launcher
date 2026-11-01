@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+type LanguageService struct{}
+
 const (
 	betaPersistentContainer      = "79568e2a754e3eab8afe4b5bf96c27ab.bytes"
 	betaPersistentContainerCopy  = "e303f4dc6c21f043021bb5b3b875b6c3.bytes"

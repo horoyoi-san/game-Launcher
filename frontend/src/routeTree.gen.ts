@@ -9,17 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LanguageRouteImport } from './routes/language'
 import { Route as HowtoRouteImport } from './routes/howto'
 import { Route as DiffRouteImport } from './routes/diff'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
-const LanguageRoute = LanguageRouteImport.update({
-  id: '/language',
-  path: '/language',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const HowtoRoute = HowtoRouteImport.update({
   id: '/howto',
   path: '/howto',
@@ -46,14 +40,12 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/diff': typeof DiffRoute
   '/howto': typeof HowtoRoute
-  '/language': typeof LanguageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/diff': typeof DiffRoute
   '/howto': typeof HowtoRoute
-  '/language': typeof LanguageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -61,14 +53,13 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/diff': typeof DiffRoute
   '/howto': typeof HowtoRoute
-  '/language': typeof LanguageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/diff' | '/howto' | '/language'
+  fullPaths: '/' | '/about' | '/diff' | '/howto'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/diff' | '/howto' | '/language'
-  id: '__root__' | '/' | '/about' | '/diff' | '/howto' | '/language'
+  to: '/' | '/about' | '/diff' | '/howto'
+  id: '__root__' | '/' | '/about' | '/diff' | '/howto'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,18 +67,10 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   DiffRoute: typeof DiffRoute
   HowtoRoute: typeof HowtoRoute
-  LanguageRoute: typeof LanguageRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/language': {
-      id: '/language'
-      path: '/language'
-      fullPath: '/language'
-      preLoaderRoute: typeof LanguageRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/howto': {
       id: '/howto'
       path: '/howto'
@@ -124,7 +107,6 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   DiffRoute: DiffRoute,
   HowtoRoute: HowtoRoute,
-  LanguageRoute: LanguageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
