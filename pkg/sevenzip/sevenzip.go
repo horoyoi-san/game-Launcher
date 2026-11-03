@@ -1,16 +1,18 @@
 package sevenzip
 
 import (
-	"sunbringer-launcher/pkg/constant"
 	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+	"sunbringer-launcher/pkg/constant"
+	"sunbringer-launcher/pkg/hiddenexec"
 )
 
 func IsFileIn7z(archivePath, fileInside string) (bool, error) {
 	cmd := exec.Command(constant.Tool7zaExe.String(), "l", archivePath)
+	hiddenexec.HideWindow(cmd)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &out
@@ -40,6 +42,7 @@ func IsFileIn7z(archivePath, fileInside string) (bool, error) {
 
 func ListFilesInZip(archivePath string) ([]string, error) {
 	cmd := exec.Command(constant.Tool7zaExe.String(), "l", archivePath)
+	hiddenexec.HideWindow(cmd)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &out
@@ -75,6 +78,7 @@ func ListFilesInZip(archivePath string) ([]string, error) {
 
 func ExtractAFileFromZip(archivePath, fileInside, outDir string) error {
 	cmd := exec.Command(constant.Tool7zaExe.String(), "e", archivePath, fileInside, "-o"+outDir, "-y")
+	hiddenexec.HideWindow(cmd)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
@@ -82,6 +86,7 @@ func ExtractAFileFromZip(archivePath, fileInside, outDir string) error {
 
 func ExtractAllFilesFromZip(archivePath, outDir string) error {
 	cmd := exec.Command(constant.Tool7zaExe.String(), "x", archivePath, "-o"+outDir, "-y")
+	hiddenexec.HideWindow(cmd)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()

@@ -15,6 +15,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sunbringer-launcher/pkg/hiddenexec"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -137,6 +138,7 @@ func ensureGit() (string, error) {
 
 func gitCommand(gitPath string, args ...string) *exec.Cmd {
 	command := exec.Command(gitPath, args...)
+	hiddenexec.HideWindow(command)
 	if filepath.IsAbs(gitPath) && strings.EqualFold(filepath.Base(filepath.Dir(gitPath)), "cmd") {
 		root := filepath.Dir(filepath.Dir(gitPath))
 		command.Env = append(os.Environ(), "PATH="+filepath.Join(root, "mingw64", "bin")+";"+filepath.Join(root, "usr", "bin")+";"+os.Getenv("PATH"))

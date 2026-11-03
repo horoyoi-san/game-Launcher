@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sunbringer-launcher/pkg/constant"
+	"sunbringer-launcher/pkg/hiddenexec"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -33,7 +34,9 @@ func (g *GitService) DownloadNAPServerProgress() (bool, string) {
 		return false, fmt.Errorf("resolve Zig 0.16.0 path: %w", err).Error()
 	}
 	if regularFileExists(zigExecutable) {
-		version, err := exec.Command(zigExecutable, "version").Output()
+		versionCommand := exec.Command(zigExecutable, "version")
+		hiddenexec.HideWindow(versionCommand)
+		version, err := versionCommand.Output()
 		if err == nil && strings.TrimSpace(string(version)) == "0.16.0" {
 			return true, ""
 		}
@@ -70,12 +73,15 @@ func (g *GitService) ExtractNAPServer() (bool, string) {
 	if !regularFileExists(filepath.Join(constant.RemielleStorageDir, "build.zig")) {
 		return false, fmt.Sprintf("Remielle source is missing build.zig: %s", constant.RemielleStorageDir)
 	}
-	version, err := exec.Command(zigExecutable, "version").Output()
+	versionCommand := exec.Command(zigExecutable, "version")
+	hiddenexec.HideWindow(versionCommand)
+	version, err := versionCommand.Output()
 	if err != nil || strings.TrimSpace(string(version)) != "0.16.0" {
 		return false, fmt.Sprintf("Zig 0.16.0 was not found at %s", zigExecutable)
 	}
 
 	build := exec.Command(zigExecutable, "build")
+	hiddenexec.HideWindow(build)
 	build.Dir = constant.RemielleStorageDir
 	output, err := build.CombinedOutput()
 	if err != nil {

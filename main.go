@@ -13,6 +13,7 @@ import (
 	diffService "sunbringer-launcher/internal/diff-service"
 	fsService "sunbringer-launcher/internal/fs-service"
 	gitService "sunbringer-launcher/internal/git-service"
+	hoyoService "sunbringer-launcher/internal/hoyo-service"
 	languageService "sunbringer-launcher/internal/language-service"
 	"sunbringer-launcher/pkg/constant"
 
@@ -113,6 +114,7 @@ func main() {
 			application.NewService(&gitService.GitService{}),
 			application.NewService(&diffService.DiffService{}),
 			application.NewService(&appService.AppService{}),
+			application.NewService(&hoyoService.HoyoService{}),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),

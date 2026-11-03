@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sunbringer-launcher/pkg/constant"
+	"sunbringer-launcher/pkg/hiddenexec"
 )
 
 func (g *GitService) DownloadEldredaServerProgress() (bool, string) {
@@ -22,7 +23,9 @@ func (g *GitService) DownloadEldredaServerProgress() (bool, string) {
 		return false, fmt.Errorf("resolve Zig 0.17.0 path: %w", err).Error()
 	}
 	if regularFileExists(zigExecutable) {
-		version, err := exec.Command(zigExecutable, "version").Output()
+		versionCommand := exec.Command(zigExecutable, "version")
+		hiddenexec.HideWindow(versionCommand)
+		version, err := versionCommand.Output()
 		if err == nil && strings.TrimSpace(string(version)) == "0.17.0" {
 			return true, ""
 		}
@@ -58,11 +61,14 @@ func (g *GitService) BuildEldredaServer() (bool, string) {
 	if !regularFileExists(filepath.Join(constant.EldredaStorageDir, "build.zig")) {
 		return false, fmt.Sprintf("Eldreda source is missing build.zig: %s", constant.EldredaStorageDir)
 	}
-	version, err := exec.Command(zigExecutable, "version").Output()
+	versionCommand := exec.Command(zigExecutable, "version")
+	hiddenexec.HideWindow(versionCommand)
+	version, err := versionCommand.Output()
 	if err != nil || strings.TrimSpace(string(version)) != "0.17.0" {
 		return false, fmt.Sprintf("Zig 0.17.0 was not found at %s", zigExecutable)
 	}
 	build := exec.Command(zigExecutable, "build")
+	hiddenexec.HideWindow(build)
 	build.Dir = constant.EldredaStorageDir
 	output, err := build.CombinedOutput()
 	if err != nil {

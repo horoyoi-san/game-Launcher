@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import useModalStore from "@/stores/modalStore";
-import { BookOpen, Diff, Home, Image, Info, Minus, Settings, X } from "lucide-react";
+import { BookOpen, Diff, Gamepad2, Home, Image, Info, Minus, Settings, X } from "lucide-react";
 import { AppService } from "@bindings/sunbringer-launcher/internal/app-service";
 import { motion } from "motion/react";
 import usePanelStore from "@/stores/panelStore";
@@ -88,6 +88,10 @@ export default function Header() {
                         <Link to="/howto" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Guides" aria-label="Guides">
                             <BookOpen size={18} />
                             <span>Guides</span>
+                        </Link>
+                        <Link to="/hoyo" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="Hoyo Control" aria-label="Hoyo Control">
+                            <Gamepad2 size={18} />
+                            <span>Hoyo Control</span>
                         </Link>
                         <Link to="/about" className="sidebar-link" activeProps={{ className: "sidebar-link is-active" }} title="About" aria-label="About">
                             <Info size={18} />

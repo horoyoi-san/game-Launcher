@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"sunbringer-launcher/pkg/constant"
+	"sunbringer-launcher/pkg/hiddenexec"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
@@ -85,6 +86,7 @@ func (h *DiffService) ApplyDiffZip(gamePath, patchPath string) (bool, string) {
 		patchPath,
 		"--config_change_guidance", "false",
 	)
+	hiddenexec.HideWindow(cmd)
 	cmd.Dir = filepath.Dir(updaterPath)
 	output, err := cmd.CombinedOutput()
 	message := strings.TrimSpace(string(output))
@@ -121,6 +123,7 @@ func applyZiff(gamePath, patchPath string) (bool, string) {
 		return false, "selected patch is not a file"
 	}
 	cmd := exec.Command(ziftPath, "-a", "-y", patchPath, gamePath)
+	hiddenexec.HideWindow(cmd)
 	cmd.Dir = launcherDir
 	outputReader, outputWriter := io.Pipe()
 	cmd.Stdout = outputWriter
