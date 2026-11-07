@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	eldredaGameTagPattern = regexp.MustCompile(`(?m)^\s*\.tag\s*=\s*"([^"]+)"\s*,?`)
+	yuzuhaGameTagPattern   = regexp.MustCompile(`(?m)^\s*\.tag\s*=\s*"([^"]+)"\s*,?`)
 	remielleGameTagPattern = regexp.MustCompile(`(?m)^\s*\.@"([^"]+)"\s*=\s*\.`)
 )
 
@@ -20,9 +20,9 @@ func (g *GitService) GetNAPServerGameVersion(serverChoice string) (string, strin
 	var configPath string
 	var pattern *regexp.Regexp
 	switch strings.ToLower(strings.TrimSpace(serverChoice)) {
-	case "eldreda":
-		configPath = filepath.Join(constant.EldredaStorageDir, "defaults", "eldreda.zon")
-		pattern = eldredaGameTagPattern
+	case "yuzuha":
+		configPath = filepath.Join(constant.YuzuhaStorageDir, "defaults", "yuzuha.zon")
+		pattern = yuzuhaGameTagPattern
 	case "remielle":
 		configPath = filepath.Join(constant.RemielleStorageDir, "dpsv", "config.zon")
 		pattern = remielleGameTagPattern

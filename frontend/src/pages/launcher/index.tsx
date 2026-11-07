@@ -670,8 +670,8 @@ export default function LauncherPage() {
             }
 
             if (!serverRunning) {
-                const [serverStarted, serverError] = serverChoice === "eldreda"
-                    ? await FSService.StartEldredaServer()
+                const [serverStarted, serverError] = serverChoice === "yuzuha"
+                    ? await FSService.StartYuzuhaServer()
                     : await FSService.StartNAPServer()
                 if (!serverStarted) {
                     toast.error(`Failed to start server: ${serverError}`)
@@ -708,7 +708,7 @@ export default function LauncherPage() {
                 nextUpdateData.server = {
                     isUpdate: false,
                     isExists: true,
-                    version: serverChoice === "eldreda" ? "eldreda-latest" : "remielle-0.1.x"
+                    version: serverChoice === "yuzuha" ? "yuzuha-latest" : "remielle-0.1.x"
                 }
                 setServerReady(true)
             }
@@ -928,15 +928,15 @@ export default function LauncherPage() {
                                     <button
                                         onClick={() => {
                                             window.open(
-                                                serverChoice === "eldreda"
-                                                    ? "https://git.xeondev.com/eldreda/eldreda"
+                                                serverChoice === "yuzuha"
+                                                    ? "https://git.xeondev.com/yuzuha/yuzuha"
                                                     : "https://git.xeondev.com/remielle/remielle/src/branch/0.1.x",
                                                 "_blank"
                                             );
                                         }}
                                     >
                                         <Server aria-hidden="true" />
-                                        {serverChoice === "eldreda" ? "Eldreda Server" : "Remielle Server"}
+                                        {serverChoice === "yuzuha" ? "Yuzuha Server" : "Remielle Server"}
                                     </button>
                                 </li>
 
@@ -1240,7 +1240,7 @@ export default function LauncherPage() {
                 title="Prepare NAP"
                 message={
                     !updateData.server.isExists
-                        ? `The ${serverChoice === "eldreda" ? "Eldreda" : "Remielle"} server source or Zig compiler is missing. Download and build it to continue.`
+                        ? `The ${serverChoice === "yuzuha" ? "Yuzuha" : "Remielle"} server source or Zig compiler is missing. Download and build it to continue.`
                         : gameDir
                             ? `The selected ${patchChoice === "kafka" ? "Kafka" : "Sunbringer"} patch must be installed in the chosen game folder. The launcher checks the release manifest, verifies both files, and backs up files it replaces.`
                             : `Select the game file and folder before installing the ${patchChoice === "kafka" ? "Kafka" : "Sunbringer"} patch.`

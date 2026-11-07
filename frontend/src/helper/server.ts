@@ -4,25 +4,25 @@ import { FSService } from '@bindings/sunbringer-launcher/internal/fs-service';
 import { GitService } from '@bindings/sunbringer-launcher/internal/git-service';
 import { toast } from 'react-toastify';
 
-export type NAPServerChoice = "remielle" | "eldreda";
+export type NAPServerChoice = "remielle" | "yuzuha";
 
 export async function CheckUpdateServer(
     _serverPath: string,
     _serverVersion: string,
     serverChoice: NAPServerChoice = "remielle"
 ): Promise<{ isUpdate: boolean; isExists: boolean; version: string }> {
-    const isEldreda = serverChoice === "eldreda"
-    const resolvedServerPath = isEldreda ? "./server/eldreda" : "./server/remielle"
-    const version = isEldreda ? "eldreda-latest" : "remielle-0.1.x"
-    const serverExists = isEldreda
-        ? await FSService.FileExists(`${resolvedServerPath}/zig-out/bin/eldreda.exe`)
+    const isYuzuha = serverChoice === "yuzuha"
+    const resolvedServerPath = isYuzuha ? "./server/yuzuha" : "./server/remielle"
+    const version = isYuzuha ? "yuzuha-latest" : "remielle-0.1.x"
+    const serverExists = isYuzuha
+        ? await FSService.FileExists(`${resolvedServerPath}/zig-out/bin/yuzuha.exe`)
         : await FSService.FileExists(`${resolvedServerPath}/build.zig`)
-    const zigExecutable = isEldreda
+    const zigExecutable = isYuzuha
         ? "./server/zig/zig-x86_64-windows-0.17.0/zig.exe"
         : "./server/zig/zig-x86_64-windows-0.16.0/zig.exe"
     const zigExists = await FSService.FileExists(zigExecutable)
 
-    if (serverExists && (isEldreda || zigExists)) {
+    if (serverExists && (isYuzuha || zigExists)) {
         const { setServerPath, setServerVersion } = useSettingStore.getState()
         const isSameServer = _serverPath.replace(/[\\/]+$/, "").toLowerCase()
             === resolvedServerPath.replace(/[\\/]+$/, "").toLowerCase()
@@ -39,13 +39,13 @@ export async function UpdateServer(serverChoice: NAPServerChoice = "remielle"): 
     const { setDownloadType, setProgressDownload, setDownloadProgressIndeterminate } = useLauncherStore.getState()
     const { setServerPath, setServerVersion } = useSettingStore.getState()
 
-    const isEldreda = serverChoice === "eldreda"
-    const serverName = isEldreda ? "Eldreda" : "Remielle"
-    const serverVersion = isEldreda ? "eldreda-latest" : "remielle-0.1.x"
+    const isYuzuha = serverChoice === "yuzuha"
+    const serverName = isYuzuha ? "Yuzuha" : "Remielle"
+    const serverVersion = isYuzuha ? "yuzuha-latest" : "remielle-0.1.x"
 
-    setDownloadType(`Preparing ${serverName} and Zig ${isEldreda ? "0.17.0" : "0.16.0"}...`)
-    const [downloaded, downloadError] = isEldreda
-        ? await GitService.DownloadEldredaServerProgress()
+    setDownloadType(`Preparing ${serverName} and Zig ${isYuzuha ? "0.17.0" : "0.16.0"}...`)
+    const [downloaded, downloadError] = isYuzuha
+        ? await GitService.DownloadYuzuhaServerProgress()
         : await GitService.DownloadNAPServerProgress()
     if (!downloaded) {
         toast.error(downloadError || `Could not prepare the ${serverName} server`)
@@ -53,11 +53,11 @@ export async function UpdateServer(serverChoice: NAPServerChoice = "remielle"): 
         return false
     }
 
-    setDownloadType(`Building ${serverName} with Zig ${isEldreda ? "0.17.0" : "0.16.0"}...`)
+    setDownloadType(`Building ${serverName} with Zig ${isYuzuha ? "0.17.0" : "0.16.0"}...`)
     setProgressDownload(0)
     setDownloadProgressIndeterminate(true)
-    const [extracted, extractError] = isEldreda
-        ? await GitService.BuildEldredaServer()
+    const [extracted, extractError] = isYuzuha
+        ? await GitService.BuildYuzuhaServer()
         : await GitService.ExtractNAPServer()
     setDownloadProgressIndeterminate(false)
     if (!extracted) {
@@ -68,6 +68,6 @@ export async function UpdateServer(serverChoice: NAPServerChoice = "remielle"): 
 
     setDownloadType(`${serverName} server is ready`)
     setServerVersion(serverVersion)
-    setServerPath(isEldreda ? "./server/eldreda" : "./server/remielle")
+    setServerPath(isYuzuha ? "./server/yuzuha" : "./server/remielle")
     return true
 }

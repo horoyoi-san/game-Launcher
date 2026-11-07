@@ -9,15 +9,8 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 /**
  * @returns {$CancellablePromise<[boolean, string]>}
  */
-export function BuildEldredaServer() {
-    return $Call.ByID(376348339);
-}
-
-/**
- * @returns {$CancellablePromise<[boolean, string]>}
- */
-export function DownloadEldredaServerProgress() {
-    return $Call.ByID(2572957530);
+export function BuildYuzuhaServer() {
+    return $Call.ByID(2017642204);
 }
 
 /**
@@ -41,6 +34,13 @@ export function DownloadNAPServerProgress() {
  */
 export function DownloadServerProgress(version) {
     return $Call.ByID(868680081, version);
+}
+
+/**
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function DownloadYuzuhaServerProgress() {
+    return $Call.ByID(2875143713);
 }
 
 /**
