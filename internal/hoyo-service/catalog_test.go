@@ -7,8 +7,37 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
+
+func TestParseAvatarSkinIDs(t *testing.T) {
+	data := []byte(`.{
+		.{ .id = 3110110, .avatar_id = 1011 },
+		.{ .id = 3110111, .avatar_id = 1011 },
+		.{ .id = 3110410, .avatar_id = 1041 },
+	}`)
+	got, err := parseAvatarSkinIDs(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []uint32{3110110, 3110111}; !reflect.DeepEqual(got[1011], want) {
+		t.Errorf("skins for avatar 1011 = %v, want %v", got[1011], want)
+	}
+	if want := []uint32{3110410}; !reflect.DeepEqual(got[1041], want) {
+		t.Errorf("skins for avatar 1041 = %v, want %v", got[1041], want)
+	}
+}
+
+func TestParseAvatarSkinIDsRejectsDuplicateIDs(t *testing.T) {
+	data := []byte(`.{
+		.{ .id = 3110110, .avatar_id = 1011 },
+		.{ .id = 3110110, .avatar_id = 1041 },
+	}`)
+	if _, err := parseAvatarSkinIDs(data); err == nil {
+		t.Fatal("expected duplicate skin ID to be rejected")
+	}
+}
 
 func TestCatalogImagePath(t *testing.T) {
 	tests := []struct {
@@ -40,6 +69,54 @@ func TestCatalogImagePath(t *testing.T) {
 			t.Errorf("catalogImagePath(%q) = (%q, %q), want (%q, %q)",
 				test.icon, gotImageID, gotImagePath, test.wantImageID, test.wantImagePath)
 		}
+	}
+}
+
+func TestLatestNanokaDataURL(t *testing.T) {
+	tests := []struct {
+		name          string
+		latestVersion string
+		liveVersion   string
+		wantURL       string
+		wantErr       bool
+	}{
+		{
+			name:          "uses latest Beta ZZZ version",
+			latestVersion: "3.5.0+20270000",
+			liveVersion:   "3.4.3+20266797",
+			wantURL:       nanokaDataBaseURL + "/3.5.0+20270000",
+		},
+		{name: "missing latest version", liveVersion: "3.4.3+20266797", wantErr: true},
+		{name: "rejects path segments", latestVersion: "../other", wantErr: true},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+				writer.Header().Set("Content-Type", "application/json")
+				_ = json.NewEncoder(writer).Encode(map[string]any{
+					"zzz": map[string]string{
+						"latest": test.latestVersion,
+						"live":   test.liveVersion,
+					},
+				})
+			}))
+			defer server.Close()
+
+			gotURL, err := latestNanokaDataURL(server.URL)
+			if test.wantErr {
+				if err == nil {
+					t.Fatal("latestNanokaDataURL() succeeded, want an error")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("latestNanokaDataURL() error = %v", err)
+			}
+			if gotURL != test.wantURL {
+				t.Errorf("latestNanokaDataURL() = %q, want %q", gotURL, test.wantURL)
+			}
+		})
 	}
 }
 
@@ -103,7 +180,14 @@ func TestLoadCatalog(t *testing.T) {
 	weapons := make(map[string]remoteIcon, len(weaponIDs))
 	disks := make(map[string]remoteEquipment, len(diskSetIDs))
 	for _, id := range characterIDs {
-		characters[fmt.Sprint(id)] = remoteIcon{Icon: fmt.Sprintf("IconRole%d", id), Name: fmt.Sprintf("Agent %d", id)}
+		character := remoteIcon{Icon: fmt.Sprintf("IconRole%d", id), Name: fmt.Sprintf("Agent %d", id), Rank: 4, Specialty: 1, Element: 201}
+		if id == 1011 {
+			character.Rank = 3
+		}
+		if id == 1041 {
+			character.Potential = []uint32{104100, 104101, 104102, 104103, 104104, 104105}
+		}
+		characters[fmt.Sprint(id)] = character
 	}
 	for _, id := range weaponIDs {
 		name := fmt.Sprintf("Engine %d", id)
@@ -117,7 +201,8 @@ func TestLoadCatalog(t *testing.T) {
 			name = "Item_Weapon_S_1601_Name"
 			icon = "Weapon_S_1601"
 		}
-		weapons[fmt.Sprint(id)] = remoteIcon{Icon: icon, Name: name}
+		rank := uint32(id/1000 - 10)
+		weapons[fmt.Sprint(id)] = remoteIcon{Icon: icon, Name: name, Rank: rank}
 	}
 	for _, id := range diskSetIDs {
 		var entry remoteEquipment
@@ -128,6 +213,10 @@ func TestLoadCatalog(t *testing.T) {
 			entry.Icon = "UI/Sprite/A1DynamicLoad/IconSuit/UnPacker/SuitBranch&BladeSong.png"
 		}
 		entry.Name.Name = fmt.Sprintf("Set %d", id)
+		if id == 32800 {
+			entry.Name.Desc2 = "ATK +10%"
+			entry.Name.Desc4 = "Gain <color=#FFFFFF>8%</color> DMG."
+		}
 		disks[fmt.Sprint(id)] = entry
 	}
 
@@ -161,6 +250,39 @@ func TestLoadCatalog(t *testing.T) {
 	}
 	if catalog.Characters[0].ImagePath == "" || catalog.Weapons[0].ImagePath == "" || catalog.Disks[0].ImagePath == "" {
 		t.Fatal("catalog item image paths must be populated")
+	}
+	foundDiskEffects := false
+	for _, disk := range catalog.Disks {
+		if disk.ID == 32800 {
+			foundDiskEffects = true
+			if disk.TwoPieceEffect != "ATK +10%" || disk.FourPieceEffect != "Gain 8% DMG." {
+				t.Fatalf("disk effects = (%q, %q), want markup-free descriptions", disk.TwoPieceEffect, disk.FourPieceEffect)
+			}
+		}
+	}
+	if !foundDiskEffects {
+		t.Fatal("disk set 32800 was not found in the catalog")
+	}
+	for _, character := range catalog.Characters {
+		if character.ID == 1041 {
+			if character.Specialty != 1 || character.Element != 201 {
+				t.Fatalf("character specialty/element = %d/%d, want 1/201", character.Specialty, character.Element)
+			}
+			if len(character.PotentialIDs) != 6 || character.PotentialIDs[5] != 104105 {
+				t.Fatalf("character potential IDs = %v, want six IDs ending in 104105", character.PotentialIDs)
+			}
+			break
+		}
+	}
+	for _, character := range catalog.Characters {
+		if character.ID == 1011 && character.Rank != 3 {
+			t.Errorf("character rank = %d, want 3", character.Rank)
+		}
+	}
+	for _, weapon := range catalog.Weapons {
+		if weapon.ID == 14150 && weapon.Rank != 4 {
+			t.Errorf("weapon rank = %d, want 4", weapon.Rank)
+		}
 	}
 
 	for _, item := range catalog.Characters {

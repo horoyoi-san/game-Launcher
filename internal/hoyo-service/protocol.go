@@ -16,9 +16,13 @@ const (
 	ackTag           = 0
 	nakTag           = 1
 
+	playerKickTag    = 1
 	modAvatarMetaTag = 2
 	createWeaponTag  = 3
 	createEquipTag   = 4
+
+	modAvatarFieldSkin      = 6
+	modAvatarFieldAwakening = 7
 )
 
 func newControlHeader(tag uint16, userdata uint32) []byte {
@@ -28,6 +32,16 @@ func newControlHeader(tag uint16, userdata uint32) []byte {
 	binary.LittleEndian.PutUint16(packet[2:4], tag)
 	binary.LittleEndian.PutUint32(packet[4:8], userdata)
 	return packet
+}
+
+func buildPlayerKickPacket(playerUID uint32, userdata uint32) ([]byte, error) {
+	if playerUID == 0 {
+		return nil, errors.New("player UID must be greater than zero")
+	}
+	packet := newControlHeader(playerKickTag, userdata)
+	packet = append(packet, make([]byte, 8)...)
+	binary.LittleEndian.PutUint32(packet[8:12], playerUID)
+	return packet, nil
 }
 
 func randomUserdata() (uint32, error) {

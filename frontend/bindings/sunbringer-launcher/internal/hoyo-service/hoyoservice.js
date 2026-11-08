@@ -36,6 +36,57 @@ export function CreateWeapon(playerUID, weaponID, level, refinement) {
 }
 
 /**
+ * @param {number} playerUID
+ * @param {number} keepAvatarID
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function DeleteAllCharactersSave(playerUID, keepAvatarID) {
+    return $Call.ByID(3498848442, playerUID, keepAvatarID);
+}
+
+/**
+ * @param {number} playerUID
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function DeleteAllInventoryItems(playerUID) {
+    return $Call.ByID(414744811, playerUID);
+}
+
+/**
+ * @param {number} playerUID
+ * @param {number} avatarID
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function DeleteCharacterSave(playerUID, avatarID) {
+    return $Call.ByID(3100998182, playerUID, avatarID);
+}
+
+/**
+ * @param {number} playerUID
+ * @param {string} itemType
+ * @param {number} itemUID
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function DeleteInventoryItem(playerUID, itemType, itemUID) {
+    return $Call.ByID(1811707391, playerUID, itemType, itemUID);
+}
+
+/**
+ * @param {number} playerUID
+ * @param {number} avatarID
+ * @param {number[]} setIDs
+ * @param {number[]} ranks
+ * @param {number[]} slots
+ * @param {number[]} mainStats
+ * @param {number[][]} subStatIDs
+ * @param {number[][]} subRolls
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function EquipDiskSet(playerUID, avatarID, setIDs, ranks, slots, mainStats, subStatIDs, subRolls) {
+    return $Call.ByID(346418600, playerUID, avatarID, setIDs, ranks, slots, mainStats, subStatIDs, subRolls);
+}
+
+/**
  * @returns {$CancellablePromise<[$models.HoyoCatalog, string]>}
  */
 export function GetCatalog() {
@@ -47,15 +98,38 @@ export function GetCatalog() {
 
 /**
  * @param {number} playerUID
+ * @returns {$CancellablePromise<[$models.SaveInventory, string]>}
+ */
+export function GetSaveInventory(playerUID) {
+    return $Call.ByID(113584064, playerUID).then(/** @type {($result: any) => any} */(($result) => {
+        $result[0] = $$createType1($result[0]);
+        return $result;
+    }));
+}
+
+/**
+ * @param {number} playerUID
  * @param {number} avatarID
  * @param {number} level
  * @param {number[]} skillLevels
  * @param {number} mindscape
+ * @param {number} potentialLevel
+ * @param {number} skinID
  * @returns {$CancellablePromise<[boolean, string]>}
  */
-export function ModifyCharacter(playerUID, avatarID, level, skillLevels, mindscape) {
-    return $Call.ByID(1635537928, playerUID, avatarID, level, skillLevels, mindscape);
+export function ModifyCharacter(playerUID, avatarID, level, skillLevels, mindscape, potentialLevel, skinID) {
+    return $Call.ByID(1635537928, playerUID, avatarID, level, skillLevels, mindscape, potentialLevel, skinID);
+}
+
+/**
+ * @param {number} playerUID
+ * @param {number} avatarID
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function UnlockCharacter(playerUID, avatarID) {
+    return $Call.ByID(1516243702, playerUID, avatarID);
 }
 
 // Private type creation functions
 const $$createType0 = $models.HoyoCatalog.createFrom;
+const $$createType1 = $models.SaveInventory.createFrom;

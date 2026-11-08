@@ -40,6 +40,55 @@ export class CatalogItem {
              */
             this["imagePath"] = "";
         }
+        if (!("rank" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["rank"] = 0;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | undefined}
+             */
+            this["specialty"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | undefined}
+             */
+            this["element"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["twoPieceEffect"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["fourPieceEffect"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number[] | undefined}
+             */
+            this["potentialIds"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number[] | undefined}
+             */
+            this["skinIds"] = undefined;
+        }
 
         Object.assign(this, $$source);
     }
@@ -50,7 +99,15 @@ export class CatalogItem {
      * @returns {CatalogItem}
      */
     static createFrom($$source = {}) {
+        const $$createField9_0 = $$createType0;
+        const $$createField10_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("potentialIds" in $$parsedSource) {
+            $$parsedSource["potentialIds"] = $$createField9_0($$parsedSource["potentialIds"]);
+        }
+        if ("skinIds" in $$parsedSource) {
+            $$parsedSource["skinIds"] = $$createField10_0($$parsedSource["skinIds"]);
+        }
         return new CatalogItem(/** @type {Partial<CatalogItem>} */($$parsedSource));
     }
 }
@@ -82,6 +139,13 @@ export class HoyoCatalog {
              */
             this["disks"] = [];
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["skinDataError"] = undefined;
+        }
 
         Object.assign(this, $$source);
     }
@@ -92,9 +156,9 @@ export class HoyoCatalog {
      * @returns {HoyoCatalog}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType1;
-        const $$createField1_0 = $$createType1;
-        const $$createField2_0 = $$createType1;
+        const $$createField0_0 = $$createType2;
+        const $$createField1_0 = $$createType2;
+        const $$createField2_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("characters" in $$parsedSource) {
             $$parsedSource["characters"] = $$createField0_0($$parsedSource["characters"]);
@@ -109,6 +173,144 @@ export class HoyoCatalog {
     }
 }
 
+export class SaveInventory {
+    /**
+     * Creates a new SaveInventory instance.
+     * @param {Partial<SaveInventory>} [$$source = {}] - The source object to create the SaveInventory.
+     */
+    constructor($$source = {}) {
+        if (!("characters" in $$source)) {
+            /**
+             * @member
+             * @type {number[]}
+             */
+            this["characters"] = [];
+        }
+        if (!("weapons" in $$source)) {
+            /**
+             * @member
+             * @type {SaveInventoryItem[]}
+             */
+            this["weapons"] = [];
+        }
+        if (!("disks" in $$source)) {
+            /**
+             * @member
+             * @type {SaveInventoryItem[]}
+             */
+            this["disks"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SaveInventory instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {SaveInventory}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType0;
+        const $$createField1_0 = $$createType4;
+        const $$createField2_0 = $$createType4;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("characters" in $$parsedSource) {
+            $$parsedSource["characters"] = $$createField0_0($$parsedSource["characters"]);
+        }
+        if ("weapons" in $$parsedSource) {
+            $$parsedSource["weapons"] = $$createField1_0($$parsedSource["weapons"]);
+        }
+        if ("disks" in $$parsedSource) {
+            $$parsedSource["disks"] = $$createField2_0($$parsedSource["disks"]);
+        }
+        return new SaveInventory(/** @type {Partial<SaveInventory>} */($$parsedSource));
+    }
+}
+
+export class SaveInventoryItem {
+    /**
+     * Creates a new SaveInventoryItem instance.
+     * @param {Partial<SaveInventoryItem>} [$$source = {}] - The source object to create the SaveInventoryItem.
+     */
+    constructor($$source = {}) {
+        if (!("uid" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["uid"] = 0;
+        }
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["id"] = 0;
+        }
+        if (!("level" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["level"] = 0;
+        }
+        if (!("rank" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["rank"] = 0;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | undefined}
+             */
+            this["refinement"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | undefined}
+             */
+            this["slot"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | undefined}
+             */
+            this["setId"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number[] | undefined}
+             */
+            this["equippedToAgentIds"] = undefined;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SaveInventoryItem instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {SaveInventoryItem}
+     */
+    static createFrom($$source = {}) {
+        const $$createField7_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("equippedToAgentIds" in $$parsedSource) {
+            $$parsedSource["equippedToAgentIds"] = $$createField7_0($$parsedSource["equippedToAgentIds"]);
+        }
+        return new SaveInventoryItem(/** @type {Partial<SaveInventoryItem>} */($$parsedSource));
+    }
+}
+
 // Private type creation functions
-const $$createType0 = CatalogItem.createFrom;
-const $$createType1 = $Create.Array($$createType0);
+const $$createType0 = $Create.Array($Create.Any);
+const $$createType1 = CatalogItem.createFrom;
+const $$createType2 = $Create.Array($$createType1);
+const $$createType3 = SaveInventoryItem.createFrom;
+const $$createType4 = $Create.Array($$createType3);

@@ -1,0 +1,98 @@
+{
+  "1091": {
+    "characterName": "Miyabi",
+    "role": "Frost Anomaly DPS",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [31400, 31100, 32800, 32500],
+    "mainStats": {
+      "4": 12102,
+      "5": 23103,
+      "6": 31402
+    },
+    "subStats": [20103, 21103, 12102, 31203, 12103],
+    "note": "Main stats vary with Mindscape and substats: Slot 4 ATK% is a strong default; CRIT can be used if needed. PEN% is preferred in Slot 5 at M0, and Anomaly Mastery is recommended in Slot 6 below M1. Aim for 80% in-combat CRIT Rate.",
+    "guideUpdated": "2026-01-12",
+    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/miyabi.yml"
+  },
+  "1201": {
+    "characterName": "Asaba Harumasa",
+    "role": "Attack DPS",
+    "fourPieceSetId": 32900,
+    "twoPieceSetId": 32700,
+    "alternativeTwoPieceSetIds": [31000],
+    "mainStats": {
+      "4": 21103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [20103, 21103, 12102, 12103, 23203],
+    "note": "Shadow Harmony is the consistent 4-piece choice; Hormone Punk is a burst alternative. Prioritize CRIT Rate only to the appropriate cap for his Dash Attacks and team buffs.",
+    "guideUpdated": "2025-06-25",
+    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/harumasa.yml"
+  },
+  "1311": {
+    "characterName": "Astra Yao",
+    "role": "Support",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [31400],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [12102, 12103, 20103, 21103, 23203],
+    "note": "Prioritize reaching her 3429 ATK passive requirement. Slot 6 ATK% helps reach it; switch to Energy Regen% once the requirement is met and you want more frequent Quick Assists.",
+    "guideUpdated": "2025-06-25",
+    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/astra.yml"
+  },
+  "1341": {
+    "characterName": "Zhao",
+    "role": "Defense Support",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 33400,
+    "alternativeTwoPieceSetIds": [33100],
+    "mainStats": {
+      "4": 11102,
+      "5": 11102,
+      "6": 30502
+    },
+    "subStats": [11102, 11103, 20103, 21103, 12102],
+    "note": "Build HP toward her passive requirement; use Energy Regen in Slot 6 for buff uptime. Yunkui Tales is the 2-piece alternative when additional HP is preferred.",
+    "guideUpdated": "2026-01-15",
+    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/zhao.yml"
+  },
+  "1371": {
+    "characterName": "Yixuan",
+    "role": "Rupture DPS",
+    "fourPieceSetId": 33100,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [32700],
+    "mainStats": {
+      "4": 20103,
+      "5": 31903,
+      "6": 11102
+    },
+    "subStats": [20103, 21103, 11102, 12102, 11103],
+    "note": "Yunkui Tales is tailored to her Sheer DMG scaling. She does not need PEN for Sheer DMG; choose CRIT Rate or CRIT DMG in Slot 4 based on her current CRIT ratio.",
+    "guideUpdated": "2025-06-25",
+    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/yixuan.yml"
+  },
+  "1431": {
+    "characterName": "Ye Shunguang",
+    "role": "Attack DPS",
+    "fourPieceSetId": 33500,
+    "twoPieceSetId": 32700,
+    "alternativeTwoPieceSetIds": [31000, 32800],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [20103, 21103, 12102, 12103, 23203],
+    "note": "White Water Ballad is her dedicated 4-piece set. Keep displayed CRIT Rate at or below 50% to account for the set and Core Passive combat bonuses; ATK% or PEN% are both viable in Slot 5.",
+    "guideUpdated": "2026-01-15",
+    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/ye-shunguang.yml"
+  }
+}

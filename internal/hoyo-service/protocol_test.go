@@ -31,6 +31,28 @@ func TestBuildCreateWeaponPacket(t *testing.T) {
 	}
 }
 
+func TestBuildPlayerKickPacket(t *testing.T) {
+	packet, err := buildPlayerKickPacket(123, 0x12345678)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(packet) != 16 {
+		t.Fatalf("packet length = %d, want 16", len(packet))
+	}
+	if binary.LittleEndian.Uint16(packet[2:4]) != playerKickTag {
+		t.Fatalf("operation tag = %d, want %d", binary.LittleEndian.Uint16(packet[2:4]), playerKickTag)
+	}
+	if binary.LittleEndian.Uint32(packet[4:8]) != 0x12345678 {
+		t.Fatal("request ID was not preserved")
+	}
+	if binary.LittleEndian.Uint32(packet[8:12]) != 123 {
+		t.Fatalf("player UID = %d, want 123", binary.LittleEndian.Uint32(packet[8:12]))
+	}
+	if binary.LittleEndian.Uint32(packet[12:16]) != 0 {
+		t.Fatalf("kick reason = %d, want 0", binary.LittleEndian.Uint32(packet[12:16]))
+	}
+}
+
 func TestBuildCreateDiskPacket(t *testing.T) {
 	packet, err := buildCreateDiskPacket(
 		1, 33000, 4, 6, 12102,
@@ -145,6 +167,34 @@ func TestBuildModAvatarPacket(t *testing.T) {
 	}
 	if binary.LittleEndian.Uint32(packet[16:20]) != 1 || binary.LittleEndian.Uint32(packet[20:24]) != 1011 || packet[24] != 5 {
 		t.Fatalf("invalid avatar operation: %v", packet[16:])
+	}
+}
+
+func TestBuildModAvatarAwakeningPacket(t *testing.T) {
+	const awakeningID = 104105
+	packet, err := buildModAvatarPacket(1, 1041, modAvatarFieldAwakening, awakeningID, 99)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := packet[24]; got != modAvatarFieldAwakening {
+		t.Fatalf("field = %d, want %d", got, modAvatarFieldAwakening)
+	}
+	if got := binary.LittleEndian.Uint64(packet[8:16]); got != awakeningID {
+		t.Fatalf("awakening ID = %d, want %d", got, awakeningID)
+	}
+}
+
+func TestBuildModAvatarSkinPacket(t *testing.T) {
+	const skinID = 3110110
+	packet, err := buildModAvatarPacket(1, 1011, modAvatarFieldSkin, skinID, 99)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := packet[24]; got != modAvatarFieldSkin {
+		t.Fatalf("field = %d, want %d", got, modAvatarFieldSkin)
+	}
+	if got := binary.LittleEndian.Uint64(packet[8:16]); got != skinID {
+		t.Fatalf("skin ID = %d, want %d", got, skinID)
 	}
 }
 

@@ -9,5 +9,7 @@ export {
 
 export {
     CatalogItem,
-    HoyoCatalog
+    HoyoCatalog,
+    SaveInventory,
+    SaveInventoryItem
 } from "./models.js";

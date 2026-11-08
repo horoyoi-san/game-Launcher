@@ -5,30 +5,52 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path"
+	"path/filepath"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"sunbringer-launcher/pkg/constant"
 )
 
 const (
-	nanokaDataVersion = "3.4.2+20052336"
-	nanokaDataURL     = "https://static.nanoka.cc/zzz/" + nanokaDataVersion
+	nanokaManifestURL = "https://static.nanoka.cc/manifest.json"
+	nanokaDataBaseURL = "https://static.nanoka.cc/zzz"
 )
 
+type nanokaManifest struct {
+	ZZZ struct {
+		Latest string `json:"latest"`
+	} `json:"zzz"`
+}
+
 type CatalogItem struct {
-	ID        uint32 `json:"id"`
-	Name      string `json:"name"`
-	ImageID   string `json:"imageId"`
-	ImagePath string `json:"imagePath"`
+	ID              uint32   `json:"id"`
+	Name            string   `json:"name"`
+	ImageID         string   `json:"imageId"`
+	ImagePath       string   `json:"imagePath"`
+	Rank            uint32   `json:"rank"`
+	Specialty       uint32   `json:"specialty,omitempty"`
+	Element         uint32   `json:"element,omitempty"`
+	TwoPieceEffect  string   `json:"twoPieceEffect,omitempty"`
+	FourPieceEffect string   `json:"fourPieceEffect,omitempty"`
+	PotentialIDs    []uint32 `json:"potentialIds,omitempty"`
+	SkinIDs         []uint32 `json:"skinIds,omitempty"`
 }
 
 type HoyoCatalog struct {
-	Characters []CatalogItem `json:"characters"`
-	Weapons    []CatalogItem `json:"weapons"`
-	Disks      []CatalogItem `json:"disks"`
+	Characters    []CatalogItem `json:"characters"`
+	Weapons       []CatalogItem `json:"weapons"`
+	Disks         []CatalogItem `json:"disks"`
+	SkinDataError string        `json:"skinDataError,omitempty"`
 }
+
+var avatarSkinEntryPattern = regexp.MustCompile(`\{\s*\.id\s*=\s*(\d+)\s*,\s*\.avatar_id\s*=\s*(\d+)\s*\}`)
 
 var characterIDs = []uint32{
 	1401, 1011, 1111, 1501, 1311, 1471, 1121, 1081,
@@ -139,14 +161,20 @@ var diskSetIDs = []uint32{
 }
 
 type remoteIcon struct {
-	Icon string `json:"icon"`
-	Name string `json:"en"`
+	Icon      string   `json:"icon"`
+	Name      string   `json:"en"`
+	Rank      uint32   `json:"rank"`
+	Specialty uint32   `json:"type"`
+	Element   uint32   `json:"element"`
+	Potential []uint32 `json:"potential"`
 }
 
 type remoteEquipment struct {
 	Icon string `json:"icon"`
 	Name struct {
-		Name string `json:"name"`
+		Name  string `json:"name"`
+		Desc2 string `json:"desc2"`
+		Desc4 string `json:"desc4"`
 	} `json:"en"`
 }
 
@@ -169,6 +197,9 @@ func (s *HoyoService) GetCatalog() (HoyoCatalog, string) {
 	if err != nil {
 		return HoyoCatalog{}, err.Error()
 	}
+	if err := addAvatarSkins(&catalog, filepath.Join(constant.RemielleStorageDir, "assets", "filecfg", "AvatarSkinBaseTemplateTb.zon")); err != nil {
+		catalog.SkinDataError = err.Error()
+	}
 
 	s.catalogMu.Lock()
 	s.cachedCatalog = catalog
@@ -178,8 +209,86 @@ func (s *HoyoService) GetCatalog() (HoyoCatalog, string) {
 	return catalog, ""
 }
 
+func addAvatarSkins(catalog *HoyoCatalog, templatePath string) error {
+	data, err := os.ReadFile(templatePath)
+	if err != nil {
+		return fmt.Errorf("could not load Remielle skin data from %s: %w", templatePath, err)
+	}
+
+	skins, err := parseAvatarSkinIDs(data)
+	if err != nil {
+		return fmt.Errorf("could not parse Remielle skin data from %s: %w", templatePath, err)
+	}
+	for index := range catalog.Characters {
+		catalog.Characters[index].SkinIDs = append([]uint32(nil), skins[catalog.Characters[index].ID]...)
+	}
+	return nil
+}
+
+func parseAvatarSkinIDs(data []byte) (map[uint32][]uint32, error) {
+	matches := avatarSkinEntryPattern.FindAllSubmatch(data, -1)
+	if len(matches) == 0 {
+		return nil, fmt.Errorf("template contains no avatar skin entries")
+	}
+
+	skins := make(map[uint32][]uint32)
+	seen := make(map[uint32]struct{}, len(matches))
+	for _, match := range matches {
+		skinID, err := strconv.ParseUint(string(match[1]), 10, 32)
+		if err != nil || skinID == 0 {
+			return nil, fmt.Errorf("template contains invalid skin ID %q", match[1])
+		}
+		avatarID, err := strconv.ParseUint(string(match[2]), 10, 32)
+		if err != nil || avatarID == 0 {
+			return nil, fmt.Errorf("template contains invalid avatar ID %q", match[2])
+		}
+		if _, exists := seen[uint32(skinID)]; exists {
+			return nil, fmt.Errorf("template contains duplicate skin ID %d", skinID)
+		}
+		seen[uint32(skinID)] = struct{}{}
+		skins[uint32(avatarID)] = append(skins[uint32(avatarID)], uint32(skinID))
+	}
+	for avatarID := range skins {
+		sort.Slice(skins[avatarID], func(i, j int) bool {
+			return skins[avatarID][i] < skins[avatarID][j]
+		})
+	}
+	return skins, nil
+}
+
 func loadCatalog() (HoyoCatalog, error) {
-	return loadCatalogFrom(nanokaDataURL)
+	dataURL, err := latestNanokaDataURL(nanokaManifestURL)
+	if err != nil {
+		return HoyoCatalog{}, err
+	}
+	return loadCatalogFrom(dataURL)
+}
+
+func latestNanokaDataURL(manifestURL string) (string, error) {
+	manifest, err := fetchJSON[nanokaManifest](manifestURL)
+	if err != nil {
+		return "", err
+	}
+
+	version := strings.TrimSpace(manifest.ZZZ.Latest)
+	if version == "" {
+		return "", fmt.Errorf("Nanoka manifest has no latest ZZZ version")
+	}
+	hasDigit := false
+	for _, character := range version {
+		switch {
+		case character >= '0' && character <= '9':
+			hasDigit = true
+		case character == '.' || character == '+' || character == '-':
+		default:
+			return "", fmt.Errorf("Nanoka manifest has invalid latest ZZZ version %q", version)
+		}
+	}
+	if !hasDigit || version == "." || version == ".." {
+		return "", fmt.Errorf("Nanoka manifest has invalid latest ZZZ version %q", version)
+	}
+
+	return nanokaDataBaseURL + "/" + version, nil
 }
 
 func loadCatalogFrom(dataURL string) (HoyoCatalog, error) {
@@ -223,6 +332,10 @@ func loadCatalogFrom(dataURL string) (HoyoCatalog, error) {
 			return HoyoCatalog{}, fmt.Errorf("character %d: %w", id, err)
 		}
 		item.ImagePath = characterImagePath(id)
+		item.Rank = record.Rank
+		item.Specialty = record.Specialty
+		item.Element = record.Element
+		item.PotentialIDs = append([]uint32(nil), record.Potential...)
 		catalog.Characters = append(catalog.Characters, item)
 	}
 	for _, id := range weaponIDs {
@@ -232,6 +345,7 @@ func loadCatalogFrom(dataURL string) (HoyoCatalog, error) {
 			return HoyoCatalog{}, fmt.Errorf("weapon %d: %w", id, err)
 		}
 		item.ImagePath = weaponLocalImagePath(id, record.Name, item.ImagePath)
+		item.Rank = record.Rank
 		catalog.Weapons = append(catalog.Weapons, item)
 	}
 	for _, id := range diskSetIDs {
@@ -240,6 +354,8 @@ func loadCatalogFrom(dataURL string) (HoyoCatalog, error) {
 		if err != nil {
 			return HoyoCatalog{}, fmt.Errorf("disk set %d: %w", id, err)
 		}
+		item.TwoPieceEffect = cleanEquipmentDescription(record.Name.Desc2)
+		item.FourPieceEffect = cleanEquipmentDescription(record.Name.Desc4)
 		catalog.Disks = append(catalog.Disks, item)
 	}
 
@@ -254,6 +370,12 @@ func loadCatalogFrom(dataURL string) (HoyoCatalog, error) {
 	})
 
 	return catalog, nil
+}
+
+var equipmentMarkupPattern = regexp.MustCompile(`<[^>]*>`)
+
+func cleanEquipmentDescription(description string) string {
+	return strings.TrimSpace(equipmentMarkupPattern.ReplaceAllString(description, ""))
 }
 
 func fetchJSON[T any](endpoint string) (T, error) {

@@ -1,19 +1,28 @@
 import { useEffect, useMemo, useState } from "react";
-import { Copy, ExternalLink, LoaderCircle, Search, ShieldCheck, Sparkles } from "lucide-react";
+import { AlertTriangle, Copy, ExternalLink, LoaderCircle, RefreshCw, Search, ShieldCheck, Sparkles, Trash2, X } from "lucide-react";
 import { toast } from "react-toastify";
 import { HoyoService } from "@bindings/sunbringer-launcher/internal/hoyo-service";
+import discRecommendations from "./disc-recommendations.json";
 
 type CatalogItem = {
     id: number;
     name: string;
     imageId: string;
     imagePath: string;
+    rank: number;
+    specialty?: number;
+    element?: number;
+    twoPieceEffect?: string;
+    fourPieceEffect?: string;
+    potentialIds?: number[];
+    skinIds?: number[];
 };
 
 type HoyoCatalog = {
     characters: CatalogItem[];
     weapons: CatalogItem[];
     disks: CatalogItem[];
+    skinDataError?: string;
 };
 
 type DiskConfig = {
@@ -31,16 +40,69 @@ type SavedDiskSet = {
     name: string;
     setId: number;
     disks: DiskConfig[];
+    targetAgentId?: number;
+};
+
+type SaveInventoryItem = {
+    uid: number;
+    id: number;
+    level: number;
+    rank: number;
+    refinement?: number;
+    slot?: number;
+    setId?: number;
+    equippedToAgentIds?: number[];
+};
+
+type SaveInventory = {
+    characters: number[];
+    weapons: SaveInventoryItem[];
+    disks: SaveInventoryItem[];
+};
+
+type DiscRecommendation = {
+    characterName: string;
+    role: string;
+    fourPieceSetId: number;
+    twoPieceSetId: number;
+    alternativeTwoPieceSetIds: number[];
+    mainStats: Record<number, number>;
+    subStats: number[];
+    note: string;
+    guideUpdated: string;
+    source: string;
 };
 
 type Category = "disks" | "characters" | "weapons";
 
+type ConfirmationDialog = {
+    eyebrow: string;
+    title: string;
+    description: string;
+    details: string[];
+    confirmLabel: string;
+    danger?: boolean;
+    onConfirm: () => void;
+};
+
 const SAVED_DISK_SETS_KEY = "hoyoSavedDiskSets";
+const RANK_FILTERS = [
+    { rank: null, label: "ALL" },
+    { rank: 4, label: "S" },
+    { rank: 3, label: "A" },
+    { rank: 2, label: "B" },
+] as const;
 const TABS: { id: Category; label: string; caption: string }[] = [
     { id: "disks", label: "Drive Discs", caption: "Create a custom disc" },
     { id: "characters", label: "Agents", caption: "Tune an agent's growth" },
     { id: "weapons", label: "W-Engines", caption: "Add and refine an engine" },
 ];
+const SAVE_MANAGER_TABS = [
+    { id: "disks", label: "Drive Discs" },
+    { id: "weapons", label: "W-Engines" },
+    { id: "characters", label: "Agents" },
+    { id: "loadouts", label: "Saved Sets" },
+] as const;
 
 const STATS = [
     { id: 11103, name: "HP" },
@@ -66,6 +128,7 @@ const STATS = [
 ];
 
 const SUBSTAT_IDS = [11103, 11102, 12103, 12102, 13103, 13102, 23203, 31203, 21103, 20103];
+const DISC_RECOMMENDATIONS: Record<number, DiscRecommendation> = discRecommendations;
 const MAIN_STATS_BY_SLOT: Record<number, number[]> = {
     1: [11103],
     2: [12103],
@@ -86,7 +149,46 @@ const SKILLS = [
 ];
 
 const getStatName = (id: number) => STATS.find((stat) => stat.id === id)?.name ?? "Select stat";
+const getDiscRecommendation = (character: CatalogItem): DiscRecommendation | null =>
+    DISC_RECOMMENDATIONS[character.id] ?? null;
 const getMaxDiskRolls = (rank: number) => rank + 1;
+const randomizeSubStatRolls = (count: number, minRolls: number, maxRolls: number) => {
+    const rolls = Array.from({ length: count }, () => 0);
+    let remainingRolls = Math.floor(Math.random() * (maxRolls - minRolls + 1)) + minRolls;
+
+    while (remainingRolls > 0) {
+        const eligible = rolls
+            .map((value, index) => value < 14 ? index : -1)
+            .filter((index) => index >= 0);
+        if (eligible.length === 0) break;
+        const index = eligible[Math.floor(Math.random() * eligible.length)];
+        rolls[index] += 1;
+        remainingRolls -= 1;
+    }
+
+    return rolls;
+};
+const buildRecommendedDisks = (recommendation: DiscRecommendation): DiskConfig[] =>
+    [1, 2, 3, 4, 5, 6].map((slot) => {
+        const mainStat = slot < 4
+            ? slot === 1 ? 11103 : slot === 2 ? 12103 : 13103
+            : recommendation.mainStats[slot];
+        const subStatIds = recommendation.subStats.filter((statID) => statID !== mainStat).slice(0, 4);
+        return {
+            setId: slot <= 4 ? recommendation.fourPieceSetId : recommendation.twoPieceSetId,
+            rank: 4,
+            slot,
+            mainStat,
+            subStatIds,
+            subStatRolls: randomizeSubStatRolls(subStatIds.length, 2, getMaxDiskRolls(4)),
+            allowOverLimitRolls: false,
+        };
+    });
+const getCatalogRank = (item: CatalogItem, category: Category) => {
+    const rank = Number(item.rank);
+    if (Number.isInteger(rank) && rank >= 2 && rank <= 4) return rank;
+    return category === "weapons" ? Math.floor(item.id / 1000) - 10 : 0;
+};
 const isDiskConfig = (value: unknown): value is DiskConfig => {
     if (!value || typeof value !== "object") return false;
     const config = value as DiskConfig;
@@ -102,6 +204,7 @@ const isSavedDiskSet = (value: unknown): value is SavedDiskSet => {
     const savedSet = value as SavedDiskSet;
     if (typeof savedSet.id !== "string" || typeof savedSet.name !== "string" ||
         !Number.isInteger(savedSet.setId) || !Array.isArray(savedSet.disks) ||
+        (savedSet.targetAgentId !== undefined && (!Number.isInteger(savedSet.targetAgentId) || savedSet.targetAgentId <= 0)) ||
         savedSet.disks.length < 1 || savedSet.disks.length > 6 ||
         !savedSet.disks.every(isDiskConfig)) return false;
     return new Set(savedSet.disks.map((disk) => disk.slot)).size === savedSet.disks.length &&
@@ -141,7 +244,7 @@ function CatalogCard({
 
     useEffect(() => setImageFailed(false), [item.imagePath]);
 
-    const rarity = category === "weapons" ? Math.floor(item.id / 1000) - 10 : 0;
+    const rarity = getCatalogRank(item, category);
     const rarityLabel = rarity === 4 ? "S-RANK" : rarity === 3 ? "A-RANK" : rarity === 2 ? "B-RANK" : "";
 
     return (
@@ -203,7 +306,11 @@ export default function HoyoPage() {
     const [catalog, setCatalog] = useState<HoyoCatalog | null>(null);
     const [catalogError, setCatalogError] = useState("");
     const [category, setCategory] = useState<Category>("disks");
+    const [activePage, setActivePage] = useState<"workshop" | "manage">("workshop");
+    const [saveManagerSection, setSaveManagerSection] = useState<(typeof SAVE_MANAGER_TABS)[number]["id"]>("disks");
+    const [saveCharacterId, setSaveCharacterId] = useState<number | null>(null);
     const [search, setSearch] = useState("");
+    const [rankFilter, setRankFilter] = useState<number | null>(null);
     const [playerUid, setPlayerUid] = useState(getPlayerUid);
     const [selectedDiskId, setSelectedDiskId] = useState<number | null>(null);
     const [selectedAgentId, setSelectedAgentId] = useState<number | null>(null);
@@ -223,9 +330,17 @@ export default function HoyoPage() {
     const [agentLevel, setAgentLevel] = useState(0);
     const [skillLevels, setSkillLevels] = useState([0, 0, 0, 0, 0, 0, 0]);
     const [mindscape, setMindscape] = useState(-1);
+    const [potentialLevel, setPotentialLevel] = useState(-1);
+    const [avatarSkinID, setAvatarSkinID] = useState(0);
     const [weaponLevel, setWeaponLevel] = useState(60);
     const [refinement, setRefinement] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [saveInventory, setSaveInventory] = useState<SaveInventory | null>(null);
+    const [loadedInventoryUid, setLoadedInventoryUid] = useState<number | null>(null);
+    const [saveInventoryError, setSaveInventoryError] = useState("");
+    const [isLoadingSaveInventory, setIsLoadingSaveInventory] = useState(false);
+    const [inventoryRefreshId, setInventoryRefreshId] = useState(0);
+    const [confirmationDialog, setConfirmationDialog] = useState<ConfirmationDialog | null>(null);
 
     useEffect(() => {
         try {
@@ -283,9 +398,17 @@ export default function HoyoPage() {
 
     const filteredItems = useMemo(() => {
         const normalized = search.trim().toLowerCase();
-        if (!normalized) return currentItems;
-        return currentItems.filter((item) => item.name.toLowerCase().includes(normalized) || String(item.id).includes(normalized));
-    }, [currentItems, search]);
+        return currentItems.filter((item) => {
+            const matchesSearch = !normalized || item.name.toLowerCase().includes(normalized) || String(item.id).includes(normalized);
+            const matchesRank = rankFilter === null || getCatalogRank(item, category) === rankFilter;
+            return matchesSearch && matchesRank;
+        });
+    }, [category, currentItems, rankFilter, search]);
+    const rankCounts = useMemo(() => currentItems.reduce<Record<number, number>>((counts, item) => {
+        const rank = getCatalogRank(item, category);
+        counts[rank] = (counts[rank] ?? 0) + 1;
+        return counts;
+    }, {}), [category, currentItems]);
 
     const mainStatOptions = MAIN_STATS_BY_SLOT[diskSlot] ?? [];
     const totalRolls = subStatRolls.reduce((sum, roll) => sum + roll, 0);
@@ -293,17 +416,70 @@ export default function HoyoPage() {
     const rollLimit = allowOverLimitRolls ? 56 : maxDiskRolls;
     const selectedItemId = category === "disks" ? selectedDiskId : category === "characters" ? selectedAgentId : selectedWeaponId;
     const selectedItem = currentItems.find((item) => item.id === selectedItemId);
+    const selectedCharacter = catalog?.characters.find((item) => item.id === selectedAgentId);
+    const selectedAgentRecommendation = selectedCharacter ? getDiscRecommendation(selectedCharacter) : null;
+    const potentialIDs = selectedCharacter?.potentialIds ?? [];
+    const skinIDs = selectedCharacter?.skinIds ?? [];
     const activeDraftSet = savedDiskSets.find((set) => set.id === draftSavedSetId);
     const currentDraftSlots = activeDraftSet?.disks ?? draftDiskSlots;
     const draftSlotCount = currentDraftSlots.length;
     const activeDraftSlot = currentDraftSlots.find((disk) => disk.slot === diskSlot);
     const uid = Number(playerUid);
     const validUid = Number.isSafeInteger(uid) && uid > 0 && uid <= 0xffffffff;
+    const currentSaveInventory = loadedInventoryUid === uid ? saveInventory : null;
+    const selectedSavedCharacterId = currentSaveInventory?.characters.includes(saveCharacterId ?? -1)
+        ? saveCharacterId
+        : currentSaveInventory?.characters[0] ?? null;
 
-    const submit = async (action: () => Promise<[boolean, string]>, successMessage: string) => {
+    useEffect(() => {
+        if (!validUid) {
+            setSaveInventory(null);
+            setLoadedInventoryUid(null);
+            setSaveInventoryError("");
+            return;
+        }
+        let mounted = true;
+        setSaveInventory(null);
+        setLoadedInventoryUid(null);
+        setIsLoadingSaveInventory(true);
+        setSaveInventoryError("");
+        HoyoService.GetSaveInventory(uid)
+            .then(([inventory, error]) => {
+                if (!mounted) return;
+                if (error) {
+                    setSaveInventory(null);
+                    setSaveInventoryError(error);
+                    return;
+                }
+                setSaveInventory(inventory);
+                setLoadedInventoryUid(uid);
+            })
+            .catch((error: unknown) => {
+                if (!mounted) return;
+                setSaveInventory(null);
+                setSaveInventoryError(error instanceof Error ? error.message : String(error));
+            })
+            .finally(() => {
+                if (mounted) setIsLoadingSaveInventory(false);
+            });
+        return () => {
+            mounted = false;
+        };
+    }, [inventoryRefreshId, uid, validUid]);
+
+    useEffect(() => {
+        if (!confirmationDialog) return;
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") setConfirmationDialog(null);
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [confirmationDialog]);
+
+    const submit = async (action: () => Promise<[boolean, string]>, successMessage: string): Promise<boolean> => {
         if (!validUid) {
             toast.error("Enter a valid player UID between 1 and 4,294,967,295.");
-            return;
+            return false;
         }
         setIsSubmitting(true);
         try {
@@ -311,14 +487,25 @@ export default function HoyoPage() {
             const [ok, message] = await action();
             if (!ok) {
                 toast.error(message || "The Remielle control request failed.");
-                return;
+                return false;
             }
-            toast.success(successMessage);
+            toast.success(message || successMessage);
+            return true;
         } catch (error: unknown) {
             toast.error(`Hoyo request failed: ${error instanceof Error ? error.message : String(error)}`);
+            return false;
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const submitAndRefreshInventory = async (
+        action: () => Promise<[boolean, string]>,
+        successMessage: string,
+    ) => {
+        const succeeded = await submit(action, successMessage);
+        if (succeeded) setInventoryRefreshId((value) => value + 1);
+        return succeeded;
     };
 
     const createDisk = (stats = subStatIds, rolls = subStatRolls) => {
@@ -402,6 +589,7 @@ export default function HoyoPage() {
             name,
             setId: existingSet?.setId ?? draftDiskSetId ?? selectedDiskId,
             disks: updatedDraft,
+            targetAgentId: existingSet?.targetAgentId,
         };
         const updatedSets = existingSet
             ? savedDiskSets.map((set) => set.id === existingSet.id ? savedSet : set)
@@ -476,6 +664,209 @@ export default function HoyoPage() {
         }, `Added ${savedSet.disks.length} ${savedSet.disks.length === 1 ? "disc" : "discs"} from "${savedSet.name}".`);
     };
 
+    const equipSavedDiskSet = (savedSet: SavedDiskSet) => {
+        const agent = catalog?.characters.find((character) => character.id === savedSet.targetAgentId);
+        if (!agent) {
+            toast.error(`Select an Agent for "${savedSet.name}" before equipping this loadout.`);
+            return;
+        }
+        const invalidDisk = savedSet.disks.find((disk) => getDiskConfigError(disk));
+        if (invalidDisk) {
+            toast.error(getDiskConfigError(invalidDisk) ?? "A saved Drive Disc is invalid.");
+            return;
+        }
+        const disks = [...savedSet.disks].sort((a, b) => a.slot - b.slot);
+        setConfirmationDialog({
+            eyebrow: "EQUIP DRIVE DISC LOADOUT",
+            title: `Equip "${savedSet.name}"?`,
+            description: `This equips ${disks.length} Drive Disc${disks.length === 1 ? "" : "s"} to ${agent.name} on UID ${uid}.`,
+            details: [
+                "The UID will be disconnected before the save is updated.",
+                "Existing equipped discs in the selected slots will be replaced.",
+                "Reconnect after the update completes.",
+            ],
+            confirmLabel: "EQUIP LOADOUT",
+            onConfirm: () => {
+                setConfirmationDialog(null);
+                void submitAndRefreshInventory(
+                    () => HoyoService.EquipDiskSet(
+                        uid,
+                        agent.id,
+                        disks.map((disk) => disk.setId ?? savedSet.setId),
+                        disks.map((disk) => disk.rank),
+                        disks.map((disk) => disk.slot),
+                        disks.map((disk) => disk.mainStat),
+                        disks.map((disk) => disk.subStatIds),
+                        disks.map((disk) => disk.subStatRolls),
+                    ),
+                    `Equipped Drive Discs to ${agent.name}.`,
+                );
+            },
+        });
+    };
+
+    const setSavedDiskSetTarget = (savedSet: SavedDiskSet, targetAgentId: number | undefined) => {
+        const updatedSets = savedDiskSets.map((set) =>
+            set.id === savedSet.id ? { ...set, targetAgentId } : set,
+        );
+        try {
+            localStorage.setItem(SAVED_DISK_SETS_KEY, JSON.stringify(updatedSets));
+            setSavedDiskSets(updatedSets);
+        } catch (error: unknown) {
+            toast.error(`Could not save Agent selection: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    };
+
+    const equipRecommendedDisks = (character: CatalogItem, recommendation: DiscRecommendation) => {
+        const disks = buildRecommendedDisks(recommendation);
+        const invalidDisk = disks.find((disk) => getDiskConfigError(disk));
+        if (invalidDisk) {
+            toast.error(getDiskConfigError(invalidDisk) ?? "The recommended Drive Disc build is invalid.");
+            return;
+        }
+        setConfirmationDialog({
+            eyebrow: "RECOMMENDED BUILD",
+            title: `Equip a build for ${character.name}?`,
+            description: `This creates and equips six recommended S-Rank Drive Discs for UID ${uid}.`,
+            details: [
+                "New discs are added to the account inventory.",
+                "The UID will be disconnected before the save is updated.",
+                "Reconnect after the update completes.",
+            ],
+            confirmLabel: "CREATE & EQUIP BUILD",
+            onConfirm: () => {
+                setConfirmationDialog(null);
+                void submitAndRefreshInventory(
+                    () => HoyoService.EquipDiskSet(
+                        uid,
+                        character.id,
+                        disks.map((disk) => disk.setId ?? (disk.slot <= 4 ? recommendation.fourPieceSetId : recommendation.twoPieceSetId)),
+                        disks.map((disk) => disk.rank),
+                        disks.map((disk) => disk.slot),
+                        disks.map((disk) => disk.mainStat),
+                        disks.map((disk) => disk.subStatIds),
+                        disks.map((disk) => disk.subStatRolls),
+                    ),
+                    `Recommended Drive Discs equipped to ${character.name}.`,
+                );
+            },
+        });
+    };
+
+    const deleteSelectedCharacterSave = (character: CatalogItem) => {
+        setConfirmationDialog({
+            eyebrow: "PERMANENT SAVE CHANGE",
+            title: `Delete ${character.name}?`,
+            description: `This removes the Agent and their equipped Drive Discs/W-Engine from UID ${uid}'s account save.`,
+            details: [
+                "Items used by another Agent will be kept.",
+                "A .bin backup is created before the change.",
+                "Remielle will disconnect this UID. This cannot be undone in-game.",
+            ],
+            confirmLabel: "DELETE FROM SAVE",
+            danger: true,
+            onConfirm: () => {
+                setConfirmationDialog(null);
+                void submitAndRefreshInventory(
+                    () => HoyoService.DeleteCharacterSave(uid, character.id),
+                    `${character.name} and its equipped items were removed from the game save.`,
+                );
+            },
+        });
+    };
+
+    const deleteAllOtherCharacters = (character: CatalogItem) => {
+        setConfirmationDialog({
+            eyebrow: "DELETE ALL OTHER AGENTS",
+            title: `Keep ${character.name} and delete the rest?`,
+            description: `This removes every other Agent from UID ${uid}'s account save. ${character.name} will be kept as the only character.`,
+            details: [
+                `Gear used by ${character.name} will be kept; other Agents and their gear will be removed.`,
+                "A single .bin backup is created before the change.",
+                "Remielle will disconnect this UID. This cannot be undone in-game.",
+            ],
+            confirmLabel: "DELETE OTHER AGENTS",
+            danger: true,
+            onConfirm: () => {
+                setConfirmationDialog(null);
+                void submitAndRefreshInventory(
+                    () => HoyoService.DeleteAllCharactersSave(uid, character.id),
+                    `Deleted all other Agents. ${character.name} was kept in the game save.`,
+                );
+            },
+        });
+    };
+
+    const deleteInventoryItem = (itemType: "disk" | "weapon", item: SaveInventoryItem) => {
+        const catalogItem = itemType === "disk"
+            ? catalog?.disks.find((entry) => entry.id === item.setId)
+            : catalog?.weapons.find((entry) => entry.id === item.id);
+        const itemName = catalogItem?.name ?? (itemType === "disk" ? `Drive Disc ${item.setId}` : `W-Engine ${item.id}`);
+        const label = itemType === "disk" ? `Slot ${item.slot} ${itemName}` : itemName;
+        const equippedNames = (item.equippedToAgentIds ?? [])
+            .map((agentId) => catalog?.characters.find((agent) => agent.id === agentId)?.name)
+            .filter((name): name is string => Boolean(name));
+        setConfirmationDialog({
+            eyebrow: `DELETE ${itemType === "disk" ? "DRIVE DISC" : "W-ENGINE"}`,
+            title: `Delete ${label}?`,
+            description: `This permanently removes the selected item from UID ${uid}'s game save.`,
+            details: [
+                equippedNames.length > 0
+                    ? `It will be unequipped from ${equippedNames.join(", ")}.`
+                    : "This item is currently unequipped.",
+                "A .bin backup is created before the change.",
+                "Remielle will disconnect this UID. This cannot be undone in-game.",
+            ],
+            confirmLabel: "DELETE ITEM",
+            danger: true,
+            onConfirm: () => {
+                setConfirmationDialog(null);
+                void submitAndRefreshInventory(
+                    () => HoyoService.DeleteInventoryItem(uid, itemType, item.uid),
+                    `${label} was deleted from the game save.`,
+                );
+            },
+        });
+    };
+
+    const deleteAllInventoryItems = () => {
+        if (!currentSaveInventory) {
+            toast.error("Load the account inventory before deleting its items.");
+            return;
+        }
+        const diskCount = currentSaveInventory.disks.length;
+        const weaponCount = currentSaveInventory.weapons.length;
+        const equippedAgentIds = new Set([
+            ...currentSaveInventory.disks.flatMap((item) => item.equippedToAgentIds ?? []),
+            ...currentSaveInventory.weapons.flatMap((item) => item.equippedToAgentIds ?? []),
+        ]);
+        if (diskCount + weaponCount === 0) {
+            toast.info("No Drive Discs or W-Engines to delete.");
+            return;
+        }
+        setConfirmationDialog({
+            eyebrow: "DELETE ALL GAME GEAR",
+            title: `Delete all ${diskCount + weaponCount} items?`,
+            description: `This permanently deletes every Drive Disc and W-Engine from UID ${uid}'s account save.`,
+            details: [
+                `${diskCount} Drive Discs and ${weaponCount} W-Engines will be deleted, including equipped items.`,
+                equippedAgentIds.size > 0
+                    ? `All gear will be unequipped from ${equippedAgentIds.size} Agent(s) before removal.`
+                    : "None of these items are currently equipped.",
+                "A single .bin backup is created before the change. Remielle will disconnect this UID.",
+            ],
+            confirmLabel: "DELETE ALL GEAR",
+            danger: true,
+            onConfirm: () => {
+                setConfirmationDialog(null);
+                void submitAndRefreshInventory(
+                    () => HoyoService.DeleteAllInventoryItems(uid),
+                    "All Drive Discs and W-Engines were deleted from the game save.",
+                );
+            },
+        });
+    };
+
     const editSavedDiskSlot = (savedSet: SavedDiskSet, slot: number) => {
         const disk = savedSet.disks.find((entry) => entry.slot === slot);
         const setId = disk?.setId ?? savedSet.setId;
@@ -493,19 +884,30 @@ export default function HoyoPage() {
     };
 
     const deleteSavedDiskSet = (savedSet: SavedDiskSet) => {
-        const updatedSets = savedDiskSets.filter((set) => set.id !== savedSet.id);
-        try {
-            localStorage.setItem(SAVED_DISK_SETS_KEY, JSON.stringify(updatedSets));
-            setSavedDiskSets(updatedSets);
-            if (draftSavedSetId === savedSet.id) {
-                setDraftSavedSetId(null);
-                setDraftDiskSlots([]);
-                setDraftDiskSetId(null);
+        setConfirmationDialog({
+            eyebrow: "DELETE SAVED LOADOUT",
+            title: `Delete "${savedSet.name}"?`,
+            description: "This removes the loadout from this Launcher. It does not change your game save or inventory.",
+            details: ["This only deletes the local saved configuration.", "Already equipped Drive Discs will not be affected."],
+            confirmLabel: "DELETE LOADOUT",
+            danger: true,
+            onConfirm: () => {
+                setConfirmationDialog(null);
+                const updatedSets = savedDiskSets.filter((set) => set.id !== savedSet.id);
+                try {
+                    localStorage.setItem(SAVED_DISK_SETS_KEY, JSON.stringify(updatedSets));
+                    setSavedDiskSets(updatedSets);
+                    if (draftSavedSetId === savedSet.id) {
+                        setDraftSavedSetId(null);
+                        setDraftDiskSlots([]);
+                        setDraftDiskSetId(null);
+                    }
+                    toast.success(`Deleted saved set "${savedSet.name}".`);
+                } catch (error: unknown) {
+                    toast.error(`Could not delete saved Drive Disc set: ${error instanceof Error ? error.message : String(error)}`);
+                }
             }
-            toast.success(`Deleted saved set "${savedSet.name}".`);
-        } catch (error: unknown) {
-            toast.error(`Could not delete saved Drive Disc set: ${error instanceof Error ? error.message : String(error)}`);
-        }
+        });
     };
 
     const duplicateSavedDiskSet = (savedSet: SavedDiskSet) => {
@@ -624,8 +1026,9 @@ export default function HoyoPage() {
         setAgentLevel(1);
         setSkillLevels(defaultSkills);
         setMindscape(0);
+        setPotentialLevel(0);
         void submit(
-            () => HoyoService.ModifyCharacter(uid, selectedAgentId, 1, defaultSkills, 0),
+            () => HoyoService.ModifyCharacter(uid, selectedAgentId, 1, defaultSkills, 0, 0, 0),
             "Agent set to default values.",
         );
     };
@@ -687,8 +1090,8 @@ export default function HoyoPage() {
             <header className="hoyo-header">
                 <div>
                     <div className="hoyo-eyebrow"><span /> REMIELLE CONTROL CENTER</div>
-                    <h1>Hoyo Workshop</h1>
-                    <p>Build Drive Discs, tune agents, and add W-Engines with visual item search.</p>
+                    <h1>{activePage === "manage" ? "Save Manager" : "Hoyo Workshop"}</h1>
+                    <p>{activePage === "manage" ? "Review and remove characters and gear in the selected UID's game save." : "Build Drive Disc loadouts, equip Agents, tune characters, and add W-Engines."}</p>
                 </div>
                 <label className={`hoyo-uid ${validUid ? "" : "is-invalid"}`}>
                     <span>PLAYER UID</span>
@@ -705,7 +1108,7 @@ export default function HoyoPage() {
 
             <div className="hoyo-notice">
                 <ShieldCheck size={17} />
-                <span>Connects to the local Remielle control interface at <strong>127.0.0.1:15810</strong>. The server must be running and your UID must be online.</span>
+                <span>Live controls use <strong>127.0.0.1:15810</strong> and require an online UID. Equipping a saved Drive Disc set updates the account save and disconnects that UID if Remielle is running.</span>
             </div>
             <p className="hoyo-artwork-note">Artwork is loaded from local files in <code>frontend/public/hoyo/</code>; see that folder for the expected image names.</p>
 
@@ -714,10 +1117,12 @@ export default function HoyoPage() {
                     <button
                         key={tab.id}
                         type="button"
-                        className={category === tab.id ? "is-active" : ""}
+                        className={activePage === "workshop" && category === tab.id ? "is-active" : ""}
                         onClick={() => {
+                            setActivePage("workshop");
                             setCategory(tab.id);
                             setSearch("");
+                            setRankFilter(null);
                         }}
                     >
                         <span className="hoyo-tabs__number">0{index + 1}</span>
@@ -725,6 +1130,15 @@ export default function HoyoPage() {
                         <small>{tab.caption}</small>
                     </button>
                 ))}
+                <button
+                    type="button"
+                    className={activePage === "manage" ? "is-active" : ""}
+                    onClick={() => setActivePage("manage")}
+                >
+                    <span className="hoyo-tabs__number">04</span>
+                    <span>Manage Save</span>
+                    <small>Remove saved game data</small>
+                </button>
             </nav>
 
             {catalogError ? (
@@ -738,6 +1152,7 @@ export default function HoyoPage() {
                 <div className="hoyo-loading"><LoaderCircle size={20} className="hoyo-spinner" /> Loading item catalogue…</div>
             ) : (
                 <>
+                {activePage === "workshop" && (
                 <section className="hoyo-workspace">
                     <div className="hoyo-catalog">
                         <div className="hoyo-catalog__toolbar">
@@ -751,6 +1166,22 @@ export default function HoyoPage() {
                                     aria-label={`Search ${selectedTab.label}`}
                                 />
                             </label>
+                            {(category === "characters" || category === "weapons") && (
+                                <div className="hoyo-rank-filter" role="group" aria-label="Filter by rank">
+                                    {RANK_FILTERS.map((filter) => (
+                                        <button
+                                            key={filter.label}
+                                            type="button"
+                                            className={rankFilter === filter.rank ? "is-active" : ""}
+                                            aria-pressed={rankFilter === filter.rank}
+                                            onClick={() => setRankFilter(filter.rank)}
+                                        >
+                                            {filter.label}
+                                            {filter.rank !== null && <small>{rankCounts[filter.rank] ?? 0}</small>}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                             <span>{filteredItems.length} ITEMS</span>
                         </div>
                         {filteredItems.length > 0 ? (
@@ -763,17 +1194,25 @@ export default function HoyoPage() {
                                         selected={selectedItemId === item.id}
                                         onSelect={() => {
                                             if (category === "disks") setSelectedDiskId(item.id);
-                                            if (category === "characters") setSelectedAgentId(item.id);
+                                            if (category === "characters") {
+                                                setSelectedAgentId(item.id);
+                                                setPotentialLevel(-1);
+                                                setAvatarSkinID(0);
+                                            }
                                             if (category === "weapons") setSelectedWeaponId(item.id);
                                         }}
                                     />
                                 ))}
                             </div>
                         ) : (
-                            <div className="hoyo-empty">No items match “{search}”.</div>
+                            <div className="hoyo-empty">
+                                {rankFilter !== null && (rankCounts[rankFilter] ?? 0) === 0
+                                    ? `No ${RANK_FILTERS.find((filter) => filter.rank === rankFilter)?.label}-rank ${selectedTab.label.toLowerCase()} in this catalogue.`
+                                    : `No items match “${search.trim()}”${rankFilter === null ? "" : ` in ${RANK_FILTERS.find((filter) => filter.rank === rankFilter)?.label}-rank items`}.`}
+                            </div>
                         )}
                         <div className="hoyo-attribution">
-                            Artwork and item data from <a href="https://zzz.nanoka.cc/character" target="_blank" rel="noreferrer">Nanoka <ExternalLink size={12} /></a>
+                            Artwork and item data from <a href={category === "disks" ? "https://zzz.nanoka.cc/equipment" : "https://zzz.nanoka.cc/character"} target="_blank" rel="noreferrer">Nanoka <ExternalLink size={12} /></a>
                         </div>
                     </div>
 
@@ -783,6 +1222,105 @@ export default function HoyoPage() {
                             <h2>{selectedItem?.name ?? selectedTab.label}</h2>
                             <p>{selectedItem ? `Selected item · ${selectedItem.id}` : "Choose an item from the catalogue to begin."}</p>
                         </div>
+
+                        {category === "disks" && selectedItem && (selectedItem.twoPieceEffect || selectedItem.fourPieceEffect) && (
+                            <section className="hoyo-disk-bonuses" aria-label={`${selectedItem.name} set bonuses`}>
+                                <span className="hoyo-disk-bonuses__eyebrow">SET BONUSES</span>
+                                {selectedItem.twoPieceEffect && (
+                                    <div>
+                                        <b>2-PIECE</b>
+                                        <p>{selectedItem.twoPieceEffect}</p>
+                                    </div>
+                                )}
+                                {selectedItem.fourPieceEffect && (
+                                    <div>
+                                        <b>4-PIECE</b>
+                                        <p>{selectedItem.fourPieceEffect}</p>
+                                    </div>
+                                )}
+                            </section>
+                        )}
+
+                        {category === "characters" && selectedCharacter && (
+                            <section className="hoyo-agent-disc-recommendation" aria-label="Recommended Drive Disc build">
+                                <div className="hoyo-agent-disc-recommendation__heading">
+                                    <span>RECOMMENDED BUILD</span>
+                                    <b>{selectedAgentRecommendation?.role ?? "NO PRESET"}</b>
+                                </div>
+                                {selectedAgentRecommendation ? (
+                                    <>
+                                        <p className="hoyo-agent-disc-recommendation__note">
+                                            {selectedAgentRecommendation.note} You can customize the loadout in Drive Discs.
+                                        </p>
+                                        {selectedAgentRecommendation.alternativeTwoPieceSetIds.length > 0 && (
+                                            <p className="hoyo-agent-disc-recommendation__alternatives">
+                                                2-PIECE ALTERNATIVES: {selectedAgentRecommendation.alternativeTwoPieceSetIds
+                                                    .map((setId) => catalog?.disks.find((disk) => disk.id === setId)?.name)
+                                                    .filter((name): name is string => Boolean(name))
+                                                    .join(" · ")}
+                                            </p>
+                                        )}
+                                        <a
+                                            className="hoyo-agent-disc-recommendation__source"
+                                            href={selectedAgentRecommendation.source}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            GUIDE UPDATED {selectedAgentRecommendation.guideUpdated} <ExternalLink size={10} />
+                                        </a>
+                                        <div className="hoyo-agent-disc-recommendation__sets">
+                                            {[selectedAgentRecommendation.fourPieceSetId, selectedAgentRecommendation.twoPieceSetId].map((setId, index) => {
+                                                const set = catalog?.disks.find((disk) => disk.id === setId);
+                                                return (
+                                                    <div key={setId}>
+                                                        <span className="hoyo-agent-disc-recommendation__set-art">
+                                                            <Sparkles size={16} aria-hidden="true" />
+                                                            {set?.imagePath && (
+                                                                <img
+                                                                    src={set.imagePath}
+                                                                    alt=""
+                                                                    loading="lazy"
+                                                                    onError={(event) => {
+                                                                        event.currentTarget.hidden = true;
+                                                                    }}
+                                                                />
+                                                            )}
+                                                        </span>
+                                                        <b>{index === 0 ? "4-PIECE" : "2-PIECE"}</b>
+                                                        <span className="hoyo-agent-disc-recommendation__set-name">{set?.name ?? `Drive Disc ${setId}`}</span>
+                                                        <small>{index === 0 ? set?.fourPieceEffect : set?.twoPieceEffect}</small>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="hoyo-agent-disc-recommendation__stats">
+                                            {[4, 5, 6].map((slot) => (
+                                                <div key={slot}>
+                                                    <b>{slot}</b>
+                                                    <span>{getStatName(selectedAgentRecommendation.mainStats[slot])}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p className="hoyo-agent-disc-recommendation__substats">
+                                            <b>SUBSTATS</b>
+                                            {selectedAgentRecommendation.subStats.slice(0, 3).map(getStatName).join(" · ")}
+                                        </p>
+                                        <button
+                                            type="button"
+                                            className="hoyo-button hoyo-button--primary hoyo-button--full"
+                                            disabled={isSubmitting || !validUid}
+                                            onClick={() => equipRecommendedDisks(selectedCharacter, selectedAgentRecommendation)}
+                                        >
+                                            {isSubmitting ? "APPLYING BUILD…" : "CREATE & EQUIP RECOMMENDED BUILD"}
+                                        </button>
+                                    </>
+                                ) : (
+                                    <p className="hoyo-agent-disc-recommendation__note">
+                                        No character-specific Drive Disc recommendation has been verified for this Agent yet. A role-only preset is intentionally not shown.
+                                    </p>
+                                )}
+                            </section>
+                        )}
 
                         {category === "disks" && (
                             <div className="hoyo-editor__body">
@@ -929,6 +1467,7 @@ export default function HoyoPage() {
                                                     return levels;
                                                 }, [0, 0, 0, 0, 0, 0, 0]));
                                                 setMindscape(6);
+                                                setPotentialLevel(potentialIDs.length > 0 ? Math.min(potentialIDs.length, 6) : -1);
                                             }}
                                         >
                                             MAX
@@ -957,12 +1496,84 @@ export default function HoyoPage() {
                                         {[0, 1, 2, 3, 4, 5, 6].map((value) => <option key={value} value={value}>M{value}</option>)}
                                     </select>
                                 </label>
+                                <label className="hoyo-field">
+                                    <span>POTENTIAL VISION <small>OPTIONAL</small></span>
+                                    <select
+                                        value={potentialLevel}
+                                        disabled={potentialIDs.length === 0}
+                                        onChange={(event) => setPotentialLevel(Number(event.target.value))}
+                                    >
+                                        {potentialIDs.length === 0 ? (
+                                            <option value={-1}>No Potential Vision data</option>
+                                        ) : (
+                                            <>
+                                                <option value={-1}>Leave unchanged</option>
+                                                <option value={0}>P0</option>
+                                                {potentialIDs.slice(0, 6).map((_, index) => (
+                                                    <option key={index + 1} value={index + 1}>P{index + 1}</option>
+                                                ))}
+                                            </>
+                                        )}
+                                    </select>
+                                </label>
+                                <label className="hoyo-field">
+                                    <span>CHARACTER SKIN <small>OPTIONAL</small></span>
+                                    <select
+                                        value={avatarSkinID}
+                                        disabled={!selectedAgentId || skinIDs.length === 0}
+                                        onChange={(event) => setAvatarSkinID(Number(event.target.value))}
+                                    >
+                                        <option value={0}>Leave unchanged</option>
+                                        {skinIDs.map((skinID, index) => (
+                                            <option key={skinID} value={skinID}>
+                                                {index === 0 ? "Default" : "Skin"} · {skinID}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {catalog?.skinDataError && skinIDs.length === 0 && (
+                                        <small>{catalog.skinDataError}</small>
+                                    )}
+                                    {!catalog?.skinDataError && selectedAgentId && skinIDs.length === 0 && (
+                                        <small>No skins are listed for this character in the current Remielle data.</small>
+                                    )}
+                                </label>
+                                <button
+                                    type="button"
+                                    className="hoyo-button hoyo-button--muted hoyo-button--full"
+                                    disabled={isSubmitting || !selectedAgentId}
+                                    onClick={() => {
+                                        if (!selectedCharacter) return;
+                                        setConfirmationDialog({
+                                            eyebrow: "ADD AGENT TO SAVE",
+                                            title: `Unlock ${selectedCharacter.name}?`,
+                                            description: `This adds the selected Agent to UID ${uid}'s account save.`,
+                                            details: [
+                                                "A .bin backup is created before the change.",
+                                                "The UID will be disconnected before the save is updated.",
+                                                "Reconnect after the update completes.",
+                                            ],
+                                            confirmLabel: "UNLOCK AGENT",
+                                            onConfirm: () => {
+                                                setConfirmationDialog(null);
+                                                void submitAndRefreshInventory(
+                                                    () => HoyoService.UnlockCharacter(uid, selectedCharacter.id),
+                                                    "Agent unlocked. Reconnect your UID to use it.",
+                                                );
+                                            },
+                                        });
+                                    }}
+                                >
+                                    {isSubmitting ? "Unlocking…" : "Unlock selected Agent"}
+                                </button>
+                                <div className="hoyo-rank-note">
+                                    If Remielle is running, this disconnects the selected UID before updating its save. A backup is created automatically.
+                                </div>
                                 <button
                                     type="button"
                                     className="hoyo-button hoyo-button--primary hoyo-button--full"
                                     disabled={isSubmitting || !selectedAgentId}
                                     onClick={() => void submit(
-                                        () => HoyoService.ModifyCharacter(uid, selectedAgentId!, agentLevel, skillLevels, mindscape),
+                                        () => HoyoService.ModifyCharacter(uid, selectedAgentId!, agentLevel, skillLevels, mindscape, potentialLevel, avatarSkinID),
                                         "Agent updated.",
                                     )}
                                 >
@@ -1024,13 +1635,264 @@ export default function HoyoPage() {
                         )}
                     </aside>
                 </section>
-                {category === "disks" && (
+                )}
+                {activePage === "manage" && (
+                    <section className="hoyo-save-manager">
+                        <nav className="hoyo-save-manager__tabs" aria-label="Save data categories">
+                            {SAVE_MANAGER_TABS.map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    className={saveManagerSection === tab.id ? "is-active" : ""}
+                                    aria-pressed={saveManagerSection === tab.id}
+                                    onClick={() => setSaveManagerSection(tab.id)}
+                                >
+                                    {tab.label}
+                                    <small>
+                                        {tab.id === "disks"
+                                            ? currentSaveInventory?.disks.length ?? 0
+                                            : tab.id === "weapons"
+                                                ? currentSaveInventory?.weapons.length ?? 0
+                                                : tab.id === "characters"
+                                                    ? currentSaveInventory?.characters.length ?? 0
+                                                    : savedDiskSets.length}
+                                    </small>
+                                </button>
+                            ))}
+                        </nav>
+                        {saveManagerSection === "characters" ? (
+                            <section className="hoyo-save-characters">
+                                <div className="hoyo-save-inventory__heading">
+                                    <div>
+                                        <span>GAME SAVE · {validUid ? `UID ${uid}` : "UID REQUIRED"}</span>
+                                        <h2>Agents</h2>
+                                        <p>Choose an Agent from the save. Bulk deletion keeps the selected Agent and their equipped gear.</p>
+                                    </div>
+                                    <div className="hoyo-save-inventory__heading-actions">
+                                        <b>{currentSaveInventory?.characters.length ?? 0} AGENTS</b>
+                                        <button
+                                            type="button"
+                                            className="hoyo-button hoyo-button--muted"
+                                            disabled={isLoadingSaveInventory || !validUid}
+                                            onClick={() => setInventoryRefreshId((value) => value + 1)}
+                                        >
+                                            {isLoadingSaveInventory ? <LoaderCircle size={12} className="hoyo-spinner" /> : <RefreshCw size={12} />}
+                                            REFRESH
+                                        </button>
+                                    </div>
+                                </div>
+                                {!validUid ? (
+                                    <div className="hoyo-save-inventory__status">Enter a valid player UID to read the game save.</div>
+                                ) : saveInventoryError ? (
+                                    <div className="hoyo-save-inventory__status is-error" role="alert">
+                                        <AlertTriangle size={14} /><span>{saveInventoryError}</span>
+                                    </div>
+                                ) : isLoadingSaveInventory && !currentSaveInventory ? (
+                                    <div className="hoyo-save-inventory__status"><LoaderCircle size={14} className="hoyo-spinner" /> Reading account save…</div>
+                                ) : !currentSaveInventory?.characters.length ? (
+                                    <div className="hoyo-save-inventory__empty">No Agents found in this UID&apos;s save.</div>
+                                ) : (
+                                    <>
+                                        <label className="hoyo-save-characters__select">
+                                            <span>AGENT TO KEEP OR DELETE</span>
+                                            <select
+                                                value={selectedSavedCharacterId ?? ""}
+                                                onChange={(event) => setSaveCharacterId(Number(event.target.value))}
+                                                disabled={isSubmitting}
+                                            >
+                                                {currentSaveInventory.characters.map((avatarID) => {
+                                                    const agent = catalog.characters.find((item) => item.id === avatarID);
+                                                    return <option key={avatarID} value={avatarID}>{agent?.name ?? `Agent ${avatarID}`}</option>;
+                                                })}
+                                            </select>
+                                        </label>
+                                        {(() => {
+                                            const agent = catalog.characters.find((item) => item.id === selectedSavedCharacterId);
+                                            if (!agent) return null;
+                                            return (
+                                                <div className="hoyo-save-characters__actions">
+                                                    <article className="hoyo-save-characters__selected">
+                                                        {agent.imagePath && <img src={agent.imagePath} alt="" />}
+                                                        <div><b>{agent.name}</b><span>AGENT ID {agent.id}</span></div>
+                                                    </article>
+                                                    <button
+                                                        type="button"
+                                                        className="hoyo-button hoyo-button--danger"
+                                                        disabled={isSubmitting || !validUid || currentSaveInventory.characters.length <= 1}
+                                                        onClick={() => deleteSelectedCharacterSave(agent)}
+                                                    >
+                                                        <Trash2 size={13} /> DELETE THIS AGENT
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="hoyo-button hoyo-button--danger"
+                                                        disabled={isSubmitting || !validUid || currentSaveInventory.characters.length <= 1}
+                                                        onClick={() => deleteAllOtherCharacters(agent)}
+                                                    >
+                                                        <Trash2 size={13} /> KEEP THIS · DELETE OTHERS
+                                                    </button>
+                                                </div>
+                                            );
+                                        })()}
+                                        {currentSaveInventory.characters.length <= 1 && (
+                                            <p className="hoyo-save-characters__note">The only Agent in the save cannot be deleted.</p>
+                                        )}
+                                    </>
+                                )}
+                            </section>
+                        ) : saveManagerSection === "loadouts" ? null : (
+                <section className="hoyo-save-inventory" aria-label={`${saveManagerSection === "disks" ? "Drive Disc" : "W-Engine"} save inventory`}>
+                        <div className="hoyo-save-inventory__heading">
+                            <div>
+                                <span>GAME SAVE INVENTORY · {validUid ? `UID ${uid}` : "UID REQUIRED"}</span>
+                                <h2>{saveManagerSection === "disks" ? "Drive Discs" : "W-Engines"}</h2>
+                                <p>Items are read from the account .bin. Delete an item to remove it from inventory and unequip it.</p>
+                            </div>
+                            <div className="hoyo-save-inventory__heading-actions">
+                                <b>{saveManagerSection === "disks" ? currentSaveInventory?.disks.length ?? 0 : currentSaveInventory?.weapons.length ?? 0} ITEMS</b>
+                                <button
+                                    type="button"
+                                    className="hoyo-save-inventory__delete-all"
+                                    disabled={isLoadingSaveInventory || isSubmitting || !validUid || !currentSaveInventory || currentSaveInventory.disks.length + currentSaveInventory.weapons.length === 0}
+                                    onClick={deleteAllInventoryItems}
+                                >
+                                    <Trash2 size={12} />
+                                    DELETE ALL GEAR
+                                </button>
+                                <button
+                                    type="button"
+                                    className="hoyo-button hoyo-button--muted"
+                                    disabled={isLoadingSaveInventory || !validUid}
+                                    onClick={() => setInventoryRefreshId((value) => value + 1)}
+                                >
+                                    {isLoadingSaveInventory ? <LoaderCircle size={12} className="hoyo-spinner" /> : <RefreshCw size={12} />}
+                                    REFRESH
+                                </button>
+                            </div>
+                        </div>
+                        {!validUid ? (
+                            <div className="hoyo-save-inventory__status">Enter a valid player UID to read the game save.</div>
+                        ) : saveInventoryError ? (
+                            <div className="hoyo-save-inventory__status is-error" role="alert">
+                                <AlertTriangle size={14} />
+                                <span>{saveInventoryError}</span>
+                            </div>
+                        ) : isLoadingSaveInventory && !currentSaveInventory ? (
+                            <div className="hoyo-save-inventory__status">
+                                <LoaderCircle size={14} className="hoyo-spinner" /> Reading account save…
+                            </div>
+                        ) : (
+                            <div className="hoyo-save-inventory__items">
+                                {(saveManagerSection === "disks" ? currentSaveInventory?.disks ?? [] : currentSaveInventory?.weapons ?? []).length === 0 ? (
+                                    <div className="hoyo-save-inventory__empty">
+                                        No {saveManagerSection === "disks" ? "Drive Discs" : "W-Engines"} found in this UID&apos;s save.
+                                    </div>
+                                ) : (
+                                    (saveManagerSection === "disks" ? currentSaveInventory?.disks ?? [] : currentSaveInventory?.weapons ?? [])
+                                        .map((item) => {
+                                            const disk = saveManagerSection === "disks";
+                                            const catalogItem = disk
+                                                ? catalog.disks.find((entry) => entry.id === item.setId)
+                                                : catalog.weapons.find((entry) => entry.id === item.id);
+                                            const equippedNames = (item.equippedToAgentIds ?? [])
+                                                .map((agentId) => catalog.characters.find((agent) => agent.id === agentId)?.name)
+                                                .filter((name): name is string => Boolean(name));
+                                            return (
+                                                <article className="hoyo-save-inventory__item" key={`${saveManagerSection}-${item.uid}`}>
+                                                    <span className="hoyo-save-inventory__art">
+                                                        {catalogItem?.imagePath
+                                                            ? <img src={catalogItem.imagePath} alt="" loading="lazy" />
+                                                            : <Sparkles size={17} />}
+                                                    </span>
+                                                    <div className="hoyo-save-inventory__item-main">
+                                                        <b>{catalogItem?.name ?? `${disk ? "Drive Disc" : "W-Engine"} ${disk ? item.setId : item.id}`}</b>
+                                                        <span>
+                                                            {disk ? `SLOT ${item.slot} · ${"★".repeat(item.rank)} · +${item.level}` : `${"★".repeat(item.rank)} · LV ${item.level} · W${item.refinement}`}
+                                                            {equippedNames.length > 0 ? ` · EQUIPPED: ${equippedNames.join(", ")}` : " · IN INVENTORY"}
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        className="hoyo-save-inventory__delete"
+                                                        disabled={isSubmitting}
+                                                        onClick={() => deleteInventoryItem(disk ? "disk" : "weapon", item)}
+                                                        aria-label={`Delete ${catalogItem?.name ?? (disk ? "Drive Disc" : "W-Engine")} UID ${item.uid}`}
+                                                    >
+                                                        <Trash2 size={13} />
+                                                        DELETE
+                                                    </button>
+                                                </article>
+                                            );
+                                        })
+                                )}
+                            </div>
+                        )}
+                </section>
+                        )}
+                    </section>
+                )}
+                {confirmationDialog && (
+                    <div
+                        className="hoyo-confirm-dialog__backdrop"
+                        role="presentation"
+                        onMouseDown={(event) => {
+                            if (event.target === event.currentTarget) setConfirmationDialog(null);
+                        }}
+                    >
+                        <section
+                            className={`hoyo-confirm-dialog ${confirmationDialog.danger ? "hoyo-confirm-dialog--danger" : ""}`}
+                            role="alertdialog"
+                            aria-modal="true"
+                            aria-labelledby="hoyo-confirm-dialog-title"
+                            aria-describedby="hoyo-confirm-dialog-description"
+                        >
+                            <header className="hoyo-confirm-dialog__header">
+                                <span><AlertTriangle size={18} /></span>
+                                <button
+                                    type="button"
+                                    aria-label="Close confirmation"
+                                    onClick={() => setConfirmationDialog(null)}
+                                >
+                                    <X size={15} />
+                                </button>
+                            </header>
+                            <div className="hoyo-confirm-dialog__content">
+                                <span className="hoyo-confirm-dialog__eyebrow">{confirmationDialog.eyebrow}</span>
+                                <h2 id="hoyo-confirm-dialog-title">{confirmationDialog.title}</h2>
+                                <p id="hoyo-confirm-dialog-description">{confirmationDialog.description}</p>
+                                <ul>
+                                    {confirmationDialog.details.map((detail) => <li key={detail}>{detail}</li>)}
+                                </ul>
+                            </div>
+                            <footer className="hoyo-confirm-dialog__actions">
+                                <button
+                                    type="button"
+                                    className="hoyo-button hoyo-button--muted"
+                                    autoFocus
+                                    onClick={() => setConfirmationDialog(null)}
+                                >
+                                    CANCEL
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`hoyo-button ${confirmationDialog.danger ? "hoyo-button--danger" : "hoyo-button--primary"}`}
+                                    disabled={isSubmitting || !validUid}
+                                    onClick={confirmationDialog.onConfirm}
+                                >
+                                    {confirmationDialog.danger ? <Trash2 size={13} /> : <ShieldCheck size={13} />}
+                                    {confirmationDialog.confirmLabel}
+                                </button>
+                            </footer>
+                        </section>
+                    </div>
+                )}
+                {activePage === "manage" && saveManagerSection === "loadouts" && (
                     <section className="hoyo-saved-disk-sets" aria-label="Saved six-disc sets">
                         <div className="hoyo-saved-disk-sets__heading">
                             <div>
                                 <span>SAVED LOADOUTS</span>
                                 <h2>Drive Disc Sets</h2>
-                                <p>Each set shows the exact stats for all six discs.</p>
+                                <p>Choose an Agent for each loadout. Empty slots keep their current discs.</p>
                             </div>
                             <b>{savedDiskSets.length} SETS</b>
                         </div>
@@ -1055,6 +1917,23 @@ export default function HoyoPage() {
                                                     </div>
                                                 </div>
                                                 <div className="hoyo-saved-disk-set__actions">
+                                                    <label className="hoyo-saved-disk-set__target">
+                                                        <span>TARGET AGENT</span>
+                                                        <select
+                                                            value={savedSet.targetAgentId ?? ""}
+                                                            onChange={(event) => setSavedDiskSetTarget(
+                                                                savedSet,
+                                                                event.target.value ? Number(event.target.value) : undefined,
+                                                            )}
+                                                            aria-label={`Target Agent for ${savedSet.name}`}
+                                                            disabled={isSubmitting}
+                                                        >
+                                                            <option value="">Select an Agent</option>
+                                                            {catalog.characters.map((character) => (
+                                                                <option key={character.id} value={character.id}>{character.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </label>
                                                     <button
                                                         type="button"
                                                         className="hoyo-button hoyo-button--muted"
@@ -1068,10 +1947,19 @@ export default function HoyoPage() {
                                                     <button
                                                         type="button"
                                                         className="hoyo-button hoyo-button--primary"
+                                                        disabled={isSubmitting || !savedSet.targetAgentId}
+                                                        onClick={() => equipSavedDiskSet(savedSet)}
+                                                    >
+                                                        {isSubmitting ? "EQUIPPING…" : "EQUIP TO AGENT"}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="hoyo-button hoyo-button--muted"
                                                         disabled={isSubmitting}
                                                         onClick={() => addSavedDiskSet(savedSet)}
+                                                        title="Add these discs to inventory without equipping them"
                                                     >
-                                                        {isSubmitting ? "ADDING…" : `ADD ${savedSet.disks.length} ${savedSet.disks.length === 1 ? "DISC" : "DISCS"}`}
+                                                        {isSubmitting ? "ADDING…" : `ADD TO INVENTORY`}
                                                     </button>
                                                     <button
                                                         type="button"
