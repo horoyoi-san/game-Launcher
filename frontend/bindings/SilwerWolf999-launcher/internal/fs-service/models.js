@@ -54,6 +54,13 @@ export class GameConfig {
              */
             this["output"] = "";
         }
+        if (!("executable" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["executable"] = "";
+        }
 
         Object.assign(this, $$source);
     }

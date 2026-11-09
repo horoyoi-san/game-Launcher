@@ -1,34 +1,26 @@
 package fsService
 
 import (
-	"SilwerWolf999-launcher/pkg/constant"
 	"SilwerWolf999-launcher/pkg/sevenzip"
-	"archive/zip"
-	"bufio"
+	"context"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
-	"syscall"
-	"time"
 
+	"SilwerWolf999-launcher/internal/sophon"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"golang.org/x/sys/windows"
 )
 
 type FSService struct {
-	downloadMu              sync.Mutex
-	downloadStarting        bool
-	downloadCmd             *exec.Cmd
-	downloadPaused          bool
-	downloadCancelRequested bool
+	downloadMu     sync.Mutex
+	downloadCancel context.CancelFunc
+	downloadResume chan struct{}
 }
-type ProgressWriter struct{}
 
 func (f *FSService) PickFolder() (string, error) {
 	dialog := application.Get().Dialog.OpenFile().
@@ -180,118 +172,6 @@ func (f *FSService) FileExistsInZip(archivePath, fileInside string) (bool, strin
 	return exists, ""
 }
 
-func (f *FSService) ensureSophonInstalled() (string, error) {
-
-	exe, err := os.Executable()
-	if err != nil {
-		return "", err
-	}
-
-	baseDir := filepath.Dir(exe)
-	sophonDir := filepath.Join(baseDir, constant.SophonStorageUrl)
-
-	exePath := filepath.Join(sophonDir, "net9.0/Sophon.Downloader.exe")
-
-	latestVersion, err := getLatestSophonVersion()
-	if err != nil {
-		if _, statErr := os.Stat(exePath); statErr == nil {
-			return exePath, nil
-		}
-		return "", err
-	}
-	installedVersion, _ := readSophonVersion(sophonDir)
-	if _, err := os.Stat(exePath); err == nil && installedVersion == latestVersion {
-		return exePath, nil
-	}
-
-	fmt.Printf("Installing Sophon Downloader %s...\n", latestVersion)
-
-	if err := downloadAndExtractSophon(sophonDir); err != nil {
-		return "", err
-	}
-
-	if _, err := os.Stat(exePath); err != nil {
-		return "", fmt.Errorf("Sophon install failed: expected executable at %s: %w", exePath, err)
-	}
-	if err := writeSophonVersion(sophonDir, latestVersion); err != nil {
-		return "", err
-	}
-
-	return exePath, nil
-}
-
-// GetSophonVersion returns the installed and latest Sophon Downloader versions.
-func (f *FSService) GetSophonVersion() (installed, latest string, updateAvailable bool, err error) {
-	exe, err := os.Executable()
-	if err != nil {
-		return "", "", false, err
-	}
-	sophonDir := filepath.Join(filepath.Dir(exe), constant.SophonStorageUrl)
-	installed, _ = readSophonVersion(sophonDir)
-	latest, err = getLatestSophonVersion()
-	if err != nil {
-		return installed, "", false, err
-	}
-	return installed, latest, installed != latest, nil
-}
-
-func (f *FSService) DownloadSophon() error {
-	exe, err := os.Executable()
-	if err != nil {
-		return err
-	}
-	destination := filepath.Join(filepath.Dir(exe), constant.SophonStorageUrl)
-	version, err := getLatestSophonVersion()
-	if err != nil {
-		return err
-	}
-	if err := downloadAndExtractSophon(destination); err != nil {
-		return err
-	}
-	if _, err := os.Stat(filepath.Join(destination, "net9.0", "Sophon.Downloader.exe")); err != nil {
-		return fmt.Errorf("Sophon executable not found after extraction: %w", err)
-	}
-	return writeSophonVersion(destination, version)
-}
-
-func downloadAndExtractSophon(destination string) error {
-	if err := os.MkdirAll(destination, 0755); err != nil {
-		return err
-	}
-
-	client := &http.Client{Timeout: 2 * time.Minute}
-	response, err := client.Get(constant.SophonGitUrl)
-	if err != nil {
-		return fmt.Errorf("download Sophon: %w", err)
-	}
-	defer response.Body.Close()
-	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
-		return fmt.Errorf("download Sophon: server returned %s", response.Status)
-	}
-
-	zipPath := filepath.Join(destination, constant.SophonZipFile)
-	archive, err := os.Create(zipPath)
-	if err != nil {
-		return fmt.Errorf("create Sophon archive: %w", err)
-	}
-	_, copyErr := io.Copy(archive, response.Body)
-	closeErr := archive.Close()
-	if copyErr != nil {
-		return fmt.Errorf("save Sophon archive: %w", copyErr)
-	}
-	if closeErr != nil {
-		return fmt.Errorf("close Sophon archive: %w", closeErr)
-	}
-
-	if err := unzip(zipPath, destination); err != nil {
-		return fmt.Errorf("extract Sophon archive: %w", err)
-	}
-	if err := os.Remove(zipPath); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("remove Sophon archive: %w", err)
-	}
-	return nil
-}
-
 func (f *FSService) GetLauncherDir() (string, error) {
 	exePath, err := os.Executable()
 	if err != nil {
@@ -302,270 +182,113 @@ func (f *FSService) GetLauncherDir() (string, error) {
 
 func (f *FSService) RunDownloader(gameID string, pkg string, version string, output string, region string, branch string, launcherID string) (bool, error) {
 	f.downloadMu.Lock()
-	if f.downloadStarting || f.downloadCmd != nil {
+	if f.downloadCancel != nil {
 		f.downloadMu.Unlock()
 		return false, fmt.Errorf("a download is already running")
 	}
-	f.downloadStarting = true
-	f.downloadCancelRequested = false
-	f.downloadPaused = false
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	f.downloadCancel = cancel
+	f.downloadResume = nil
 	f.downloadMu.Unlock()
 	defer func() {
 		f.downloadMu.Lock()
-		f.downloadStarting = false
-		f.downloadCmd = nil
-		f.downloadPaused = false
+		f.downloadCancel = nil
+		f.downloadResume = nil
 		f.downloadMu.Unlock()
 	}()
-
-	launcherDir, err := f.GetLauncherDir()
-	if err != nil {
-		return false, err
-	}
 
 	if output == "" {
 		return false, fmt.Errorf("output directory is required")
 	}
 	if !filepath.IsAbs(output) {
+		launcherDir, err := f.GetLauncherDir()
+		if err != nil {
+			return false, err
+		}
 		output = filepath.Join(launcherDir, output)
 	}
-	output = filepath.Clean(output)
-	if err := os.MkdirAll(output, 0755); err != nil {
-		return false, err
-	}
-
-	exePath, err := f.ensureSophonInstalled()
-	if err != nil {
-		return false, err
-	}
-
-	if _, err := os.Stat(exePath); err != nil {
-		return false, fmt.Errorf("Sophon executable not found: %w", err)
-	}
-
-	branchOption := "Main"
-	if branch == "pre_download" {
-		branchOption = "PreDownload"
-	}
-
-	cmd := exec.Command(
-		exePath,
-		"full",
-		gameID,
-		pkg,
-		version,
-		output,
-		fmt.Sprintf("--region=%s", region),
-		fmt.Sprintf("--branch=%s", branchOption),
-		fmt.Sprintf("--launcherId=%s", launcherID),
-	)
-	cmd.SysProcAttr = &windows.SysProcAttr{
-		HideWindow:    true,
-		CreationFlags: windows.CREATE_NO_WINDOW,
-	}
-
-	cmd.Dir = filepath.Dir(exePath)
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return false, err
-	}
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		return false, err
-	}
-
-	if err := cmd.Start(); err != nil {
-		return false, err
-	}
-	f.downloadMu.Lock()
-	f.downloadCmd = cmd
-	f.downloadMu.Unlock()
 	application.Get().Event.Emit("download:started")
 
-	if _, err := io.WriteString(stdin, "y\n"); err != nil {
-		_ = stdin.Close()
-		_ = cmd.Process.Kill()
-		_ = cmd.Wait()
-		return false, err
+	config, ok := sophonRegionEndpoints[strings.ToUpper(region)]
+	if !ok {
+		return false, fmt.Errorf("unsupported Sophon region: %s", region)
 	}
-	if err := stdin.Close(); err != nil {
-		_ = cmd.Process.Kill()
-		_ = cmd.Wait()
-		return false, err
-	}
-
-	reader := bufio.NewReader(stdout)
-	for {
-		line, readErr := reader.ReadString('\r')
-		if len(line) > 0 {
-			application.Get().Event.Emit("download:progress", line)
-		}
-		if readErr != nil {
-			if readErr != io.EOF {
-				_ = cmd.Process.Kill()
-				_ = cmd.Wait()
-				return false, readErr
+	controls := sophon.Controls{
+		Wait: func(ctx context.Context) error {
+			for {
+				f.downloadMu.Lock()
+				resume := f.downloadResume
+				f.downloadMu.Unlock()
+				if resume == nil {
+					return ctx.Err()
+				}
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				case <-resume:
+				}
 			}
-			break
-		}
+		},
 	}
-
-	err = cmd.Wait()
-	f.downloadMu.Lock()
-	cancelled := f.downloadCancelRequested
-	f.downloadMu.Unlock()
-	if cancelled {
-		return false, nil
-	}
+	err := sophon.Download(ctx, sophon.Request{
+		Config: sophon.BuildConfig{
+			BranchesURL: config.url,
+			BuildURL:    config.buildURL,
+			PlatformApp: config.platformApp,
+		},
+		GameID:   gameID,
+		Package:  pkg,
+		Version:  version,
+		Output:   output,
+		Region:   strings.ToUpper(region),
+		Branch:   branch,
+		Launcher: launcherID,
+	}, controls, func(progress sophon.Progress) {
+		application.Get().Event.Emit("download:progress", progress)
+	})
 	if err != nil {
+		if ctx.Err() != nil {
+			return false, nil
+		}
 		return false, err
 	}
-
 	return true, nil
 }
 
 func (f *FSService) PauseDownloader() (bool, error) {
 	f.downloadMu.Lock()
 	defer f.downloadMu.Unlock()
-	if f.downloadCmd == nil || f.downloadCmd.Process == nil {
+	if f.downloadCancel == nil {
 		return false, fmt.Errorf("no active download to pause")
 	}
-	if f.downloadPaused {
+	if f.downloadResume != nil {
 		return true, nil
 	}
-	if err := suspendProcess(f.downloadCmd.Process.Pid); err != nil {
-		return false, err
-	}
-	f.downloadPaused = true
+	f.downloadResume = make(chan struct{})
 	return true, nil
 }
 
 func (f *FSService) ResumeDownloader() (bool, error) {
 	f.downloadMu.Lock()
 	defer f.downloadMu.Unlock()
-	if f.downloadCmd == nil || f.downloadCmd.Process == nil {
+	if f.downloadCancel == nil {
 		return false, fmt.Errorf("no active download to resume")
 	}
-	if !f.downloadPaused {
+	if f.downloadResume == nil {
 		return true, nil
 	}
-	if err := resumeProcess(f.downloadCmd.Process.Pid); err != nil {
-		return false, err
-	}
-	f.downloadPaused = false
+	close(f.downloadResume)
+	f.downloadResume = nil
 	return true, nil
 }
 
 func (f *FSService) CancelDownloader() (bool, error) {
 	f.downloadMu.Lock()
 	defer f.downloadMu.Unlock()
-	if f.downloadCmd == nil || f.downloadCmd.Process == nil {
+	if f.downloadCancel == nil {
 		return false, fmt.Errorf("no active download to cancel")
 	}
-	f.downloadCancelRequested = true
-	if err := f.downloadCmd.Process.Kill(); err != nil {
-		f.downloadCancelRequested = false
-		return false, fmt.Errorf("cancel download: %w", err)
-	}
+	f.downloadCancel()
 	return true, nil
-}
-
-func suspendProcess(pid int) error {
-	return setProcessSuspended(pid, "NtSuspendProcess")
-}
-
-func resumeProcess(pid int) error {
-	return setProcessSuspended(pid, "NtResumeProcess")
-}
-
-func setProcessSuspended(pid int, operation string) error {
-	process, err := windows.OpenProcess(windows.PROCESS_SUSPEND_RESUME, false, uint32(pid))
-	if err != nil {
-		return fmt.Errorf("open downloader process: %w", err)
-	}
-	defer windows.CloseHandle(process)
-
-	procedure := syscall.NewLazyDLL("ntdll.dll").NewProc(operation)
-	status, _, _ := procedure.Call(uintptr(process))
-	if status != 0 {
-		return fmt.Errorf("%s failed with NTSTATUS 0x%08X", operation, status)
-	}
-	return nil
-}
-
-func (w *ProgressWriter) Write(p []byte) (n int, err error) {
-	line := string(p)
-
-	// ส่งไป Wails event
-	// runtime.EventsEmit(app, "download:progress", line)
-
-	println(line)
-
-	return len(p), nil
-}
-
-func unzip(zipPath, dest string) error {
-	archive, err := zip.OpenReader(zipPath)
-	if err != nil {
-		return fmt.Errorf("open zip archive %s: %w", zipPath, err)
-	}
-	defer archive.Close()
-
-	destination, err := filepath.Abs(dest)
-	if err != nil {
-		return err
-	}
-	if err := os.MkdirAll(destination, 0755); err != nil {
-		return err
-	}
-
-	for _, entry := range archive.File {
-		name := strings.ReplaceAll(entry.Name, "\\", "/")
-		relativePath := filepath.Clean(filepath.FromSlash(name))
-		if !filepath.IsLocal(relativePath) {
-			return fmt.Errorf("zip entry has an unsafe path: %q", entry.Name)
-		}
-		path := filepath.Join(destination, relativePath)
-
-		if entry.FileInfo().IsDir() {
-			if err := os.MkdirAll(path, 0755); err != nil {
-				return err
-			}
-			continue
-		}
-		if entry.Mode()&os.ModeSymlink != 0 {
-			return fmt.Errorf("zip entry is a symbolic link: %q", entry.Name)
-		}
-		if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
-			return err
-		}
-
-		mode := entry.Mode().Perm()
-		if mode == 0 {
-			mode = 0644
-		}
-		output, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
-		if err != nil {
-			return err
-		}
-		input, err := entry.Open()
-		if err != nil {
-			_ = output.Close()
-			return err
-		}
-		_, copyErr := io.Copy(output, input)
-		inputErr := input.Close()
-		outputErr := output.Close()
-		if copyErr != nil {
-			return copyErr
-		}
-		if inputErr != nil {
-			return inputErr
-		}
-		if outputErr != nil {
-			return outputErr
-		}
-	}
-	return nil
 }

@@ -1,11 +1,8 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { ArrowDownToLine, Film, FolderOpen, ImagePlus, Menu, Minus, Play, RotateCcw, UserRound, Volume2, X } from 'lucide-react';
+import { ArrowDownToLine, Film, Gamepad2, ImagePlus, Menu, Minus, RotateCcw, UserRound, X } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
 import { AppService } from '@bindings/SilwerWolf999-launcher/internal/app-service';
-import { FSService } from '@bindings/SilwerWolf999-launcher/internal/fs-service';
 import { toast } from 'react-toastify';
-import path from 'path-browserify'
-import useSettingStore from '@/stores/settingStore';
-import useModalStore from '@/stores/modalStore';
 import useLauncherStore from '@/stores/launcherStore';
 import { motion } from 'motion/react';
 import usePanelStore from "@/stores/panelStore";
@@ -173,31 +170,12 @@ export default function LauncherPage() {
     const activeNews = newsVideos[activeNewsIndex];
 
 
-    const { gamePath,
-        setGamePath,
-        setGameDir,
-        gameDir,
-
-
-    } = useSettingStore()
-
     const {
-    } = useModalStore()
-
-    const {
-        isLoading,
         downloadType,
-
         proxyReady,
         isDownloading,
-
-        gameRunning,
         progressDownload,
         downloadSpeed,
-
-
-        setIsLoading,
-        setGameRunning,
     } = useLauncherStore()
 
     const widgetLinks = [
@@ -255,111 +233,6 @@ export default function LauncherPage() {
         }, 1000); // เปลี่ยนสีทุก 1.0 วินาที
         return () => clearInterval(interval);
     }, []);
-
-    const GAME_RULES = [
-        {
-            id: "StarRail",
-            exe: "StarRail.exe",
-            dataCheck: "StarRail_Data",
-        },
-        {
-            id: "GenshinImpact",
-            exe: "GenshinImpact.exe",
-            dataCheck: "GenshinImpact_Data",
-        },
-        {
-            id: "ZenlessZoneZero",
-            exe: "ZenlessZoneZero.exe",
-            dataCheck: "ZenlessZoneZero_Data",
-        },
-        {
-            id: "NexusAnima",
-            exe: "NexusAnima.exe",
-            dataCheck: "NexusAnima_Data",
-        },
-        {
-            id: "PetitPlanet",
-            exe: "PetitPlanet.exe",
-            dataCheck: "PetitPlanet_Data",
-        },
-        {
-            id: "ZenlessZoneZeroBeta",
-            exe: "ZenlessZoneZeroBeta.exe",
-            dataCheck: "ZenlessZoneZeroBeta_Data",
-        },
-        {
-            id: "TheWeavers",
-            exe: "TheWeavers.exe",
-            dataCheck: "TheWeavers_Data",
-        }
-    ]
-
-    function detectGame(basePath: string) {
-        const fileName = basePath.split(/[\\/]/).pop()
-
-        return GAME_RULES.find(game =>
-            fileName?.toLowerCase() === game.exe.toLowerCase()
-        )
-    }
-
-    const handlePickFile = async () => {
-        try {
-            setIsLoading(true)
-
-            const basePath = await FSService.PickFile("exe")
-
-            const game = detectGame(basePath)
-
-            if (!game) {
-                toast.error("Unsupported game exe")
-                return
-            }
-
-            const normalized = basePath.replace(/\\/g, '/')
-            const folderPath = path.dirname(normalized)
-
-            const fullPath = `${folderPath}/${game.dataCheck}`
-
-            const exists = await FSService.DirExists(fullPath)
-
-            if (!exists) {
-                toast.error("Game folder not valid")
-                return
-            }
-
-            setGamePath(basePath)
-            setGameDir(folderPath)
-
-            toast.success(`Loaded: ${game.id}`)
-
-        } catch (err: any) {
-            toast.error('PickFolder error:', err)
-        } finally {
-            setIsLoading(false)
-        }
-    }
-
-    const handleStartGame = async () => {
-        if (!gamePath || gameRunning) return
-
-        try {
-            setIsLoading(true)
-
-            const result = await FSService.StartApp(gamePath)
-
-            if (!result) {
-                toast.error("Failed to start game")
-                return
-            }
-
-            setGameRunning(true)
-
-        } catch (err: any) {
-            toast.error("StartGame error:", err)
-        } finally {
-            setIsLoading(false)
-        }
-    }
 
     // นับเวลาปัจจุบัน (เรียลไทม์)
     const [time, setTime] = useState<string>("");
@@ -506,42 +379,18 @@ export default function LauncherPage() {
 
                     <div className="flex flex-wrap items-center justify-center gap-2">
 
-                        {gamePath === "" ? (
-
-                            <button
-                                // ปุ่ม Select Game file: คงเดิม
-                                className="arcade-button btn btn-xl font-bold"
-                                onClick={handlePickFile}
-                            >
-                                <FolderOpen className="w-5 h-5" />
-                                {isLoading ? 'Selecting...' : 'Select Game file'}
-                            </button>
-
-                        ) : (
-
-                            <button
-                                // ปุ่ม Start Game: เป็นสี่เหลี่ยมมุมโค้ง มีรูปภาพพื้นหลัง และ **เรืองแสง (Glow)**
-                                className="arcade-button btn btn-xl relative overflow-hidden border-fuchsia-300/70 bg-fuchsia-500/20 font-black text-white"
-                                onClick={handleStartGame}
-                                style={{
-                                    // กำหนดรูปภาพพื้นหลัง
-                                    //  backgroundImage: "url('https://act-webstatic.hoyoverse.com/puzzle/hk4e/pz_df1bhOOLAB/resource/puzzle/2025/09/22/294b38ce0a4a1cbe94d10dd5082af4fe_5739821151544819626.png')",
-                                    //  backgroundSize: "cover",
-                                    // backgroundPosition: "center",
-
-                                    // **คำสั่งที่ทำให้เกิดการเรืองแสง (Glow Effect)**
-                                    boxShadow: "4px 4px 0 rgba(250, 77, 255, 0.45), 0 0 20px rgba(250, 77, 255, 0.2)",
-
-                                    // ปรับข้อความให้อ่านง่าย
-                                    color: "white",
-                                    textShadow: "0 0 5px rgba(0, 0, 0, 0.93)"
-                                }}
-                            >
-                                <Play className="w-5 h-5" />
-                                {isLoading ? 'Starting...' : gameRunning ? 'Game is running' : 'Start Game'}
-                            </button>
-
-                        )}
+                        <Link
+                            to="/games"
+                            className="arcade-button btn btn-xl relative overflow-hidden border-fuchsia-300/70 bg-fuchsia-500/20 font-black text-white"
+                            style={{
+                                boxShadow: "4px 4px 0 rgba(250, 77, 255, 0.45), 0 0 20px rgba(250, 77, 255, 0.2)",
+                                color: "white",
+                                textShadow: "0 0 5px rgba(0, 0, 0, 0.93)"
+                            }}
+                        >
+                            <Gamepad2 className="w-5 h-5" />
+                            Choose a game
+                        </Link>
 
                         <div className="dropdown dropdown-top dropdown-end">
                             <div
@@ -563,15 +412,6 @@ export default function LauncherPage() {
                                     >
                                         <ArrowDownToLine size={15} className="text-cyan-200" />
                                         Launcher download
-                                    </button>
-                                </li>
-                                <li>
-                                    <button
-                                        className="min-h-8 gap-3 px-3 text-xs font-bold text-white/85 hover:bg-cyan-300/10 hover:text-cyan-100"
-                                        onClick={() => window.open("https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/Sophon.Downloader.zip", "_blank")}
-                                    >
-                                        <ArrowDownToLine size={15} className="text-cyan-200" />
-                                        Sophon downloader
                                     </button>
                                 </li>
                                 <li role="presentation" className="px-3 py-1">
@@ -603,30 +443,6 @@ export default function LauncherPage() {
                                     <button className="min-h-8 gap-3 px-3 text-xs text-white/70 hover:bg-rose-300/10 hover:text-rose-100" onClick={handleResetBackground}>
                                         <RotateCcw size={14} />
                                         Reset background
-                                    </button>
-                                </li>
-                                <li role="presentation" className="px-3 py-1">
-                                    <div className="border-t border-white/10" />
-                                </li>
-                                <li className="menu-title py-1 text-[9px] uppercase tracking-[0.18em] text-lime-200/70">Game files</li>
-                                <li>
-                                    <button className="min-h-8 gap-3 px-3 text-xs font-bold text-white/85 hover:bg-lime-300/10 hover:text-lime-100" onClick={handlePickFile}>
-                                        <FolderOpen size={15} className="text-lime-200" />
-                                        Change game path
-                                    </button>
-                                </li>
-                                <li>
-                                    <button
-                                        className="min-h-8 gap-3 px-3 text-xs font-bold text-white/85 hover:bg-lime-300/10 hover:text-lime-100 disabled:cursor-not-allowed disabled:opacity-40"
-                                        disabled={!gameDir}
-                                        onClick={() => {
-                                            if (gameDir) {
-                                                void FSService.OpenFolder(gameDir + "/StarRail_Data/Persistent/Audio/AudioPackage/Windows");
-                                            }
-                                        }}
-                                    >
-                                        <Volume2 size={15} className="text-lime-200" />
-                                        Open voice folder
                                     </button>
                                 </li>
                             </ul>

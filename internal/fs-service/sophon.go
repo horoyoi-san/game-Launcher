@@ -37,24 +37,36 @@ type sophonBranchesResponse struct {
 	} `json:"data"`
 }
 
-var sophonRegionEndpoints = map[string]struct {
+type sophonRegionEndpoint struct {
 	url         string
+	buildURL    string
+	platformApp string
 	launcherIDs []string
-}{
+}
+
+var sophonRegionEndpoints = map[string]sophonRegionEndpoint{
 	"OSREL": {
 		url:         "https://sg-hyp-api.hoyoverse.com/hyp/hyp-connect/api/getGameBranches",
+		buildURL:    "https://sg-public-api.hoyoverse.com/downloader/sophon_chunk/api/getBuild",
+		platformApp: "ddxf6vlr1reo",
 		launcherIDs: []string{"VYTpXlbWo8", "dYgxEMpG3U"},
 	},
 	"CNREL": {
 		url:         "https://hyp-api.mihoyo.com/hyp/hyp-connect/api/getGameBranches",
+		buildURL:    "https://api-takumi.mihoyo.com/downloader/sophon_chunk/api/getBuild",
+		platformApp: "ddxf5qt290cg",
 		launcherIDs: []string{"jGHBHlcOq1"},
 	},
 	"OSBETA": {
 		url:         "https://sg-hyp-api-beta.hoyoverse.com/hyp/hyp-connect/api/getGameBranches",
+		buildURL:    "https://sg-beta-api.hoyoverse.com/downloader/sophon_chunk/api/getBuild",
+		platformApp: "ddxf7scwm7ls",
 		launcherIDs: []string{"9HDza24TWA", "95ODRGH3xC", "KAGKS3zS99"},
 	},
 	"CNBETA": {
 		url:         "https://hyp-api-beta.mihoyo.com/hyp/hyp-connect/api/getGameBranches",
+		buildURL:    "https://api-beta.mihoyo.com/downloader/sophon_chunk/api/getBuild",
+		platformApp: "ddxf5dufpuyo",
 		launcherIDs: []string{"GcFHm7rte6", "kwykHprMm9", "TC4836G73s", "WBjNy0hOrG", "TATUNXLuIq"},
 	},
 }
@@ -85,7 +97,7 @@ func (f *FSService) GetSophonVersions(gameIDs []string, region string) ([]Sophon
 				defer func() { results <- item }()
 
 				query := url.Values{}
-				query.Set("game_id", gameID)
+				query.Add("game_ids[]", gameID)
 				query.Set("launcher_id", launcherID)
 				requestURL := endpoint.url + "?" + query.Encode()
 				response, err := client.Get(requestURL)

@@ -1,22 +1,19 @@
-import { useEffect, useRef, useState } from "react";
-import { Events } from "@wailsio/runtime";
+import { useEffect, useState } from "react";
 import {
   ArrowDownToLine,
   CheckCircle2,
-  Clock3,
   Download,
   FolderOpen,
   HardDrive,
-  LoaderCircle,
-  Pause,
   Play,
-  Ban,
   X,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { FSService } from "@bindings/SilwerWolf999-launcher/internal/fs-service";
 import { launcherGames } from "@/helper/games";
 import SophonBuildSelector, { type SophonBuild } from "@/components/sophonBuildSelector";
+import useLauncherStore from "@/stores/launcherStore";
+import useSophonDownloadStore from "@/stores/sophonDownloadStore";
 
 type GameConfig = {
   id: string;
@@ -25,64 +22,40 @@ type GameConfig = {
   region: string;
   gameIds: Partial<Record<string, string[]>>;
   output: string;
+  executable: string;
 };
 
 type DownloadKind = "game" | "voice";
-
-type DownloadProgress = {
-  percent: number;
-  downloaded: string;
-  total: string;
-  speed: string;
-  eta: string;
-};
 
 type SophonGamePageProps = {
   gameId: string;
 };
 
-const unitBytes: Record<string, number> = {
-  B: 1,
-  KB: 1024,
-  MB: 1024 ** 2,
-  GB: 1024 ** 3,
-  TB: 1024 ** 4,
-};
-
-function parseProgress(line: string): DownloadProgress | null {
-  const amountMatch = line.match(/([\d.]+)\s*(B|KB|MB|GB|TB)\s*\/\s*([\d.]+)\s*(B|KB|MB|GB|TB)/i);
-  if (!amountMatch) return null;
-
-  const downloadedBytes = Number(amountMatch[1]) * unitBytes[amountMatch[2].toUpperCase()];
-  const totalBytes = Number(amountMatch[3]) * unitBytes[amountMatch[4].toUpperCase()];
-  const speedMatch = line.match(/([\d.]+\s*(?:B|KB|MB|GB|TB)\/s)/i);
-  const etaMatch = line.match(/ETA:\s*([\d:]+)/i);
-
-  return {
-    percent: totalBytes > 0 ? Math.min(100, Math.round((downloadedBytes / totalBytes) * 100)) : 0,
-    downloaded: `${amountMatch[1]} ${amountMatch[2].toUpperCase()}`,
-    total: `${amountMatch[3]} ${amountMatch[4].toUpperCase()}`,
-    speed: speedMatch?.[1] ?? "",
-    eta: etaMatch?.[1] ?? "",
-  };
+function isAbsolutePath(path: string) {
+  return /^[a-zA-Z]:[\\/]/.test(path) || path.startsWith("\\\\") || path.startsWith("/");
 }
 
 export default function SophonGamePage({ gameId }: SophonGamePageProps) {
+  const { gameRunning, setGameRunning } = useLauncherStore();
+  const activeDownload = useSophonDownloadStore((state) => state.activeDownload);
+  const startGlobalDownload = useSophonDownloadStore((state) => state.startDownload);
+  const clearGlobalDownload = useSophonDownloadStore((state) => state.clearDownload);
+  const setGlobalDownloadProgress = useSophonDownloadStore((state) => state.setDownloadProgress);
+  const currentDownload = activeDownload?.gameId === gameId ? activeDownload : null;
+  const downloading = activeDownload !== null;
+  const downloadKind = currentDownload?.kind ?? "game";
   const [game, setGame] = useState<GameConfig | undefined>();
   const [gameConfigError, setGameConfigError] = useState("");
   const gameShortcut = launcherGames.find((item) => item.id === gameId);
   const [selectedBuild, setSelectedBuild] = useState<SophonBuild | null>(null);
-  const [downloading, setDownloading] = useState(false);
-  const [downloadKind, setDownloadKind] = useState<DownloadKind>("game");
   const [voiceLanguage, setVoiceLanguage] = useState("en-us");
-  const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
   const [pendingDownload, setPendingDownload] = useState<DownloadKind | null>(null);
   const [installPath, setInstallPath] = useState(() => game?.output ?? "");
+  const [launchPath, setLaunchPath] = useState("");
+  const [launchAvailable, setLaunchAvailable] = useState(false);
+  const [launchPathError, setLaunchPathError] = useState("");
   const [selectingFolder, setSelectingFolder] = useState(false);
-  const [downloadPaused, setDownloadPaused] = useState(false);
-  const [downloadProcessReady, setDownloadProcessReady] = useState(false);
-  const [cancelingDownload, setCancelingDownload] = useState(false);
-  const cancelRequested = useRef(false);
+  const [selectingExecutable, setSelectingExecutable] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -103,27 +76,56 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
   useEffect(() => {
     setInstallPath(localStorage.getItem(`installPath:${gameId}`) || game?.output || "");
     setSelectedBuild(null);
-    setDownloadProgress(null);
     setPendingDownload(null);
-    setDownloadPaused(false);
-    setDownloadProcessReady(false);
   }, [gameId, game?.output]);
 
   useEffect(() => {
-    const onStarted = () => setDownloadProcessReady(true);
-    const onProgress = (event: { data?: unknown }) => {
-      const line = typeof event.data === "string" ? event.data : "";
-      const nextProgress = parseProgress(line);
-      if (nextProgress) setDownloadProgress(nextProgress);
+    let active = true;
+    setLaunchAvailable(false);
+    const resolveLaunchPath = async () => {
+      const savedPath = localStorage.getItem(`launchPath:${gameId}`);
+      if (savedPath) {
+        setLaunchPath(savedPath);
+        setLaunchPathError("");
+        try {
+          const exists = await FSService.FileExists(savedPath);
+          if (active) setLaunchAvailable(exists);
+        } catch (error) {
+          if (active) {
+            setLaunchPathError(error instanceof Error ? error.message : "Could not check the game executable");
+          }
+        }
+        return;
+      }
+      if (!game?.executable || !installPath) {
+        setLaunchPath("");
+        setLaunchPathError("");
+        return;
+      }
+      try {
+        const installRoot = isAbsolutePath(installPath)
+          ? installPath
+          : await FSService.Join(await FSService.GetLauncherDir(), installPath);
+        const executable = await FSService.Join(installRoot, game.executable);
+        const exists = await FSService.FileExists(executable);
+        if (active) {
+          setLaunchPath(executable);
+          setLaunchAvailable(exists);
+          setLaunchPathError("");
+        }
+      } catch (error) {
+        if (active) {
+          setLaunchPath("");
+          setLaunchAvailable(false);
+          setLaunchPathError(error instanceof Error ? error.message : "Could not resolve the game executable path");
+        }
+      }
     };
-
-    Events.On("download:started", onStarted);
-    Events.On("download:progress", onProgress);
+    void resolveLaunchPath();
     return () => {
-      Events.Off("download:started");
-      Events.Off("download:progress");
+      active = false;
     };
-  }, []);
+  }, [gameId, game?.executable, installPath, downloading]);
 
   const chooseFolder = async () => {
     setSelectingFolder(true);
@@ -137,7 +139,53 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
     }
   };
 
+  const chooseExecutable = async () => {
+    setSelectingExecutable(true);
+    try {
+      const path = await FSService.PickFile("exe");
+      if (path) {
+        if (!(await FSService.FileExists(path))) {
+          toast.error("The selected game executable does not exist");
+          return;
+        }
+        setLaunchPath(path);
+        setLaunchAvailable(true);
+        setLaunchPathError("");
+        localStorage.setItem(`launchPath:${gameId}`, path);
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not select the game executable");
+    } finally {
+      setSelectingExecutable(false);
+    }
+  };
+
+  const launchGame = async () => {
+    if (!launchPath) {
+      toast.error("Choose the game executable first");
+      return;
+    }
+    try {
+      if (!(await FSService.FileExists(launchPath))) {
+        toast.error("Game executable was not found. Select the game executable file.");
+        return;
+      }
+      const [success, message] = await FSService.StartApp(launchPath);
+      if (!success) {
+        throw new Error(message || "Could not start the game");
+      }
+      setGameRunning(true);
+      toast.success(`Launching ${game?.name ?? "game"}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not launch the game");
+    }
+  };
+
   const startDownload = async () => {
+    if (useSophonDownloadStore.getState().activeDownload) {
+      toast.error("A download is already running. Use the download panel to manage it.");
+      return;
+    }
     if (!game || !selectedBuild || !pendingDownload) {
       toast.error("No version available. Check the selected region.");
       return;
@@ -151,13 +199,13 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
     const kind = pendingDownload;
     const packageName = kind === "voice" ? voiceLanguage : game.package;
     setPendingDownload(null);
-    setDownloading(true);
-    setDownloadKind(kind);
-    setDownloadProgress(null);
-    setDownloadPaused(false);
-    setDownloadProcessReady(false);
-    setCancelingDownload(false);
-    cancelRequested.current = false;
+    startGlobalDownload({
+      gameId,
+      gameName: game.name,
+      kind,
+      status: "starting",
+      progress: null,
+    });
     localStorage.setItem(`installPath:${gameId}`, output);
 
     try {
@@ -171,7 +219,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
         selectedBuild.launcherId
       );
       if (!success) {
-        if (cancelRequested.current) {
+        if (useSophonDownloadStore.getState().activeDownload?.status === "canceling") {
           toast.info("Download canceled");
         } else {
           toast.error("Download failed");
@@ -179,61 +227,32 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
         return;
       }
 
-      setDownloadProgress({
+      const progress = useSophonDownloadStore.getState().activeDownload?.progress;
+      setGlobalDownloadProgress({
         percent: 100,
-        downloaded: downloadProgress?.total ?? "",
-        total: downloadProgress?.total ?? "",
+        downloaded: progress?.total ?? "",
+        total: progress?.total ?? "",
         speed: "",
         eta: "",
+        stage: "Complete",
+        currentFile: "",
       });
+      useSophonDownloadStore.getState().setDownloadStatus("completed");
       toast.success("Download complete");
+      await new Promise((resolve) => window.setTimeout(resolve, 1500));
     } catch (error) {
-      if (cancelRequested.current) {
+      if (useSophonDownloadStore.getState().activeDownload?.status === "canceling") {
         toast.info("Download canceled");
       } else {
         toast.error(error instanceof Error ? error.message : "Download failed");
       }
     } finally {
-      setDownloading(false);
-      setDownloadPaused(false);
-      setDownloadProcessReady(false);
-      setCancelingDownload(false);
-      cancelRequested.current = false;
-    }
-  };
-
-  const toggleDownloadPause = async () => {
-    try {
-      const success = downloadPaused
-        ? await FSService.ResumeDownloader()
-        : await FSService.PauseDownloader();
-      if (success) setDownloadPaused(!downloadPaused);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not change download state");
-    }
-  };
-
-  const cancelDownload = async () => {
-    cancelRequested.current = true;
-    setCancelingDownload(true);
-    try {
-      const success = await FSService.CancelDownloader();
-      if (!success) {
-        cancelRequested.current = false;
-        setCancelingDownload(false);
-        toast.error("Could not cancel download");
-      }
-    } catch (error) {
-      cancelRequested.current = false;
-      setCancelingDownload(false);
-      toast.error(error instanceof Error ? error.message : "Could not cancel download");
+      clearGlobalDownload();
     }
   };
 
   const activeRegion = selectedBuild?.regionLabel ?? selectedBuild?.region ?? game?.region ?? "";
   const regionLabel = activeRegion.endsWith("BETA") ? `${activeRegion.slice(0, -4)} Beta` : activeRegion;
-  const progressPercent = downloadProgress?.percent ?? 0;
-
   return (
     <div className="fixed inset-0 z-0 overflow-hidden text-white">
       <video className="absolute inset-0 h-full w-full object-cover" autoPlay loop muted playsInline>
@@ -262,7 +281,6 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
                 defaultRegion={game.region}
                 onChange={(build) => {
                   setSelectedBuild(build);
-                  setDownloadProgress(null);
                 }}
               />
             ) : (
@@ -293,7 +311,7 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
               className="arcade-button arcade-button--primary flex min-h-12 flex-1 items-center justify-center gap-2 px-5 py-3 text-xs disabled:cursor-not-allowed"
             >
               <Download size={18} />
-              {downloading && downloadKind === "game" ? "Downloading game..." : `Download ${game?.name ?? "Game"}`}
+              {downloading && downloadKind === "game" ? "Downloading game..." : "Install / Update / Repair"}
             </button>
             <button
               type="button"
@@ -305,90 +323,35 @@ export default function SophonGamePage({ gameId }: SophonGamePageProps) {
               {downloading && downloadKind === "voice" ? "Downloading voice..." : "Voice pack"}
             </button>
           </div>
+          <div className="mt-4 flex flex-col gap-2 border-t border-white/10 pt-4 sm:flex-row">
+            {launchAvailable && (
+              <button
+                type="button"
+                onClick={launchGame}
+                disabled={!game || downloading || gameRunning}
+                className="arcade-button flex min-h-11 flex-1 items-center justify-center gap-2 bg-[#16192b] px-4 text-xs disabled:cursor-not-allowed"
+              >
+                <Play size={16} fill="currentColor" />
+                {gameRunning ? "Game is running" : "Open game"}
+              </button>
+            )}
+            {!launchAvailable && (
+              <button
+                type="button"
+                onClick={chooseExecutable}
+                disabled={selectingExecutable || downloading}
+                className="arcade-button flex min-h-11 flex-1 items-center justify-center gap-2 px-4 text-xs disabled:opacity-50"
+              >
+                <FolderOpen size={15} />
+                {selectingExecutable ? "Selecting..." : "Select game .exe"}
+              </button>
+            )}
+          </div>
+          <p className={`mt-2 truncate text-xs ${launchPathError ? "text-rose-200" : "text-white/40"}`} title={launchPathError || launchPath || undefined}>
+            {launchPathError || (launchAvailable ? launchPath : `Game not installed · Select its .exe after installation`)}
+          </p>
         </section>
       </main>
-
-      {downloading && (
-        <aside
-          aria-live="polite"
-          aria-label="Download progress"
-          className="arcade-frame fixed bottom-5 right-5 z-50 w-[min(25rem,calc(100vw-6rem))] p-5 text-white backdrop-blur-xl"
-        >
-          <div className="mb-4 flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center border border-cyan-300/40 bg-cyan-300/10 text-cyan-200">
-                <Download size={19} className="animate-bounce" />
-              </div>
-              <div>
-                <p className="text-sm font-bold">
-                  {cancelingDownload
-                    ? "Canceling download..."
-                    : downloadPaused
-                      ? "Download paused"
-                      : downloadKind === "voice" ? "Voice pack download" : "Game download"}
-                </p>
-                <p className="mt-0.5 text-xs text-white/55">
-                  {downloadProcessReady ? game?.name : "Preparing downloader..."}
-                </p>
-              </div>
-            </div>
-            <span className="text-lg font-black tabular-nums text-lime-200">{progressPercent}%</span>
-          </div>
-
-          <div
-            role="progressbar"
-            aria-valuenow={progressPercent}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            className="mb-4 h-3 overflow-hidden border border-cyan-100/20 bg-black/60"
-          >
-            <div
-              className="h-full bg-gradient-to-r from-cyan-300 via-blue-400 to-fuchsia-400 transition-[width] duration-300"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="border border-white/10 bg-white/[0.04] p-3">
-              <span className="mb-1 flex items-center gap-1.5 text-white/50"><HardDrive size={13} /> Downloaded</span>
-              <span className="font-semibold tabular-nums">
-                {downloadProgress?.downloaded && downloadProgress.total
-                  ? `${downloadProgress.downloaded} / ${downloadProgress.total}`
-                  : "Preparing files..."}
-              </span>
-            </div>
-            <div className="border border-white/10 bg-white/[0.04] p-3">
-              <span className="mb-1 flex items-center gap-1.5 text-white/50"><ArrowDownToLine size={13} /> Speed</span>
-              <span className="font-semibold tabular-nums">{downloadProgress?.speed || "Calculating..."}</span>
-            </div>
-          </div>
-          {downloadProgress?.eta && (
-            <p className="mt-3 flex items-center gap-2 text-xs text-white/65">
-              <Clock3 size={14} /> Estimated time remaining: {downloadProgress.eta}
-            </p>
-          )}
-          <div className="mt-4 flex gap-2 border-t border-white/10 pt-4">
-            <button
-              type="button"
-              onClick={toggleDownloadPause}
-              disabled={!downloadProcessReady || cancelingDownload}
-              className="arcade-button flex flex-1 items-center justify-center gap-2 px-3 py-2 text-xs disabled:cursor-not-allowed"
-            >
-              {downloadPaused ? <Play size={15} /> : <Pause size={15} />}
-              {downloadPaused ? "Resume" : "Pause"}
-            </button>
-            <button
-              type="button"
-              onClick={cancelDownload}
-              disabled={!downloadProcessReady || cancelingDownload}
-              className="arcade-button arcade-button--danger flex flex-1 items-center justify-center gap-2 px-3 py-2 text-xs disabled:cursor-not-allowed"
-            >
-              {cancelingDownload ? <LoaderCircle size={15} className="animate-spin" /> : <Ban size={15} />}
-              {cancelingDownload ? "Canceling..." : "Cancel"}
-            </button>
-          </div>
-        </aside>
-      )}
 
       {pendingDownload && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm">

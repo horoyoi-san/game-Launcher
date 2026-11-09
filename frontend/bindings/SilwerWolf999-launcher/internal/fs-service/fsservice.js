@@ -26,13 +26,6 @@ export function DirExists(path) {
 }
 
 /**
- * @returns {$CancellablePromise<void>}
- */
-export function DownloadSophon() {
-    return $Call.ByID(3850145416);
-}
-
-/**
  * @param {string} path
  * @returns {$CancellablePromise<boolean>}
  */
@@ -72,14 +65,6 @@ export function GetGameConfig(gameID) {
  */
 export function GetLauncherDir() {
     return $Call.ByID(1772893036);
-}
-
-/**
- * GetSophonVersion returns the installed and latest Sophon Downloader versions.
- * @returns {$CancellablePromise<[string, string, boolean]>}
- */
-export function GetSophonVersion() {
-    return $Call.ByID(1488174842);
 }
 
 /**

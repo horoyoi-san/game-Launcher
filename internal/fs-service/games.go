@@ -3,17 +3,18 @@ package fsService
 import "fmt"
 
 type GameConfig struct {
-	ID      string              `json:"id"`
-	Name    string              `json:"name"`
-	Package string              `json:"package"`
-	Region  string              `json:"region"`
-	GameIDs map[string][]string `json:"gameIds"`
-	Output  string              `json:"output"`
+	ID         string              `json:"id"`
+	Name       string              `json:"name"`
+	Package    string              `json:"package"`
+	Region     string              `json:"region"`
+	GameIDs    map[string][]string `json:"gameIds"`
+	Output     string              `json:"output"`
+	Executable string              `json:"executable"`
 }
 
 var gameConfigs = []GameConfig{
 	{
-		ID: "Impact3rd", Name: "Honkai Impact 3rd", Package: "game", Region: "CN | OS", Output: "GameData/HonkaiImpact3rd",
+		ID: "Impact3rd", Name: "Honkai Impact 3rd", Package: "game", Region: "CN | OS", Output: "GameData/HonkaiImpact3rd", Executable: "BH3.exe",
 		GameIDs: map[string][]string{
 			"gameid":                           {"gameid"},
 			"OSREL Europe & Americas Servers":  {"5TIVvvcwtM"},
@@ -25,19 +26,19 @@ var gameConfigs = []GameConfig{
 		},
 	},
 	{
-		ID: "Genshin", Name: "Genshin Impact", Package: "game", Region: "CN | OS", Output: "GameData/GenshinImpact",
+		ID: "Genshin", Name: "Genshin Impact", Package: "game", Region: "CN | OS", Output: "GameData/GenshinImpact", Executable: "GenshinImpact.exe",
 		GameIDs: map[string][]string{"gameid": {"gameid"}, "OSREL": {"gopR6Cufr3"}, "CNREL": {"1Z8W5NHUQb"}},
 	},
 	{
-		ID: "StarRail", Name: "Honkai: Star Rail", Package: "game", Region: "CN | OS", Output: "GameData/HonkaiStarRail",
+		ID: "StarRail", Name: "Honkai: Star Rail", Package: "game", Region: "CN | OS", Output: "GameData/HonkaiStarRail", Executable: "StarRail.exe",
 		GameIDs: map[string][]string{"gameid": {"gameid"}, "OSREL": {"4ziysqXOQ8"}, "CNREL": {"64kMb5iAWu"}},
 	},
 	{
-		ID: "Zenless", Name: "Zenless Zone Zero", Package: "game", Region: "CN | OS", Output: "GameData/ZenlessZoneZero",
+		ID: "Zenless", Name: "Zenless Zone Zero", Package: "game", Region: "CN | OS", Output: "GameData/ZenlessZoneZero", Executable: "ZenlessZoneZero.exe",
 		GameIDs: map[string][]string{"gameid": {"gameid"}, "OSREL": {"U5hbdsT9W7"}, "CNREL": {"x6znKlJ0xK"}},
 	},
 	{
-		ID: "Nexusanima", Name: "Honkai: Nexus anima", Package: "game", Region: "CN | OS", Output: "GameData/HonkaiNexusanima",
+		ID: "Nexusanima", Name: "Honkai: Nexus anima", Package: "game", Region: "CN | OS", Output: "GameData/HonkaiNexusanima", Executable: "NexusAnima.exe",
 		GameIDs: map[string][]string{
 			"gameid": {"gameid"},
 			"OSREL":  {"yneO4yGc4x"},
@@ -47,7 +48,7 @@ var gameConfigs = []GameConfig{
 		},
 	},
 	{
-		ID: "PetitPlanet", Name: "Petit Planet", Package: "game", Region: "CN | OS", Output: "GameData/PetitPlanet",
+		ID: "PetitPlanet", Name: "Petit Planet", Package: "game", Region: "CN | OS", Output: "GameData/PetitPlanet", Executable: "PetitPlanet.exe",
 		GameIDs: map[string][]string{
 			"gameid": {"gameid"},
 			"OSREL":  {"viiywh5G2H", "a26PNg1Mgk"},
@@ -57,7 +58,7 @@ var gameConfigs = []GameConfig{
 		},
 	},
 	{
-		ID: "TheWeavers", Name: "The Weavers", Package: "game", Region: "CN | OS", Output: "GameData/TheWeavers",
+		ID: "TheWeavers", Name: "The Weavers", Package: "game", Region: "CN | OS", Output: "GameData/TheWeavers", Executable: "TheWeavers.exe",
 		GameIDs: map[string][]string{"gameid": {"gameid"}, "CNBETA": {"pkMBmK7jxJ"}},
 	},
 }

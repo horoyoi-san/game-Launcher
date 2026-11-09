@@ -8,6 +8,7 @@
 
 A lightweight and modern launcher for Anime game — designed to make launching, updating, and customizing your game easy and efficient.
 
+Game downloads are handled by the launcher itself. Each game's page provides install/update/repair, voice-pack downloads, and a way to open the game after selecting its executable.
 
 ---
 
@@ -59,8 +60,7 @@ wails3 package
 ## Automatic launcher updates
 
 The `Build SilwerWolf999 Launcher` workflow in `horoyoi-san/Hoyo` builds the
-Windows launcher and overwrites these assets on its existing
-`Sophon.Downloader` release:
+Windows launcher and overwrites these assets on its existing release:
 
 - `SilwerWolf999-launcher.exe`
 - `latest.json` (version and SHA-256 checksum)
@@ -71,6 +71,8 @@ is created. The sequence starts at `1.0.1` and rolls over as
 `latest.json` contains the current version and checksum, and the launcher
 verifies that checksum before applying an update.
 
+The release name is retained for the launcher update feed; game downloads run
+inside the launcher and do not require a separate Sophon.Downloader executable.
 The workflow needs to read the existing manifest (or use `1.0.0` if none exists),
 pass the generated version as `BUILD_VERSION` while building this source, create
 `latest.json` with the executable's SHA-256, and publish both files. Its existing
