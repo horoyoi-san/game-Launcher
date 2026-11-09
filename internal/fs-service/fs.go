@@ -1,6 +1,7 @@
 package fsService
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -216,6 +217,33 @@ func (f *FSService) PickFileWithDirectory(filter, defaultDir string) (string, er
 
 func (f *FSService) PickFile(filter string) (string, error) {
 	return f.PickFileWithDirectory(filter, "")
+}
+
+func (f *FSService) ExportDiscRecommendations(content string) (string, error) {
+	if len(content) == 0 || len(content) > 1<<20 || !json.Valid([]byte(content)) {
+		return "", fmt.Errorf("Drive Disc recommendations must be valid JSON under 1 MiB")
+	}
+
+	dialog := application.Get().Dialog.SaveFile()
+	dialog.SetOptions(&application.SaveFileDialogOptions{
+		Title:    "Save Drive Disc recommendations for build",
+		Filename: "disc-recommendations.json",
+	})
+	dialog.AddFilter("JSON files (*.json)", "*.json")
+	filePath, err := dialog.PromptForSingleSelection()
+	if err != nil {
+		return "", fmt.Errorf("choose a Drive Disc recommendations file: %w", err)
+	}
+	if filePath == "" {
+		return "", nil
+	}
+	if filepath.Ext(filePath) == "" {
+		filePath += ".json"
+	}
+	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+		return "", fmt.Errorf("save Drive Disc recommendations to %s: %w", filePath, err)
+	}
+	return filePath, nil
 }
 
 func (f *FSService) DirExists(path string) bool {

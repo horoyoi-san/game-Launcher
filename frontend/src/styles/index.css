@@ -3950,6 +3950,35 @@ body::before {
 .hoyo-agent-disc-recommendation__stats > div > span { overflow: hidden; color: #d5d7e7; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
 .hoyo-agent-disc-recommendation__substats { margin: 0; color: #aeb4ce; font-size: 8px; line-height: 1.5; }
 .hoyo-agent-disc-recommendation__substats b { margin-right: 5px; color: #b9a2ef; font: 800 7px ui-monospace, monospace; }
+.hoyo-agent-disc-recommendation__customizer { display: grid; gap: 8px; padding: 8px; border: 1px solid rgba(173, 146, 230, .17); border-radius: 7px; background: rgba(5, 8, 20, .3); }
+.hoyo-agent-disc-recommendation__customizer summary { display: flex; align-items: center; justify-content: space-between; color: #d7c8ff; font: 800 8px ui-monospace, monospace; letter-spacing: .08em; cursor: pointer; list-style: none; }
+.hoyo-agent-disc-recommendation__customizer summary::-webkit-details-marker { display: none; }
+.hoyo-agent-disc-recommendation__customizer summary::after { content: "+"; color: #a994df; font-size: 13px; }
+.hoyo-agent-disc-recommendation__customizer[open] summary::after { content: "−"; }
+.hoyo-agent-disc-recommendation__customizer summary span { margin-left: auto; margin-right: 8px; color: #92d8b8; font-size: 7px; }
+.hoyo-agent-disc-recommendation__customizer > p { margin: 0; color: #9298b1; font-size: 8px; line-height: 1.4; }
+.hoyo-agent-disc-recommendation__customizer > p code { color: #c9b9f4; font-size: 7px; overflow-wrap: anywhere; }
+.hoyo-agent-disc-recommendation__customizer .hoyo-field { gap: 4px; font-size: 7px; }
+.hoyo-agent-disc-recommendation__customizer .hoyo-field select { min-height: 30px; }
+.hoyo-disc-set-picker { position: relative; }
+.hoyo-disc-set-picker__trigger { display: grid; width: 100%; min-height: 42px; grid-template-columns: 34px minmax(0, 1fr) 16px; align-items: center; gap: 8px; padding: 4px 8px; border: 1px solid rgba(173, 146, 230, .2); border-radius: 7px; background: rgba(15, 17, 36, .86); color: #e5e1f4; text-align: left; cursor: pointer; }
+.hoyo-disc-set-picker__trigger img { width: 32px; height: 32px; object-fit: contain; }
+.hoyo-disc-set-picker__trigger > span { overflow: hidden; font-size: 9px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.hoyo-disc-set-picker__trigger > b { color: #b9a2ef; font-size: 13px; text-align: center; }
+.hoyo-disc-set-picker__options { display: grid; max-height: 200px; gap: 3px; overflow-y: auto; padding: 4px; border: 1px solid rgba(173, 146, 230, .3); border-radius: 8px; background: rgba(12, 13, 30, .98); }
+.hoyo-disc-set-picker__option { display: grid; min-height: 44px; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 7px; padding: 4px 6px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: #d5d7e7; text-align: left; cursor: pointer; }
+.hoyo-disc-set-picker__option:hover,
+.hoyo-disc-set-picker__option.is-selected { border-color: rgba(173, 146, 230, .3); background: rgba(107, 81, 163, .22); }
+.hoyo-disc-set-picker__option img { width: 34px; height: 34px; object-fit: contain; }
+.hoyo-disc-set-picker__option > span { display: grid; min-width: 0; gap: 3px; }
+.hoyo-disc-set-picker__option b { overflow: hidden; color: #ece9fa; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.hoyo-disc-set-picker__option small { overflow: hidden; color: #9298b1; font-size: 7px; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.hoyo-agent-disc-recommendation__edit-stats,
+.hoyo-agent-disc-recommendation__edit-substats { display: grid; gap: 7px; }
+.hoyo-agent-disc-recommendation__edit-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.hoyo-agent-disc-recommendation__edit-stats .hoyo-field > span { min-height: 18px; }
+.hoyo-agent-disc-recommendation__edit-substats > span { color: #b9a2ef; font: 800 7px ui-monospace, monospace; letter-spacing: .08em; }
+.hoyo-agent-disc-recommendation__customizer > .hoyo-button { justify-self: start; min-height: 28px; }
 .hoyo-editor__body { display: grid; gap: 11px; padding: 14px 15px 15px; }
 .hoyo-max-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #9a92b9; font: 800 8px ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; }
 .hoyo-quick-actions { display: flex; align-items: center; gap: 5px; }

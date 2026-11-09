@@ -1,98 +1,1571 @@
 {
+  "1011": {
+    "characterName": "Anby Demara",
+    "role": "Stun (starter)",
+    "fourPieceSetId": 33200,
+    "twoPieceSetId": 31200,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 21103,
+      "5": 31803,
+      "6": 12202
+    },
+    "subStats": [
+      21103,
+      20103,
+      12102,
+      23203,
+      12103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1021": {
+    "characterName": "Nekomiya Mana",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 31000,
+    "twoPieceSetId": 32700,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 23103,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      23203,
+      12103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1031": {
+    "characterName": "Nicole Demara",
+    "role": "Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 30502
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1041": {
+    "characterName": "Soldier 11",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1051": {
+    "characterName": "Yidhari Murphy",
+    "role": "Rupture DPS (starter)",
+    "fourPieceSetId": 33100,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      32700
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 11102
+    },
+    "subStats": [
+      20103,
+      21103,
+      11102,
+      12102,
+      11103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1061": {
+    "characterName": "Corin Wickes",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1071": {
+    "characterName": "Caesar King",
+    "role": "Defense Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 33400,
+    "alternativeTwoPieceSetIds": [
+      33100
+    ],
+    "mainStats": {
+      "4": 11102,
+      "5": 11102,
+      "6": 30502
+    },
+    "subStats": [
+      11102,
+      11103,
+      20103,
+      21103,
+      12102
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1081": {
+    "characterName": "Billy Kid",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
   "1091": {
     "characterName": "Miyabi",
     "role": "Frost Anomaly DPS",
     "fourPieceSetId": 32700,
     "twoPieceSetId": 31000,
-    "alternativeTwoPieceSetIds": [31400, 31100, 32800, 32500],
+    "alternativeTwoPieceSetIds": [
+      31400,
+      31100,
+      32800,
+      32500
+    ],
     "mainStats": {
       "4": 12102,
       "5": 23103,
       "6": 31402
     },
-    "subStats": [20103, 21103, 12102, 31203, 12103],
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      31203,
+      12103
+    ],
     "note": "Main stats vary with Mindscape and substats: Slot 4 ATK% is a strong default; CRIT can be used if needed. PEN% is preferred in Slot 5 at M0, and Anomaly Mastery is recommended in Slot 6 below M1. Aim for 80% in-combat CRIT Rate.",
     "guideUpdated": "2026-01-12",
     "source": "https://github.com/seriaati/szgf/blob/main/guides/original/miyabi.yml"
+  },
+  "1101": {
+    "characterName": "Koleda Belobog",
+    "role": "Stun (starter)",
+    "fourPieceSetId": 33300,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 12202
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1111": {
+    "characterName": "Anton Ivanov",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1121": {
+    "characterName": "Ben Bigger",
+    "role": "Defense Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 33400,
+    "alternativeTwoPieceSetIds": [
+      33100
+    ],
+    "mainStats": {
+      "4": 11102,
+      "5": 11102,
+      "6": 30502
+    },
+    "subStats": [
+      11102,
+      11103,
+      20103,
+      21103,
+      12102
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1131": {
+    "characterName": "Soukaku",
+    "role": "Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 30502
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1141": {
+    "characterName": "Von Lycaon",
+    "role": "Stun (starter)",
+    "fourPieceSetId": 33300,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 12202
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1151": {
+    "characterName": "Luciana de Montefio",
+    "role": "Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 30502
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1161": {
+    "characterName": "Lighter",
+    "role": "Stun (starter)",
+    "fourPieceSetId": 33300,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 12202
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1171": {
+    "characterName": "Burnice White",
+    "role": "Anomaly DPS (starter)",
+    "fourPieceSetId": 31800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31800,
+      31600,
+      31300
+    ],
+    "mainStats": {
+      "4": 31203,
+      "5": 31603,
+      "6": 31402
+    },
+    "subStats": [
+      12102,
+      12103,
+      31203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1181": {
+    "characterName": "Grace Howard",
+    "role": "Anomaly DPS (starter)",
+    "fourPieceSetId": 31300,
+    "twoPieceSetId": 31400,
+    "alternativeTwoPieceSetIds": [
+      31000,
+      31100
+    ],
+    "mainStats": {
+      "4": 31203,
+      "5": 12102,
+      "6": 31402
+    },
+    "subStats": [
+      31203,
+      31402,
+      12102,
+      12103,
+      20103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1191": {
+    "characterName": "Ellen Joe",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
   },
   "1201": {
     "characterName": "Asaba Harumasa",
     "role": "Attack DPS",
     "fourPieceSetId": 32900,
     "twoPieceSetId": 32700,
-    "alternativeTwoPieceSetIds": [31000],
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
     "mainStats": {
       "4": 21103,
       "5": 12102,
       "6": 12102
     },
-    "subStats": [20103, 21103, 12102, 12103, 23203],
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
     "note": "Shadow Harmony is the consistent 4-piece choice; Hormone Punk is a burst alternative. Prioritize CRIT Rate only to the appropriate cap for his Dash Attacks and team buffs.",
     "guideUpdated": "2025-06-25",
     "source": "https://github.com/seriaati/szgf/blob/main/guides/original/harumasa.yml"
+  },
+  "1211": {
+    "characterName": "Alexandrina Sebastiane",
+    "role": "Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 30502
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1221": {
+    "characterName": "Tsukishiro Yanagi",
+    "role": "Anomaly DPS (starter)",
+    "fourPieceSetId": 31300,
+    "twoPieceSetId": 31400,
+    "alternativeTwoPieceSetIds": [
+      31000,
+      31100
+    ],
+    "mainStats": {
+      "4": 31203,
+      "5": 12102,
+      "6": 31402
+    },
+    "subStats": [
+      31203,
+      31402,
+      12102,
+      12103,
+      20103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1241": {
+    "characterName": "Zhu Yuan",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1251": {
+    "characterName": "Qingyi",
+    "role": "Stun (starter)",
+    "fourPieceSetId": 33300,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 12202
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1261": {
+    "characterName": "Jane Doe",
+    "role": "Anomaly DPS (starter)",
+    "fourPieceSetId": 31300,
+    "twoPieceSetId": 31400,
+    "alternativeTwoPieceSetIds": [
+      31000,
+      31100
+    ],
+    "mainStats": {
+      "4": 31203,
+      "5": 12102,
+      "6": 31402
+    },
+    "subStats": [
+      31203,
+      31402,
+      12102,
+      12103,
+      20103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1271": {
+    "characterName": "Seth Lowell",
+    "role": "Defense Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 33400,
+    "alternativeTwoPieceSetIds": [
+      33100
+    ],
+    "mainStats": {
+      "4": 11102,
+      "5": 11102,
+      "6": 30502
+    },
+    "subStats": [
+      11102,
+      11103,
+      20103,
+      21103,
+      12102
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1281": {
+    "characterName": "Piper",
+    "role": "Anomaly DPS (starter)",
+    "fourPieceSetId": 31300,
+    "twoPieceSetId": 31400,
+    "alternativeTwoPieceSetIds": [
+      31000,
+      31100
+    ],
+    "mainStats": {
+      "4": 31203,
+      "5": 12102,
+      "6": 31402
+    },
+    "subStats": [
+      31203,
+      31402,
+      12102,
+      12103,
+      20103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1291": {
+    "characterName": "Hugo Vlad",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1301": {
+    "characterName": "Orphie Magnusson & Magus",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
   },
   "1311": {
     "characterName": "Astra Yao",
     "role": "Support",
     "fourPieceSetId": 32800,
     "twoPieceSetId": 31600,
-    "alternativeTwoPieceSetIds": [31400],
+    "alternativeTwoPieceSetIds": [
+      31400
+    ],
     "mainStats": {
       "4": 12102,
       "5": 12102,
       "6": 12102
     },
-    "subStats": [12102, 12103, 20103, 21103, 23203],
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
     "note": "Prioritize reaching her 3429 ATK passive requirement. Slot 6 ATK% helps reach it; switch to Energy Regen% once the requirement is met and you want more frequent Quick Assists.",
     "guideUpdated": "2025-06-25",
     "source": "https://github.com/seriaati/szgf/blob/main/guides/original/astra.yml"
+  },
+  "1321": {
+    "characterName": "Evelyn Chevalier",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1331": {
+    "characterName": "Vivian Banshee",
+    "role": "Anomaly DPS (starter)",
+    "fourPieceSetId": 33000,
+    "twoPieceSetId": 31300,
+    "alternativeTwoPieceSetIds": [
+      33000,
+      31300,
+      31600
+    ],
+    "mainStats": {
+      "4": 31203,
+      "5": 31903,
+      "6": 31402
+    },
+    "subStats": [
+      31203,
+      12102,
+      12103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
   },
   "1341": {
     "characterName": "Zhao",
     "role": "Defense Support",
     "fourPieceSetId": 32800,
     "twoPieceSetId": 33400,
-    "alternativeTwoPieceSetIds": [33100],
+    "alternativeTwoPieceSetIds": [
+      33100
+    ],
     "mainStats": {
       "4": 11102,
       "5": 11102,
       "6": 30502
     },
-    "subStats": [11102, 11103, 20103, 21103, 12102],
+    "subStats": [
+      11102,
+      11103,
+      20103,
+      21103,
+      12102
+    ],
     "note": "Build HP toward her passive requirement; use Energy Regen in Slot 6 for buff uptime. Yunkui Tales is the 2-piece alternative when additional HP is preferred.",
     "guideUpdated": "2026-01-15",
     "source": "https://github.com/seriaati/szgf/blob/main/guides/original/zhao.yml"
+  },
+  "1351": {
+    "characterName": "Pulchra Fellini",
+    "role": "Stun (starter)",
+    "fourPieceSetId": 33300,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 12202
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1361": {
+    "characterName": "Trigger",
+    "role": "Stun (starter)",
+    "fourPieceSetId": 33200,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 31803,
+      "6": 12202
+    },
+    "subStats": [
+      0,
+      12102,
+      20103,
+      21103,
+      0
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
   },
   "1371": {
     "characterName": "Yixuan",
     "role": "Rupture DPS",
     "fourPieceSetId": 33100,
     "twoPieceSetId": 31000,
-    "alternativeTwoPieceSetIds": [32700],
+    "alternativeTwoPieceSetIds": [
+      32700
+    ],
     "mainStats": {
       "4": 20103,
       "5": 31903,
       "6": 11102
     },
-    "subStats": [20103, 21103, 11102, 12102, 11103],
+    "subStats": [
+      20103,
+      21103,
+      11102,
+      12102,
+      11103
+    ],
     "note": "Yunkui Tales is tailored to her Sheer DMG scaling. She does not need PEN for Sheer DMG; choose CRIT Rate or CRIT DMG in Slot 4 based on her current CRIT ratio.",
     "guideUpdated": "2025-06-25",
     "source": "https://github.com/seriaati/szgf/blob/main/guides/original/yixuan.yml"
+  },
+  "1381": {
+    "characterName": "Soldier 0 - Anby",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1391": {
+    "characterName": "Ju Fufu",
+    "role": "Stun (starter)",
+    "fourPieceSetId": 33200,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      0
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1401": {
+    "characterName": "Alice Thymefield",
+    "role": "Anomaly DPS (starter)",
+    "fourPieceSetId": 32600,
+    "twoPieceSetId": 31300,
+    "alternativeTwoPieceSetIds": [
+      32600,
+      31300,
+      33000
+    ],
+    "mainStats": {
+      "4": 31203,
+      "5": 31503,
+      "6": 31402
+    },
+    "subStats": [
+      31203,
+      12102,
+      12103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1411": {
+    "characterName": "Ukinami Yuzuha",
+    "role": "Support (starter)",
+    "fourPieceSetId": 33400,
+    "twoPieceSetId": 33000,
+    "alternativeTwoPieceSetIds": [
+      33000,
+      33400,
+      31600
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 31402
+    },
+    "subStats": [
+      12102,
+      12103,
+      31203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1421": {
+    "characterName": "Pan Yinhu",
+    "role": "Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 30502
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
   },
   "1431": {
     "characterName": "Ye Shunguang",
     "role": "Attack DPS",
     "fourPieceSetId": 33500,
     "twoPieceSetId": 32700,
-    "alternativeTwoPieceSetIds": [31000, 32800],
+    "alternativeTwoPieceSetIds": [
+      31000,
+      32800
+    ],
     "mainStats": {
       "4": 12102,
       "5": 12102,
       "6": 12102
     },
-    "subStats": [20103, 21103, 12102, 12103, 23203],
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
     "note": "White Water Ballad is her dedicated 4-piece set. Keep displayed CRIT Rate at or below 50% to account for the set and Core Passive combat bonuses; ATK% or PEN% are both viable in Slot 5.",
     "guideUpdated": "2026-01-15",
     "source": "https://github.com/seriaati/szgf/blob/main/guides/original/ye-shunguang.yml"
+  },
+  "1441": {
+    "characterName": "Komano Manato",
+    "role": "Stun (starter)",
+    "fourPieceSetId": 33300,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 12202
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1451": {
+    "characterName": "Lucia Elowen",
+    "role": "Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 30502
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1461": {
+    "characterName": "Seed",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1471": {
+    "characterName": "Banyue",
+    "role": "Stun (starter)",
+    "fourPieceSetId": 33300,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 12202
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1481": {
+    "characterName": "Dialyn",
+    "role": "Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 30502
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1491": {
+    "characterName": "Sunna",
+    "role": "Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 30502
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1501": {
+    "characterName": "Aria",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1511": {
+    "characterName": "Nangong Yu",
+    "role": "Stun (starter)",
+    "fourPieceSetId": 33600,
+    "twoPieceSetId": 31800,
+    "alternativeTwoPieceSetIds": [
+      33600,
+      31800,
+      33200
+    ],
+    "mainStats": {
+      "4": 31203,
+      "5": 31903,
+      "6": 31402
+    },
+    "subStats": [
+      31203,
+      12102,
+      12103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1521": {
+    "characterName": "Cissia",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1531": {
+    "characterName": "Starlight - Billy",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1541": {
+    "characterName": "Promeia",
+    "role": "Anomaly DPS (starter)",
+    "fourPieceSetId": 31300,
+    "twoPieceSetId": 31400,
+    "alternativeTwoPieceSetIds": [
+      31000,
+      31100
+    ],
+    "mainStats": {
+      "4": 31203,
+      "5": 12102,
+      "6": 31402
+    },
+    "subStats": [
+      31203,
+      31402,
+      12102,
+      12103,
+      20103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1551": {
+    "characterName": "Pyrois",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 32700,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 12102,
+      "6": 12102
+    },
+    "subStats": [
+      20103,
+      21103,
+      12102,
+      12103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1561": {
+    "characterName": "Velina Airgid",
+    "role": "Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 30502
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1571": {
+    "characterName": "Norma Hollowell",
+    "role": "Support (starter)",
+    "fourPieceSetId": 33200,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 31603,
+      "6": 30502
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      0
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1581": {
+    "characterName": "Remielle Dan",
+    "role": "Defense Support (starter)",
+    "fourPieceSetId": 34100,
+    "twoPieceSetId": 33400,
+    "alternativeTwoPieceSetIds": [
+      33100
+    ],
+    "mainStats": {
+      "4": 31203,
+      "5": 12102,
+      "6": 31402
+    },
+    "subStats": [
+      12102,
+      31203,
+      12103,
+      0,
+      0
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1591": {
+    "characterName": "Sigrid de Lazur",
+    "role": "Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 30502
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1601": {
+    "characterName": "Sunbringer",
+    "role": "Support (starter)",
+    "fourPieceSetId": 34300,
+    "twoPieceSetId": 34200,
+    "alternativeTwoPieceSetIds": [
+      34300,
+      34200
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 31603,
+      "6": 13102
+    },
+    "subStats": [
+      20103,
+      21103,
+      13102,
+      13103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1611": {
+    "characterName": "Claret Flint",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 34200,
+    "twoPieceSetId": 34300,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 23103,
+      "6": 13102
+    },
+    "subStats": [
+      20103,
+      21103,
+      13102,
+      0,
+      0
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1621": {
+    "characterName": "Roxy Ifrita Pryce",
+    "role": "Anomaly DPS (starter)",
+    "fourPieceSetId": 31600,
+    "twoPieceSetId": 33400,
+    "alternativeTwoPieceSetIds": [
+      31000,
+      31100
+    ],
+    "mainStats": {
+      "4": 20103,
+      "5": 23103,
+      "6": 30502
+    },
+    "subStats": [
+      0,
+      0,
+      12102,
+      21103,
+      20103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1631": {
+    "characterName": "Severian Lowell",
+    "role": "Support (starter)",
+    "fourPieceSetId": 32800,
+    "twoPieceSetId": 31600,
+    "alternativeTwoPieceSetIds": [
+      31000
+    ],
+    "mainStats": {
+      "4": 12102,
+      "5": 12102,
+      "6": 30502
+    },
+    "subStats": [
+      12102,
+      12103,
+      20103,
+      21103,
+      23203
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1641": {
+    "characterName": "Phoenix Reffaella",
+    "role": "Attack DPS (starter)",
+    "fourPieceSetId": 31300,
+    "twoPieceSetId": 33000,
+    "alternativeTwoPieceSetIds": [
+      31100
+    ],
+    "mainStats": {
+      "4": 31203,
+      "5": 31603,
+      "6": 31402
+    },
+    "subStats": [
+      12102,
+      12103,
+      31203,
+      0,
+      0
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1651": {
+    "characterName": "Kafka",
+    "role": "Anomaly DPS (starter)",
+    "fourPieceSetId": 31300,
+    "twoPieceSetId": 33400,
+    "alternativeTwoPieceSetIds": [
+      31300,
+      33400,
+      31800
+    ],
+    "mainStats": {
+      "4": 31203,
+      "5": 31803,
+      "6": 30502
+    },
+    "subStats": [
+      31203,
+      12102,
+      12103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
+  },
+  "1661": {
+    "characterName": "Robin",
+    "role": "Support (starter)",
+    "fourPieceSetId": 33700,
+    "twoPieceSetId": 33100,
+    "alternativeTwoPieceSetIds": [
+      33700,
+      33100,
+      31600
+    ],
+    "mainStats": {
+      "4": 11102,
+      "5": 11102,
+      "6": 11102
+    },
+    "subStats": [
+      11102,
+      11103
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters"
   }
 }

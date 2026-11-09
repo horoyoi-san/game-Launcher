@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Copy, ExternalLink, LoaderCircle, RefreshCw, Search, ShieldCheck, Sparkles, Trash2, X } from "lucide-react";
 import { toast } from "react-toastify";
+import { FSService } from "@bindings/sunbringer-launcher/internal/fs-service";
 import { HoyoService } from "@bindings/sunbringer-launcher/internal/hoyo-service";
 import discRecommendations from "./disc-recommendations.json";
 
@@ -73,6 +74,11 @@ type DiscRecommendation = {
     source: string;
 };
 
+type EditableDiscRecommendation = Pick<
+    DiscRecommendation,
+    "fourPieceSetId" | "twoPieceSetId" | "mainStats" | "subStats"
+>;
+
 type Category = "disks" | "characters" | "weapons";
 
 type ConfirmationDialog = {
@@ -86,6 +92,7 @@ type ConfirmationDialog = {
 };
 
 const SAVED_DISK_SETS_KEY = "hoyoSavedDiskSets";
+const DISC_RECOMMENDATION_OVERRIDES_KEY = "hoyoDiscRecommendationOverrides";
 const RANK_FILTERS = [
     { rank: null, label: "ALL" },
     { rank: 4, label: "S" },
@@ -151,6 +158,31 @@ const SKILLS = [
 const getStatName = (id: number) => STATS.find((stat) => stat.id === id)?.name ?? "Select stat";
 const getDiscRecommendation = (character: CatalogItem): DiscRecommendation | null =>
     DISC_RECOMMENDATIONS[character.id] ?? null;
+const isEditableDiscRecommendation = (value: unknown): value is EditableDiscRecommendation => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    const recommendation = value as Partial<EditableDiscRecommendation>;
+    const mainStats = recommendation.mainStats;
+    const subStats = recommendation.subStats;
+    if (typeof recommendation.fourPieceSetId !== "number" ||
+        typeof recommendation.twoPieceSetId !== "number" ||
+        !mainStats || typeof mainStats !== "object" || Array.isArray(mainStats) ||
+        !Array.isArray(subStats) || subStats.length !== 5) return false;
+    return Number.isInteger(recommendation.fourPieceSetId) && recommendation.fourPieceSetId > 0 &&
+        Number.isInteger(recommendation.twoPieceSetId) && recommendation.twoPieceSetId > 0 &&
+        [4, 5, 6].every((slot) => MAIN_STATS_BY_SLOT[slot].includes(mainStats[slot])) &&
+        subStats.every((statId) => statId === 0 || SUBSTAT_IDS.includes(statId)) &&
+        new Set(subStats.filter((statId) => statId !== 0)).size === subStats.filter((statId) => statId !== 0).length;
+};
+const normalizeRecommendedSubStats = (subStats: number[]) => {
+    const seen = new Set<number>();
+    return Array.from({ length: 5 }, (_, index) => {
+        const statId = subStats[index] ?? 0;
+        if (statId === 0) return 0;
+        if (!SUBSTAT_IDS.includes(statId) || seen.has(statId)) return 0;
+        seen.add(statId);
+        return statId;
+    });
+};
 const getMaxDiskRolls = (rank: number) => rank + 1;
 const randomizeSubStatRolls = (count: number, minRolls: number, maxRolls: number) => {
     const rolls = Array.from({ length: count }, () => 0);
@@ -173,7 +205,14 @@ const buildRecommendedDisks = (recommendation: DiscRecommendation): DiskConfig[]
         const mainStat = slot < 4
             ? slot === 1 ? 11103 : slot === 2 ? 12103 : 13103
             : recommendation.mainStats[slot];
-        const subStatIds = recommendation.subStats.filter((statID) => statID !== mainStat).slice(0, 4);
+        const subStatIds = [...new Set(recommendation.subStats.filter((statId) =>
+            statId !== 0 && statId !== mainStat && SUBSTAT_IDS.includes(statId),
+        ))].slice(0, 4);
+        const randomCandidates = SUBSTAT_IDS.filter((statId) => statId !== mainStat && !subStatIds.includes(statId));
+        while (subStatIds.length < 4 && randomCandidates.length > 0) {
+            const randomIndex = Math.floor(Math.random() * randomCandidates.length);
+            subStatIds.push(randomCandidates.splice(randomIndex, 1)[0]);
+        }
         return {
             setId: slot <= 4 ? recommendation.fourPieceSetId : recommendation.twoPieceSetId,
             rank: 4,
@@ -302,6 +341,69 @@ function NumberField({
     );
 }
 
+function DiskSetPicker({
+    label,
+    disks,
+    selectedSetId,
+    onChange,
+}: {
+    label: string;
+    disks: CatalogItem[];
+    selectedSetId: number;
+    onChange: (setId: number) => void;
+}) {
+    const [isOpen, setIsOpen] = useState(false);
+    const selectedDisk = disks.find((disk) => disk.id === selectedSetId);
+    const listId = `disk-set-options-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
+    return (
+        <div className="hoyo-field hoyo-disc-set-picker">
+            <span>{label}</span>
+            <button
+                type="button"
+                className="hoyo-disc-set-picker__trigger"
+                aria-expanded={isOpen}
+                aria-controls={listId}
+                onClick={() => setIsOpen((open) => !open)}
+            >
+                {selectedDisk?.imagePath ? (
+                    <img src={selectedDisk.imagePath} alt="" />
+                ) : (
+                    <Sparkles size={18} aria-hidden="true" />
+                )}
+                <span>{selectedDisk?.name ?? `Drive Disc ${selectedSetId}`}</span>
+                <b>{isOpen ? "−" : "+"}</b>
+            </button>
+            {isOpen && (
+                <div className="hoyo-disc-set-picker__options" id={listId}>
+                    {disks.map((disk) => (
+                        <button
+                            type="button"
+                            key={disk.id}
+                            className={`hoyo-disc-set-picker__option ${disk.id === selectedSetId ? "is-selected" : ""}`}
+                            aria-pressed={disk.id === selectedSetId}
+                            onClick={() => {
+                                onChange(disk.id);
+                                setIsOpen(false);
+                            }}
+                        >
+                            {disk.imagePath ? (
+                                <img src={disk.imagePath} alt="" loading="lazy" />
+                            ) : (
+                                <Sparkles size={18} aria-hidden="true" />
+                            )}
+                            <span>
+                                <b>{disk.name}</b>
+                                <small>{disk.twoPieceEffect || "Drive Disc set"}</small>
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
+
 export default function HoyoPage() {
     const [catalog, setCatalog] = useState<HoyoCatalog | null>(null);
     const [catalogError, setCatalogError] = useState("");
@@ -327,6 +429,8 @@ export default function HoyoPage() {
     const [diskSetName, setDiskSetName] = useState("");
     const [savedDiskSets, setSavedDiskSets] = useState<SavedDiskSet[]>([]);
     const [editingSavedDisks, setEditingSavedDisks] = useState<Record<string, DiskConfig>>({});
+    const [discRecommendationOverrides, setDiscRecommendationOverrides] = useState<Record<number, EditableDiscRecommendation>>({});
+    const [discRecommendationOverridesLoaded, setDiscRecommendationOverridesLoaded] = useState(false);
     const [agentLevel, setAgentLevel] = useState(0);
     const [skillLevels, setSkillLevels] = useState([0, 0, 0, 0, 0, 0, 0]);
     const [mindscape, setMindscape] = useState(-1);
@@ -335,6 +439,7 @@ export default function HoyoPage() {
     const [weaponLevel, setWeaponLevel] = useState(60);
     const [refinement, setRefinement] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isExportingDiscRecommendations, setIsExportingDiscRecommendations] = useState(false);
     const [saveInventory, setSaveInventory] = useState<SaveInventory | null>(null);
     const [loadedInventoryUid, setLoadedInventoryUid] = useState<number | null>(null);
     const [saveInventoryError, setSaveInventoryError] = useState("");
@@ -355,6 +460,39 @@ export default function HoyoPage() {
             toast.error(`Could not load saved Drive Disc sets: ${error instanceof Error ? error.message : String(error)}`);
         }
     }, []);
+
+    useEffect(() => {
+        try {
+            const stored = localStorage.getItem(DISC_RECOMMENDATION_OVERRIDES_KEY);
+            if (stored) {
+                const parsed: unknown = JSON.parse(stored);
+                if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+                    throw new Error("Drive Disc recommendation settings have an invalid format.");
+                }
+                const overrides: Record<number, EditableDiscRecommendation> = {};
+                for (const [characterId, value] of Object.entries(parsed)) {
+                    if (!/^\d+$/.test(characterId) || !isEditableDiscRecommendation(value)) {
+                        throw new Error(`Drive Disc recommendation settings for Agent ${characterId} are invalid.`);
+                    }
+                    overrides[Number(characterId)] = value;
+                }
+                setDiscRecommendationOverrides(overrides);
+            }
+        } catch (error: unknown) {
+            toast.error(`Could not load custom Drive Disc recommendations: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+            setDiscRecommendationOverridesLoaded(true);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!discRecommendationOverridesLoaded) return;
+        try {
+            localStorage.setItem(DISC_RECOMMENDATION_OVERRIDES_KEY, JSON.stringify(discRecommendationOverrides));
+        } catch (error: unknown) {
+            toast.error(`Could not save custom Drive Disc recommendations: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }, [discRecommendationOverrides, discRecommendationOverridesLoaded]);
 
     const loadCatalog = async () => {
         setCatalogError("");
@@ -417,7 +555,65 @@ export default function HoyoPage() {
     const selectedItemId = category === "disks" ? selectedDiskId : category === "characters" ? selectedAgentId : selectedWeaponId;
     const selectedItem = currentItems.find((item) => item.id === selectedItemId);
     const selectedCharacter = catalog?.characters.find((item) => item.id === selectedAgentId);
-    const selectedAgentRecommendation = selectedCharacter ? getDiscRecommendation(selectedCharacter) : null;
+    const baseAgentRecommendation = selectedCharacter ? getDiscRecommendation(selectedCharacter) : null;
+    const selectedAgentOverride = selectedCharacter ? discRecommendationOverrides[selectedCharacter.id] : undefined;
+    const selectedAgentRecommendation = baseAgentRecommendation
+        ? {
+            ...baseAgentRecommendation,
+            ...selectedAgentOverride,
+            mainStats: selectedAgentOverride?.mainStats ?? baseAgentRecommendation.mainStats,
+            subStats: selectedAgentOverride?.subStats ?? baseAgentRecommendation.subStats,
+        }
+        : null;
+    const updateSelectedAgentRecommendation = (patch: Partial<EditableDiscRecommendation>) => {
+        if (!selectedCharacter || !selectedAgentRecommendation) return;
+        const updated: EditableDiscRecommendation = {
+            fourPieceSetId: selectedAgentRecommendation.fourPieceSetId,
+            twoPieceSetId: selectedAgentRecommendation.twoPieceSetId,
+            mainStats: selectedAgentRecommendation.mainStats,
+            subStats: selectedAgentRecommendation.subStats,
+            ...patch,
+        };
+        updated.subStats = normalizeRecommendedSubStats(updated.subStats);
+        setDiscRecommendationOverrides((current) => ({ ...current, [selectedCharacter.id]: updated }));
+    };
+    const resetSelectedAgentRecommendation = () => {
+        if (!selectedCharacter) return;
+        setDiscRecommendationOverrides((current) => {
+            const updated = { ...current };
+            delete updated[selectedCharacter.id];
+            return updated;
+        });
+    };
+    const exportDiscRecommendationsForBuild = async () => {
+        setIsExportingDiscRecommendations(true);
+        try {
+            const recommendations: Record<number, DiscRecommendation> = { ...DISC_RECOMMENDATIONS };
+            for (const [characterId, override] of Object.entries(discRecommendationOverrides)) {
+                const current = recommendations[Number(characterId)];
+                if (!current) {
+                    throw new Error(`No default Drive Disc recommendation exists for Agent ${characterId}.`);
+                }
+                recommendations[Number(characterId)] = {
+                    ...current,
+                    ...override,
+                    mainStats: override.mainStats,
+                    subStats: override.subStats,
+                };
+            }
+
+            const filePath = await FSService.ExportDiscRecommendations(
+                `${JSON.stringify(recommendations, null, 2)}\n`,
+            );
+            if (filePath) {
+                toast.success(`Saved build recommendations: ${filePath}`);
+            }
+        } catch (error: unknown) {
+            toast.error(`Could not save build recommendations: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+            setIsExportingDiscRecommendations(false);
+        }
+    };
     const potentialIDs = selectedCharacter?.potentialIds ?? [];
     const skinIDs = selectedCharacter?.skinIds ?? [];
     const activeDraftSet = savedDiskSets.find((set) => set.id === draftSavedSetId);
@@ -1250,8 +1446,85 @@ export default function HoyoPage() {
                                 {selectedAgentRecommendation ? (
                                     <>
                                         <p className="hoyo-agent-disc-recommendation__note">
-                                            {selectedAgentRecommendation.note} You can customize the loadout in Drive Discs.
+                                            {selectedAgentRecommendation.note}
                                         </p>
+                                        <details className="hoyo-agent-disc-recommendation__customizer">
+                                            <summary>
+                                                CUSTOMIZE BUILD
+                                                {selectedAgentOverride && <span>CUSTOM SAVED</span>}
+                                            </summary>
+                                            <p>Changes are saved on this device and used by Create &amp; Equip.</p>
+                                            <DiskSetPicker
+                                                label="4-PIECE DRIVE DISC"
+                                                disks={catalog?.disks ?? []}
+                                                selectedSetId={selectedAgentRecommendation.fourPieceSetId}
+                                                onChange={(setId) => updateSelectedAgentRecommendation({ fourPieceSetId: setId })}
+                                            />
+                                            <DiskSetPicker
+                                                label="2-PIECE DRIVE DISC"
+                                                disks={catalog?.disks ?? []}
+                                                selectedSetId={selectedAgentRecommendation.twoPieceSetId}
+                                                onChange={(setId) => updateSelectedAgentRecommendation({ twoPieceSetId: setId })}
+                                            />
+                                            <div className="hoyo-agent-disc-recommendation__edit-stats">
+                                                {[4, 5, 6].map((slot) => (
+                                                    <label className="hoyo-field" key={slot}>
+                                                        <span>SLOT {slot} MAIN STAT</span>
+                                                        <select
+                                                            value={selectedAgentRecommendation.mainStats[slot]}
+                                                            onChange={(event) => updateSelectedAgentRecommendation({
+                                                                mainStats: { ...selectedAgentRecommendation.mainStats, [slot]: Number(event.target.value) },
+                                                            })}
+                                                        >
+                                                            {(MAIN_STATS_BY_SLOT[slot] ?? []).map((statId) => (
+                                                                <option key={statId} value={statId}>{getStatName(statId)}</option>
+                                                            ))}
+                                                        </select>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                            <div className="hoyo-agent-disc-recommendation__edit-substats">
+                                                <span>SUBSTAT PRIORITY · RANDOMIZE THE REST</span>
+                                                {selectedAgentRecommendation.subStats.map((selectedStatId, index) => (
+                                                    <label className="hoyo-field" key={index}>
+                                                        <span>PRIORITY {index + 1}</span>
+                                                        <select
+                                                            value={selectedStatId}
+                                                            onChange={(event) => {
+                                                                const updatedSubStats = [...selectedAgentRecommendation.subStats];
+                                                                updatedSubStats[index] = Number(event.target.value);
+                                                                updateSelectedAgentRecommendation({ subStats: updatedSubStats });
+                                                            }}
+                                                        >
+                                                            <option value={0}>Random</option>
+                                                            {SUBSTAT_IDS
+                                                                .filter((statId) => statId === selectedStatId ||
+                                                                    !selectedAgentRecommendation.subStats.includes(statId))
+                                                                .map((statId) => (
+                                                                    <option key={statId} value={statId}>{getStatName(statId)}</option>
+                                                                ))}
+                                                        </select>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                            <button
+                                                type="button"
+                                                className="hoyo-button hoyo-button--muted"
+                                                disabled={!selectedAgentOverride}
+                                                onClick={resetSelectedAgentRecommendation}
+                                            >
+                                                RESET TO DEFAULT
+                                            </button>
+                                            <p>To include your saved settings in the next build, export the JSON and replace <code>frontend/src/pages/hoyo/disc-recommendations.json</code> in the project.</p>
+                                            <button
+                                                type="button"
+                                                className="hoyo-button hoyo-button--primary"
+                                                disabled={isExportingDiscRecommendations || Object.keys(discRecommendationOverrides).length === 0}
+                                                onClick={() => void exportDiscRecommendationsForBuild()}
+                                            >
+                                                {isExportingDiscRecommendations ? "SAVING JSON…" : "SAVE JSON FOR BUILD"}
+                                            </button>
+                                        </details>
                                         {selectedAgentRecommendation.alternativeTwoPieceSetIds.length > 0 && (
                                             <p className="hoyo-agent-disc-recommendation__alternatives">
                                                 2-PIECE ALTERNATIVES: {selectedAgentRecommendation.alternativeTwoPieceSetIds
@@ -1303,7 +1576,7 @@ export default function HoyoPage() {
                                         </div>
                                         <p className="hoyo-agent-disc-recommendation__substats">
                                             <b>SUBSTATS</b>
-                                            {selectedAgentRecommendation.subStats.slice(0, 3).map(getStatName).join(" · ")}
+                                            {selectedAgentRecommendation.subStats.map(getStatName).join(" · ")}
                                         </p>
                                         <button
                                             type="button"

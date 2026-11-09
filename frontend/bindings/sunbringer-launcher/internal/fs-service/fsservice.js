@@ -15,6 +15,14 @@ export function DirExists(path) {
 }
 
 /**
+ * @param {string} content
+ * @returns {$CancellablePromise<string>}
+ */
+export function ExportDiscRecommendations(content) {
+    return $Call.ByID(1139330616, content);
+}
+
+/**
  * @returns {$CancellablePromise<string>}
  */
 export function FetchUpstreamOffsetsFile() {
