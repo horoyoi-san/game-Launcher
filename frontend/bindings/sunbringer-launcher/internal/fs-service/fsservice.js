@@ -165,6 +165,13 @@ export function StartApp(path) {
 /**
  * @returns {$CancellablePromise<[boolean, string]>}
  */
+export function StartKafkaServer() {
+    return $Call.ByID(836044258);
+}
+
+/**
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
 export function StartNAPServer() {
     return $Call.ByID(3265940439);
 }
@@ -175,13 +182,6 @@ export function StartNAPServer() {
  */
 export function StartWithConsole(path) {
     return $Call.ByID(976966802, path);
-}
-
-/**
- * @returns {$CancellablePromise<[boolean, string]>}
- */
-export function StartYuzuhaServer() {
-    return $Call.ByID(3447987582);
 }
 
 /**

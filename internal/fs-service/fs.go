@@ -333,19 +333,19 @@ func (f *FSService) StartNAPServer() (bool, string) {
 	return true, ""
 }
 
-func (f *FSService) StartYuzuhaServer() (bool, string) {
-	serverExecutable := filepath.Join(constant.YuzuhaStorageDir, "zig-out", "bin", "yuzuha.exe")
+func (f *FSService) StartKafkaServer() (bool, string) {
+	serverExecutable := filepath.Join(constant.KafkaStorageDir, "zig-out", "bin", "kafka.exe")
 	command, _, err := startConsoleProcess(serverExecutable)
 	if err != nil {
-		return false, fmt.Errorf("prepare Yuzuha server executable: %w", err).Error()
+		return false, fmt.Errorf("prepare Kafka server executable: %w", err).Error()
 	}
-	serverDir, err := filepath.Abs(constant.YuzuhaStorageDir)
+	serverDir, err := filepath.Abs(constant.KafkaStorageDir)
 	if err != nil {
-		return false, fmt.Errorf("resolve Yuzuha source folder: %w", err).Error()
+		return false, fmt.Errorf("resolve Kafka source folder: %w", err).Error()
 	}
 	command.Dir = serverDir
 	if err := command.Start(); err != nil {
-		return false, fmt.Errorf("start Yuzuha server executable: %w", err).Error()
+		return false, fmt.Errorf("start Kafka server executable: %w", err).Error()
 	}
 	go func() {
 		_ = command.Wait()

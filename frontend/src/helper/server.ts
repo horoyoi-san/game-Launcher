@@ -4,25 +4,25 @@ import { FSService } from '@bindings/sunbringer-launcher/internal/fs-service';
 import { GitService } from '@bindings/sunbringer-launcher/internal/git-service';
 import { toast } from 'react-toastify';
 
-export type NAPServerChoice = "remielle" | "yuzuha";
+export type NAPServerChoice = "remielle" | "kafka";
 
 export async function CheckUpdateServer(
     _serverPath: string,
     _serverVersion: string,
     serverChoice: NAPServerChoice = "remielle"
 ): Promise<{ isUpdate: boolean; isExists: boolean; version: string }> {
-    const isYuzuha = serverChoice === "yuzuha"
-    const resolvedServerPath = isYuzuha ? "./server/yuzuha" : "./server/remielle"
-    const version = isYuzuha ? "yuzuha-latest" : "remielle-0.1.x"
-    const serverExists = isYuzuha
-        ? await FSService.FileExists(`${resolvedServerPath}/zig-out/bin/yuzuha.exe`)
+    const isKafka = serverChoice === "kafka"
+    const resolvedServerPath = isKafka ? "./server/kafka" : "./server/remielle"
+    const version = isKafka ? "kafka-latest" : "remielle-0.1.x"
+    const serverExists = isKafka
+        ? await FSService.FileExists(`${resolvedServerPath}/zig-out/bin/kafka.exe`)
         : await FSService.FileExists(`${resolvedServerPath}/build.zig`)
-    const zigExecutable = isYuzuha
+    const zigExecutable = isKafka
         ? "./server/zig/zig-x86_64-windows-0.17.0/zig.exe"
         : "./server/zig/zig-x86_64-windows-0.16.0/zig.exe"
     const zigExists = await FSService.FileExists(zigExecutable)
 
-    if (serverExists && (isYuzuha || zigExists)) {
+    if (serverExists && (isKafka || zigExists)) {
         const { setServerPath, setServerVersion } = useSettingStore.getState()
         const isSameServer = _serverPath.replace(/[\\/]+$/, "").toLowerCase()
             === resolvedServerPath.replace(/[\\/]+$/, "").toLowerCase()
@@ -39,13 +39,13 @@ export async function UpdateServer(serverChoice: NAPServerChoice = "remielle"): 
     const { setDownloadType, setProgressDownload, setDownloadProgressIndeterminate } = useLauncherStore.getState()
     const { setServerPath, setServerVersion } = useSettingStore.getState()
 
-    const isYuzuha = serverChoice === "yuzuha"
-    const serverName = isYuzuha ? "Yuzuha" : "Remielle"
-    const serverVersion = isYuzuha ? "yuzuha-latest" : "remielle-0.1.x"
+    const isKafka = serverChoice === "kafka"
+    const serverName = isKafka ? "Kafka" : "Remielle"
+    const serverVersion = isKafka ? "kafka-latest" : "remielle-0.1.x"
 
-    setDownloadType(`Preparing ${serverName} and Zig ${isYuzuha ? "0.17.0" : "0.16.0"}...`)
-    const [downloaded, downloadError] = isYuzuha
-        ? await GitService.DownloadYuzuhaServerProgress()
+    setDownloadType(`Preparing ${serverName} and Zig ${isKafka ? "0.17.0" : "0.16.0"}...`)
+    const [downloaded, downloadError] = isKafka
+        ? await GitService.DownloadKafkaServerProgress()
         : await GitService.DownloadNAPServerProgress()
     if (!downloaded) {
         toast.error(downloadError || `Could not prepare the ${serverName} server`)
@@ -53,11 +53,11 @@ export async function UpdateServer(serverChoice: NAPServerChoice = "remielle"): 
         return false
     }
 
-    setDownloadType(`Building ${serverName} with Zig ${isYuzuha ? "0.17.0" : "0.16.0"}...`)
+    setDownloadType(`Building ${serverName} with Zig ${isKafka ? "0.17.0" : "0.16.0"}...`)
     setProgressDownload(0)
     setDownloadProgressIndeterminate(true)
-    const [extracted, extractError] = isYuzuha
-        ? await GitService.BuildYuzuhaServer()
+    const [extracted, extractError] = isKafka
+        ? await GitService.BuildKafkaServer()
         : await GitService.ExtractNAPServer()
     setDownloadProgressIndeterminate(false)
     if (!extracted) {
@@ -68,6 +68,6 @@ export async function UpdateServer(serverChoice: NAPServerChoice = "remielle"): 
 
     setDownloadType(`${serverName} server is ready`)
     setServerVersion(serverVersion)
-    setServerPath(isYuzuha ? "./server/yuzuha" : "./server/remielle")
+    setServerPath(isKafka ? "./server/kafka" : "./server/remielle")
     return true
 }

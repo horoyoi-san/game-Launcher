@@ -326,7 +326,7 @@ export default function SettingModal({
                         </div>
                         <div className="settings-update-card__target settings-server-version">
                             <div className="settings-server-version__heading">
-                                <span>SERVER VERSION · {serverChoice === "yuzuha" ? "YUZUHA" : "REMIELLE"}</span>
+                                <span>SERVER VERSION · {serverChoice === "kafka" ? "KAFKA" : "REMIELLE"}</span>
                                 <small>SUPPORTED BUILD</small>
                             </div>
                             <div className="settings-server-version__body">
@@ -357,11 +357,11 @@ export default function SettingModal({
                                 <small>Sunbringer.exe + Roscaelifer.dll</small>
                                 {serverChoice === "remielle" && <Check size={15} />}
                             </button>
-                            <button type="button" className={`settings-choice ${serverChoice === "yuzuha" ? "is-selected" : ""}`} onClick={() => { setServerChoice("yuzuha"); setPatchChoice("kafka") }} aria-pressed={serverChoice === "yuzuha"} disabled={isUpdatingServer}>
+                            <button type="button" className={`settings-choice ${serverChoice === "kafka" ? "is-selected" : ""}`} onClick={() => { setServerChoice("kafka"); setPatchChoice("kafka") }} aria-pressed={serverChoice === "kafka"} disabled={isUpdatingServer}>
                                 <span>SERVER 02 <i>·</i> PATCH 02</span>
-                                <strong>Yuzuha</strong>
+                                <strong>Kafka</strong>
                                 <small>Kafka.exe + Unknown_Realm.dll</small>
-                                {serverChoice === "yuzuha" && <Check size={15} />}
+                                {serverChoice === "kafka" && <Check size={15} />}
                             </button>
                         </div>
                     </section>}

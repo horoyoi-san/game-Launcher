@@ -8,7 +8,7 @@ interface SettingState {
     gameDir: string;
     serverPath: string;
     serverVersion: string;
-    serverChoice: "remielle" | "yuzuha";
+    serverChoice: "remielle" | "kafka";
     patchChoice: "sunbringer" | "kafka";
     patchInstalledGameDir: string;
     closingOption: {
@@ -25,7 +25,7 @@ interface SettingState {
     setGameDir: (newGameDir: string) => void;
     setServerPath: (newServerPath: string) => void;
     setServerVersion: (newServerVersion: string) => void;
-    setServerChoice: (serverChoice: "remielle" | "yuzuha") => void;
+    setServerChoice: (serverChoice: "remielle" | "kafka") => void;
     setPatchChoice: (patchChoice: "sunbringer" | "kafka") => void;
     setPatchInstalledGameDir: (newGameDir: string) => void;
 }
@@ -55,7 +55,7 @@ const useSettingStore = create<SettingState>()(
             setGameDir: (newGameDir: string) => set({ gameDir: newGameDir }),
             setServerPath: (newServerPath: string) => set({ serverPath: newServerPath }),
             setServerVersion: (newServerVersion: string) => set({ serverVersion: newServerVersion }),
-            setServerChoice: (serverChoice: "remielle" | "yuzuha") => set({ serverChoice }),
+            setServerChoice: (serverChoice: "remielle" | "kafka") => set({ serverChoice }),
             setPatchChoice: (patchChoice: "sunbringer" | "kafka") => set({ patchChoice }),
             setPatchInstalledGameDir: (newGameDir: string) => set({ patchInstalledGameDir: newGameDir }),
         }),
@@ -65,22 +65,28 @@ const useSettingStore = create<SettingState>()(
             merge: (persistedState, currentState) => {
                 const persisted = persistedState as Partial<SettingState>;
                 const persistedServerChoice = (persistedState as { serverChoice?: unknown } | undefined)?.serverChoice;
-                const serverChoice = persistedServerChoice === "eldreda" || persistedServerChoice === "yuzuha"
-                    ? "yuzuha"
+                const serverChoice = persistedServerChoice === "eldreda"
+                    || persistedServerChoice === "yuzuha"
+                    || persistedServerChoice === "kafka"
+                    ? "kafka"
                     : persistedServerChoice === "remielle"
                         ? "remielle"
                         : currentState.serverChoice;
+                const persistedServerPath = persisted.serverPath === "./server/eldreda"
+                    || persisted.serverPath === "./server/yuzuha"
+                    ? "./server/kafka"
+                    : persisted.serverPath;
+                const persistedServerVersion = persisted.serverVersion === "eldreda-latest"
+                    || persisted.serverVersion === "yuzuha-latest"
+                    ? "kafka-latest"
+                    : persisted.serverVersion;
                 return {
                     ...currentState,
                     ...persisted,
                     serverChoice,
-                    serverPath: persisted.serverPath === "./server/eldreda"
-                        ? "./server/yuzuha"
-                        : persisted.serverPath ?? currentState.serverPath,
-                    serverVersion: persisted.serverVersion === "eldreda-latest"
-                        ? "yuzuha-latest"
-                        : persisted.serverVersion ?? currentState.serverVersion,
-                    patchChoice: persisted.patchChoice ?? (serverChoice === "yuzuha" ? "kafka" : "sunbringer"),
+                    serverPath: persistedServerPath ?? currentState.serverPath,
+                    serverVersion: persistedServerVersion ?? currentState.serverVersion,
+                    patchChoice: persisted.patchChoice ?? (serverChoice === "kafka" ? "kafka" : "sunbringer"),
                 };
             },
         }
