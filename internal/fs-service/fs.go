@@ -1,7 +1,7 @@
 package fsService
 
 import (
-	"SilwerWolf999-launcher/pkg/sevenzip"
+	"SilverWolf999-launcher/pkg/sevenzip"
 	"context"
 	"fmt"
 	"os"
@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"SilwerWolf999-launcher/internal/sophon"
+	"SilverWolf999-launcher/internal/sophon"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"golang.org/x/sys/windows"
 )

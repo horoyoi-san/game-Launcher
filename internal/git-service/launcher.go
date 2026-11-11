@@ -1,7 +1,7 @@
 package gitService
 
 import (
-	"SilwerWolf999-launcher/pkg/constant"
+	"SilverWolf999-launcher/pkg/constant"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"

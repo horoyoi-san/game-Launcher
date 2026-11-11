@@ -1,7 +1,7 @@
 package appService
 
 import (
-	"SilwerWolf999-launcher/pkg/constant"
+	"SilverWolf999-launcher/pkg/constant"
 	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"

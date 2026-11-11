@@ -1,7 +1,7 @@
 package hpatchz
 
 import (
-	"SilwerWolf999-launcher/pkg/constant"
+	"SilverWolf999-launcher/pkg/constant"
 	"fmt"
 	"os/exec"
 	"syscall"

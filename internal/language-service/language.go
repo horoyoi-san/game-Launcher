@@ -1,9 +1,9 @@
 package languageService
 
 import (
-	assetMeta "SilwerWolf999-launcher/pkg/language-patch/asset-meta"
-	excelLanguage "SilwerWolf999-launcher/pkg/language-patch/excel-language"
-	"SilwerWolf999-launcher/pkg/models"
+	assetMeta "SilverWolf999-launcher/pkg/language-patch/asset-meta"
+	excelLanguage "SilverWolf999-launcher/pkg/language-patch/excel-language"
+	"SilverWolf999-launcher/pkg/models"
 	"bytes"
 	"os"
 	"path/filepath"

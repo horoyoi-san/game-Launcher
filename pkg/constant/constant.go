@@ -6,7 +6,7 @@ const LauncherManifestURL = "https://github.com/horoyoi-san/Hoyo/releases/downlo
 const DiffUpdaterGitUrl = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/diff.zip"
 const ServerStorageUrl = "./server"
 const ServerZipFile = "prebuild_win_x86.zip"
-const LauncherDownloadURL = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/SilwerWolf999-launcher.exe"
+const LauncherDownloadURL = "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/SilverWolf999-launcher.exe"
 const TempUrl = "./temp"
 
 var CurrentLauncherVersion = "1.0.0"

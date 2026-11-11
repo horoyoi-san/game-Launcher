@@ -1,7 +1,7 @@
 package gitService
 
 import (
-	"SilwerWolf999-launcher/pkg/constant"
+	"SilverWolf999-launcher/pkg/constant"
 	"fmt"
 	"net/http"
 	"net/http/httptest"

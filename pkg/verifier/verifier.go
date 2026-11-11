@@ -1,7 +1,7 @@
 package verifier
 
 import (
-	"SilwerWolf999-launcher/pkg/models"
+	"SilverWolf999-launcher/pkg/models"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"

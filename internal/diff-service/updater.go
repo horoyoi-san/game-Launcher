@@ -1,7 +1,7 @@
 package diffService
 
 import (
-	"SilwerWolf999-launcher/pkg/constant"
+	"SilverWolf999-launcher/pkg/constant"
 	"archive/zip"
 	"fmt"
 	"io"

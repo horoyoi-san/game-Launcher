@@ -1,11 +1,11 @@
 package diffService
 
 import (
-	"SilwerWolf999-launcher/pkg/constant"
-	"SilwerWolf999-launcher/pkg/hpatchz"
-	"SilwerWolf999-launcher/pkg/models"
-	"SilwerWolf999-launcher/pkg/sevenzip"
-	"SilwerWolf999-launcher/pkg/verifier"
+	"SilverWolf999-launcher/pkg/constant"
+	"SilverWolf999-launcher/pkg/hpatchz"
+	"SilverWolf999-launcher/pkg/models"
+	"SilverWolf999-launcher/pkg/sevenzip"
+	"SilverWolf999-launcher/pkg/verifier"
 	"bufio"
 	"encoding/json"
 	"fmt"

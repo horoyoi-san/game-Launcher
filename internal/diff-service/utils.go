@@ -1,8 +1,8 @@
 package diffService
 
 import (
-	"SilwerWolf999-launcher/pkg/constant"
-	"SilwerWolf999-launcher/pkg/sevenzip"
+	"SilverWolf999-launcher/pkg/constant"
+	"SilverWolf999-launcher/pkg/sevenzip"
 	"io"
 	"os"
 	"path/filepath"
