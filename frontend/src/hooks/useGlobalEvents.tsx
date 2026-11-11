@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { Events } from "@wailsio/runtime";
 import { toast } from "react-toastify";
 import useSettingStore from "@/stores/settingStore";
-import { AppService } from "@bindings/SilwerWolf999-launcher/internal/app-service";
+import { AppService } from "@bindings/SilverWolf999-launcher/internal/app-service";
 import useModalStore from "@/stores/modalStore";
 import useDiffStore from "@/stores/diffStore";
 import useLauncherStore from "@/stores/launcherStore";

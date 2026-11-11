@@ -34,6 +34,6 @@ release:
 
 update:
 	@echo Updating build assets...
-	wails3 update build-assets -name "SilwerWolf999-launcher" -binaryname "SilwerWolf999-launcher" -config build/config.yml
+	wails3 update build-assets -name "SilverWolf999-launcher" -binaryname "SilverWolf999-launcher" -config build/config.yml
 	@echo Done!
 

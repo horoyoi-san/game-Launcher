@@ -1,4 +1,4 @@
-import { FSService } from "@bindings/SilwerWolf999-launcher/internal/fs-service";
+import { FSService } from "@bindings/SilverWolf999-launcher/internal/fs-service";
 
 type GameRegion = "OSREL" | "CNREL" | "OSBETA" | "CNBETA";
 

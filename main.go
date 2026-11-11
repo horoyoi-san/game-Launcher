@@ -4,13 +4,13 @@ import (
 	"embed"
 	_ "embed"
 
-	appService "SilwerWolf999-launcher/internal/app-service"
-	diffService "SilwerWolf999-launcher/internal/diff-service"
-	fsService "SilwerWolf999-launcher/internal/fs-service"
-	gitService "SilwerWolf999-launcher/internal/git-service"
-	languageService "SilwerWolf999-launcher/internal/language-service"
+	appService "SilverWolf999-launcher/internal/app-service"
+	diffService "SilverWolf999-launcher/internal/diff-service"
+	fsService "SilverWolf999-launcher/internal/fs-service"
+	gitService "SilverWolf999-launcher/internal/git-service"
+	languageService "SilverWolf999-launcher/internal/language-service"
 
-	"SilwerWolf999-launcher/pkg/constant"
+	"SilverWolf999-launcher/pkg/constant"
 	"fmt"
 	"log"
 	"os"
@@ -67,8 +67,8 @@ func main() {
 	}
 	// Create application
 	app := application.New(application.Options{
-		Name:        "SilwerWolf999-launcher",
-		Description: "SilwerWolf999 Launcher - Horoyoi-san",
+		Name:        "SilverWolf999-launcher",
+		Description: "SilverWolf999 Launcher - Horoyoi-san",
 		Services: []application.Service{
 			application.NewService(&fsService.FSService{}),
 			application.NewService(&languageService.LanguageService{}),
@@ -86,7 +86,7 @@ func main() {
 
 	// Create window
 	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title: "SilwerWolf999 Launcher - Horoyoi-san",
+		Title: "SilverWolf999 Launcher - Horoyoi-san",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:                application.MacBackdropTranslucent,
@@ -104,7 +104,7 @@ func main() {
 	iconBytes, _ := tools.ReadFile("assets/appicon.png")
 	systemTray := app.SystemTray.New()
 	systemTray.SetIcon(iconBytes)
-	systemTray.SetTooltip("SilwerWolf999 Launcher")
+	systemTray.SetTooltip("SilverWolf999 Launcher")
 
 	// Attach the window to the system tray
 	menu := application.NewMenu()

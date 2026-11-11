@@ -1,6 +1,6 @@
 import { ArrowDownToLine, Ban, Download, Pause, Play } from "lucide-react";
 import { toast } from "react-toastify";
-import { FSService } from "@bindings/SilwerWolf999-launcher/internal/fs-service";
+import { FSService } from "@bindings/SilverWolf999-launcher/internal/fs-service";
 import useSophonDownloadStore from "@/stores/sophonDownloadStore";
 
 type SophonDownloadStatusProps = {

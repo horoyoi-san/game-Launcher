@@ -5,12 +5,12 @@ version: '3'
 
 # This information is used to generate the build assets.
 info:
-  companyName: "SilwerWolf999 Shelter" # The name of the company
-  productName: "SilwerWolf999 Launcher" # The name of the application
-  productIdentifier: "com.SilwerWolf999shelter.SilwerWolf999launcher" # The unique product identifier
-  description: "SilwerWolf999 Launcher" # The application description
-  copyright: "@ 2025, SilwerWolf999 Shelter" # Copyright text
-  comments: "SilwerWolf999 Launcher" # Comments
+  companyName: "SilverWolf999 Shelter" # The name of the company
+  productName: "SilverWolf999 Launcher" # The name of the application
+  productIdentifier: "com.SilverWolf999shelter.SilverWolf999launcher" # The unique product identifier
+  description: "SilverWolf999 Launcher" # The application description
+  copyright: "@ 2025, SilverWolf999 Shelter" # Copyright text
+  comments: "SilverWolf999 Launcher" # Comments
   version: "1.0.0" # The application version
 
 # Dev mode configuration

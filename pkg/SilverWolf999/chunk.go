@@ -1,4 +1,4 @@
-package SilwerWolf999
+package SilverWolf999
 
 import (
 	"fmt"

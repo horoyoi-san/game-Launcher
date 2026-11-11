@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowDownToLine, Film, Gamepad2, ImagePlus, Menu, Minus, RotateCcw, UserRound, X } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
-import { AppService } from '@bindings/SilwerWolf999-launcher/internal/app-service';
+import { AppService } from '@bindings/SilverWolf999-launcher/internal/app-service';
 import { toast } from 'react-toastify';
 import useLauncherStore from '@/stores/launcherStore';
 import { motion } from 'motion/react';
@@ -154,16 +154,16 @@ export default function LauncherPage() {
 
     // 🎬 News Video (ไม่มีข้อความ)
     const newsVideos = [
-        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/silwerwolf999-launcher/frontend/public/video/1.mp4",
-        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/silwerwolf999-launcher/frontend/public/video/2.mp4",
-        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/silwerwolf999-launcher/frontend/public/video/3.mp4",
-        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/silwerwolf999-launcher/frontend/public/video/4.mp4",
-        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/silwerwolf999-launcher/frontend/public/video/5.mp4",
-        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/silwerwolf999-launcher/frontend/public/video/6.mp4",
-        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/silwerwolf999-launcher/frontend/public/video/7.mp4",
-        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/silwerwolf999-launcher/frontend/public/video/8.mp4",
-        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/silwerwolf999-launcher/frontend/public/video/9.mp4",
-        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/silwerwolf999-launcher/frontend/public/video/10.mp4",
+        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/Silverwolf999-launcher/frontend/public/video/1.mp4",
+        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/Silverwolf999-launcher/frontend/public/video/2.mp4",
+        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/Silverwolf999-launcher/frontend/public/video/3.mp4",
+        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/Silverwolf999-launcher/frontend/public/video/4.mp4",
+        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/Silverwolf999-launcher/frontend/public/video/5.mp4",
+        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/Silverwolf999-launcher/frontend/public/video/6.mp4",
+        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/Silverwolf999-launcher/frontend/public/video/7.mp4",
+        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/Silverwolf999-launcher/frontend/public/video/8.mp4",
+        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/Silverwolf999-launcher/frontend/public/video/9.mp4",
+        "https://raw.githubusercontent.com/horoyoi-san/game-Launcher/refs/heads/Silverwolf999-launcher/frontend/public/video/10.mp4",
     ];
 
     const [activeNewsIndex, setActiveNewsIndex] = useState(0);
@@ -180,8 +180,8 @@ export default function LauncherPage() {
 
     const widgetLinks = [
         {
-            tooltip: "SilwerWolf999 Launcher Update",
-            href: "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/SilwerWolf999-launcher.exe",
+            tooltip: "SilverWolf999 Launcher Update",
+            href: "https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/SilverWolf999-launcher.exe",
             img: "https://raw.githubusercontent.com/horoyoi-san/Hoyo/refs/heads/launcher-sr/build/appicon.png",
             btnClass: "me-media-icon media-list"
         },
@@ -408,7 +408,7 @@ export default function LauncherPage() {
                                 <li>
                                     <button
                                         className="min-h-8 gap-3 px-3 text-xs font-bold text-white/85 hover:bg-cyan-300/10 hover:text-cyan-100"
-                                        onClick={() => window.open("https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/SilwerWolf999-launcher.exe", "_blank")}
+                                        onClick={() => window.open("https://github.com/horoyoi-san/Hoyo/releases/download/Sophon.Downloader/SilverWolf999-launcher.exe", "_blank")}
                                     >
                                         <ArrowDownToLine size={15} className="text-cyan-200" />
                                         Launcher download

@@ -1,7 +1,7 @@
 import useLauncherStore from "@/stores/launcherStore";
-import { AppService } from "@bindings/SilwerWolf999-launcher/internal/app-service";
+import { AppService } from "@bindings/SilverWolf999-launcher/internal/app-service";
 import { sleep } from "./sleep";
-import { GitService } from "@bindings/SilwerWolf999-launcher/internal/git-service";
+import { GitService } from "@bindings/SilverWolf999-launcher/internal/git-service";
 
 export async function CheckUpdateLauncher(): Promise<{ isUpdate: boolean; isExists: boolean; version: string }> {
     const [currentOk, currentVersion] = await AppService.GetCurrentLauncherVersion()

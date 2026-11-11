@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.5
 // 	protoc        v4.25.6
-// source: proto/SilwerWolf999.proto
+// source: proto/SilverWolf999.proto
 
 package pb
 
@@ -31,7 +31,7 @@ type ChunkProto struct {
 
 func (x *ChunkProto) Reset() {
 	*x = ChunkProto{}
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[0]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +43,7 @@ func (x *ChunkProto) String() string {
 func (*ChunkProto) ProtoMessage() {}
 
 func (x *ChunkProto) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[0]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +56,7 @@ func (x *ChunkProto) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChunkProto.ProtoReflect.Descriptor instead.
 func (*ChunkProto) Descriptor() ([]byte, []int) {
-	return file_proto_SilwerWolf999_proto_rawDescGZIP(), []int{0}
+	return file_proto_SilverWolf999_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ChunkProto) GetAssets() []*AssetChunkProperty {
@@ -79,7 +79,7 @@ type AssetChunkProperty struct {
 
 func (x *AssetChunkProperty) Reset() {
 	*x = AssetChunkProperty{}
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[1]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -91,7 +91,7 @@ func (x *AssetChunkProperty) String() string {
 func (*AssetChunkProperty) ProtoMessage() {}
 
 func (x *AssetChunkProperty) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[1]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -104,7 +104,7 @@ func (x *AssetChunkProperty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssetChunkProperty.ProtoReflect.Descriptor instead.
 func (*AssetChunkProperty) Descriptor() ([]byte, []int) {
-	return file_proto_SilwerWolf999_proto_rawDescGZIP(), []int{1}
+	return file_proto_SilverWolf999_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *AssetChunkProperty) GetAssetName() string {
@@ -155,7 +155,7 @@ type AssetChunk struct {
 
 func (x *AssetChunk) Reset() {
 	*x = AssetChunk{}
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[2]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -167,7 +167,7 @@ func (x *AssetChunk) String() string {
 func (*AssetChunk) ProtoMessage() {}
 
 func (x *AssetChunk) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[2]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -180,7 +180,7 @@ func (x *AssetChunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssetChunk.ProtoReflect.Descriptor instead.
 func (*AssetChunk) Descriptor() ([]byte, []int) {
-	return file_proto_SilwerWolf999_proto_rawDescGZIP(), []int{2}
+	return file_proto_SilverWolf999_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *AssetChunk) GetChunkName() string {
@@ -227,7 +227,7 @@ type ManifestProto struct {
 
 func (x *ManifestProto) Reset() {
 	*x = ManifestProto{}
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[3]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -239,7 +239,7 @@ func (x *ManifestProto) String() string {
 func (*ManifestProto) ProtoMessage() {}
 
 func (x *ManifestProto) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[3]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -252,7 +252,7 @@ func (x *ManifestProto) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ManifestProto.ProtoReflect.Descriptor instead.
 func (*ManifestProto) Descriptor() ([]byte, []int) {
-	return file_proto_SilwerWolf999_proto_rawDescGZIP(), []int{3}
+	return file_proto_SilverWolf999_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ManifestProto) GetAssets() []*AssetManifestProperty {
@@ -274,7 +274,7 @@ type AssetManifestProperty struct {
 
 func (x *AssetManifestProperty) Reset() {
 	*x = AssetManifestProperty{}
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[4]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -286,7 +286,7 @@ func (x *AssetManifestProperty) String() string {
 func (*AssetManifestProperty) ProtoMessage() {}
 
 func (x *AssetManifestProperty) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[4]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -299,7 +299,7 @@ func (x *AssetManifestProperty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssetManifestProperty.ProtoReflect.Descriptor instead.
 func (*AssetManifestProperty) Descriptor() ([]byte, []int) {
-	return file_proto_SilwerWolf999_proto_rawDescGZIP(), []int{4}
+	return file_proto_SilverWolf999_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *AssetManifestProperty) GetAssetName() string {
@@ -340,7 +340,7 @@ type AssetManifestChunk struct {
 
 func (x *AssetManifestChunk) Reset() {
 	*x = AssetManifestChunk{}
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[5]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -352,7 +352,7 @@ func (x *AssetManifestChunk) String() string {
 func (*AssetManifestChunk) ProtoMessage() {}
 
 func (x *AssetManifestChunk) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[5]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -365,7 +365,7 @@ func (x *AssetManifestChunk) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssetManifestChunk.ProtoReflect.Descriptor instead.
 func (*AssetManifestChunk) Descriptor() ([]byte, []int) {
-	return file_proto_SilwerWolf999_proto_rawDescGZIP(), []int{5}
+	return file_proto_SilverWolf999_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *AssetManifestChunk) GetLatestAssetVersion() string {
@@ -400,7 +400,7 @@ type AssetManifest struct {
 
 func (x *AssetManifest) Reset() {
 	*x = AssetManifest{}
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[6]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -412,7 +412,7 @@ func (x *AssetManifest) String() string {
 func (*AssetManifest) ProtoMessage() {}
 
 func (x *AssetManifest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_SilwerWolf999_proto_msgTypes[6]
+	mi := &file_proto_SilverWolf999_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -425,7 +425,7 @@ func (x *AssetManifest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssetManifest.ProtoReflect.Descriptor instead.
 func (*AssetManifest) Descriptor() ([]byte, []int) {
-	return file_proto_SilwerWolf999_proto_rawDescGZIP(), []int{6}
+	return file_proto_SilverWolf999_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *AssetManifest) GetChunkFileName() string {
@@ -498,9 +498,9 @@ func (x *AssetManifest) GetOriginalFileMd5() string {
 	return ""
 }
 
-var File_proto_SilwerWolf999_proto protoreflect.FileDescriptor
+var File_proto_SilverWolf999_proto protoreflect.FileDescriptor
 
-var file_proto_SilwerWolf999_proto_rawDesc = string([]byte{
+var file_proto_SilverWolf999_proto_rawDesc = string([]byte{
 	0x0a, 0x13, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x66, 0x69, 0x72, 0x65, 0x66, 0x6c, 0x79, 0x2e,
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x07, 0x66, 0x69, 0x72, 0x65, 0x66, 0x6c, 0x79, 0x22, 0x41,
 	0x0a, 0x0a, 0x43, 0x68, 0x75, 0x6e, 0x6b, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x33, 0x0a, 0x06,
@@ -593,33 +593,33 @@ var file_proto_SilwerWolf999_proto_rawDesc = string([]byte{
 })
 
 var (
-	file_proto_SilwerWolf999_proto_rawDescOnce sync.Once
-	file_proto_SilwerWolf999_proto_rawDescData []byte
+	file_proto_SilverWolf999_proto_rawDescOnce sync.Once
+	file_proto_SilverWolf999_proto_rawDescData []byte
 )
 
-func file_proto_SilwerWolf999_proto_rawDescGZIP() []byte {
-	file_proto_SilwerWolf999_proto_rawDescOnce.Do(func() {
-		file_proto_SilwerWolf999_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_SilwerWolf999_proto_rawDesc), len(file_proto_SilwerWolf999_proto_rawDesc)))
+func file_proto_SilverWolf999_proto_rawDescGZIP() []byte {
+	file_proto_SilverWolf999_proto_rawDescOnce.Do(func() {
+		file_proto_SilverWolf999_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_SilverWolf999_proto_rawDesc), len(file_proto_SilverWolf999_proto_rawDesc)))
 	})
-	return file_proto_SilwerWolf999_proto_rawDescData
+	return file_proto_SilverWolf999_proto_rawDescData
 }
 
-var file_proto_SilwerWolf999_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
-var file_proto_SilwerWolf999_proto_goTypes = []any{
-	(*ChunkProto)(nil),            // 0: SilwerWolf999.ChunkProto
-	(*AssetChunkProperty)(nil),    // 1: SilwerWolf999.AssetChunkProperty
-	(*AssetChunk)(nil),            // 2: SilwerWolf999.AssetChunk
-	(*ManifestProto)(nil),         // 3: SilwerWolf999.ManifestProto
-	(*AssetManifestProperty)(nil), // 4: SilwerWolf999.AssetManifestProperty
-	(*AssetManifestChunk)(nil),    // 5: SilwerWolf999.AssetManifestChunk
-	(*AssetManifest)(nil),         // 6: SilwerWolf999.AssetManifest
+var file_proto_SilverWolf999_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_proto_SilverWolf999_proto_goTypes = []any{
+	(*ChunkProto)(nil),            // 0: SilverWolf999.ChunkProto
+	(*AssetChunkProperty)(nil),    // 1: SilverWolf999.AssetChunkProperty
+	(*AssetChunk)(nil),            // 2: SilverWolf999.AssetChunk
+	(*ManifestProto)(nil),         // 3: SilverWolf999.ManifestProto
+	(*AssetManifestProperty)(nil), // 4: SilverWolf999.AssetManifestProperty
+	(*AssetManifestChunk)(nil),    // 5: SilverWolf999.AssetManifestChunk
+	(*AssetManifest)(nil),         // 6: SilverWolf999.AssetManifest
 }
-var file_proto_SilwerWolf999_proto_depIdxs = []int32{
-	1, // 0: SilwerWolf999.ChunkProto.assets:type_name -> SilwerWolf999.AssetChunkProperty
-	2, // 1: SilwerWolf999.AssetChunkProperty.asset_chunks:type_name -> SilwerWolf999.AssetChunk
-	4, // 2: SilwerWolf999.ManifestProto.assets:type_name -> SilwerWolf999.AssetManifestProperty
-	5, // 3: SilwerWolf999.AssetManifestProperty.asset_data:type_name -> SilwerWolf999.AssetManifestChunk
-	6, // 4: SilwerWolf999.AssetManifestChunk.assets:type_name -> SilwerWolf999.AssetManifest
+var file_proto_SilverWolf999_proto_depIdxs = []int32{
+	1, // 0: SilverWolf999.ChunkProto.assets:type_name -> SilverWolf999.AssetChunkProperty
+	2, // 1: SilverWolf999.AssetChunkProperty.asset_chunks:type_name -> SilverWolf999.AssetChunk
+	4, // 2: SilverWolf999.ManifestProto.assets:type_name -> SilverWolf999.AssetManifestProperty
+	5, // 3: SilverWolf999.AssetManifestProperty.asset_data:type_name -> SilverWolf999.AssetManifestChunk
+	6, // 4: SilverWolf999.AssetManifestChunk.assets:type_name -> SilverWolf999.AssetManifest
 	5, // [5:5] is the sub-list for method output_type
 	5, // [5:5] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
@@ -627,26 +627,26 @@ var file_proto_SilwerWolf999_proto_depIdxs = []int32{
 	0, // [0:5] is the sub-list for field type_name
 }
 
-func init() { file_proto_SilwerWolf999_proto_init() }
-func file_proto_SilwerWolf999_proto_init() {
-	if File_proto_SilwerWolf999_proto != nil {
+func init() { file_proto_SilverWolf999_proto_init() }
+func file_proto_SilverWolf999_proto_init() {
+	if File_proto_SilverWolf999_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_SilwerWolf999_proto_rawDesc), len(file_proto_SilwerWolf999_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_SilverWolf999_proto_rawDesc), len(file_proto_SilverWolf999_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_proto_SilwerWolf999_proto_goTypes,
-		DependencyIndexes: file_proto_SilwerWolf999_proto_depIdxs,
-		MessageInfos:      file_proto_SilwerWolf999_proto_msgTypes,
+		GoTypes:           file_proto_SilverWolf999_proto_goTypes,
+		DependencyIndexes: file_proto_SilverWolf999_proto_depIdxs,
+		MessageInfos:      file_proto_SilverWolf999_proto_msgTypes,
 	}.Build()
-	File_proto_SilwerWolf999_proto = out.File
-	file_proto_SilwerWolf999_proto_goTypes = nil
-	file_proto_SilwerWolf999_proto_depIdxs = nil
+	File_proto_SilverWolf999_proto = out.File
+	file_proto_SilverWolf999_proto_goTypes = nil
+	file_proto_SilverWolf999_proto_depIdxs = nil
 }

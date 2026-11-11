@@ -4,15 +4,15 @@
         <key>CFBundlePackageType</key>
             <string>APPL</string>
         <key>CFBundleName</key>
-            <string>SilwerWolf999 Launcher</string>
+            <string>SilverWolf999 Launcher</string>
         <key>CFBundleExecutable</key>
-            <string>SilwerWolf999-launcher</string>
+            <string>SilverWolf999-launcher</string>
         <key>CFBundleIdentifier</key>
-            <string>com.SilwerWolf999shelter.SilwerWolf999launcher</string>
+            <string>com.SilverWolf999shelter.SilverWolf999launcher</string>
         <key>CFBundleVersion</key>
             <string>1.0.0</string>
         <key>CFBundleGetInfoString</key>
-            <string>SilwerWolf999 Launcher</string>
+            <string>SilverWolf999 Launcher</string>
         <key>CFBundleShortVersionString</key>
             <string>1.0.0</string>
         <key>CFBundleIconFile</key>
@@ -22,6 +22,6 @@
         <key>NSHighResolutionCapable</key>
             <string>true</string>
         <key>NSHumanReadableCopyright</key>
-            <string>@ 2025, SilwerWolf999 Shelter</string>
+            <string>@ 2025, SilverWolf999 Shelter</string>
     </dict>
 </plist>

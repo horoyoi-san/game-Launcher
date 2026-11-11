@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package SilwerWolf999;
+package SilverWolf999;
 
-option go_package = "./SilwerWolf999/pb";
+option go_package = "./SilverWolf999/pb";
 
 message ChunkProto {
     repeated AssetChunkProperty assets = 1;

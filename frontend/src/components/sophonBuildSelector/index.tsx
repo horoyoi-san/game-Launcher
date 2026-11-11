@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
-import { FSService } from "@bindings/SilwerWolf999-launcher/internal/fs-service";
+import { FSService } from "@bindings/SilverWolf999-launcher/internal/fs-service";
 
 type SophonBuildSelectorProps = {
   gameIds: Partial<Record<string, string[]>>;

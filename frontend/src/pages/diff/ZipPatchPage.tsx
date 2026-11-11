@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Check, FileArchive, Folder, HardDrive, Info, LoaderCircle, Play, ShieldCheck, X } from "lucide-react";
 import { toast } from "react-toastify";
-import { FSService } from "@bindings/SilwerWolf999-launcher/internal/fs-service";
-import { DiffService } from "@bindings/SilwerWolf999-launcher/internal/diff-service";
+import { FSService } from "@bindings/SilverWolf999-launcher/internal/fs-service";
+import { DiffService } from "@bindings/SilverWolf999-launcher/internal/diff-service";
 import useSettingStore from "@/stores/settingStore";
 
 export default function ZipPatchPage() {

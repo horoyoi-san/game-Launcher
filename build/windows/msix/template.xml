@@ -8,7 +8,7 @@
         AllowPromptForPassword="false">
     </Settings>
     <Installer
-        Path="SilwerWolf999-launcher.exe"
+        Path="SilverWolf999-launcher.exe"
         Arguments=""
         InstallLocation="C:\Program Files\My Company\My Product">
     </Installer>
@@ -25,10 +25,10 @@
         </Capabilities>
         <Applications>
             <Application
-                Id="com.wails.SilwerWolf999-launcher"
+                Id="com.wails.SilverWolf999-launcher"
                 Description="My Product Description"
                 DisplayName="My Product"
-                ExecutableName="SilwerWolf999-launcher.exe"
+                ExecutableName="SilverWolf999-launcher.exe"
                 EntryPoint="Windows.FullTrustApplication">
                 
             </Application>
@@ -47,7 +47,7 @@
             <Logo>Assets\AppIcon.png</Logo>
         </Properties>
     </PackageInformation>
-    <SaveLocation PackagePath="SilwerWolf999-launcher.msix" />
+    <SaveLocation PackagePath="SilverWolf999-launcher.msix" />
     <PackageIntegrity>
         <CertificatePath></CertificatePath>
     </PackageIntegrity>

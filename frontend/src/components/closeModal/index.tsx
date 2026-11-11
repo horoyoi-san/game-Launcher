@@ -1,5 +1,5 @@
 import { motion } from "motion/react"
-import { AppService } from "@bindings/SilwerWolf999-launcher/internal/app-service"
+import { AppService } from "@bindings/SilverWolf999-launcher/internal/app-service"
 import { toast } from "react-toastify"
 import useSettingStore from "@/stores/settingStore"
 

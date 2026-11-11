@@ -1,4 +1,4 @@
-module SilwerWolf999-launcher
+module SilverWolf999-launcher
 
 go 1.25.5
 

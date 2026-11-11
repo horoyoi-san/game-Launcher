@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import useModalStore from "@/stores/modalStore";
 import { BookOpen, Diff, GitCompareArrows, Grid2X2, Home, Images, Minus, Settings, X } from "lucide-react";
-import { AppService } from "@bindings/SilwerWolf999-launcher/internal/app-service";
+import { AppService } from "@bindings/SilverWolf999-launcher/internal/app-service";
 import { motion } from "motion/react";
 import usePanelStore from "@/stores/panelStore";
 

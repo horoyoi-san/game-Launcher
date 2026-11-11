@@ -3,26 +3,26 @@
 #
 # The lines below are called `modelines`. See `:help modeline`
 
-name: "SilwerWolf999-launcher"
+name: "SilverWolf999-launcher"
 arch: ${GOARCH}
 platform: "linux"
 version: "1.0.0"
 section: "default"
 priority: "extra"
 maintainer: ${GIT_COMMITTER_NAME} <${GIT_COMMITTER_EMAIL}>
-description: "SilwerWolf999 Launcher"
-vendor: "SilwerWolf999 Shelter"
+description: "SilverWolf999 Launcher"
+vendor: "SilverWolf999 Shelter"
 homepage: "https://wails.io"
 license: "MIT"
 release: "1"
 
 contents:
-  - src: "./bin/SilwerWolf999-launcher"
-    dst: "/usr/local/bin/SilwerWolf999-launcher"
+  - src: "./bin/SilverWolf999-launcher"
+    dst: "/usr/local/bin/SilverWolf999-launcher"
   - src: "./build/appicon.png"
-    dst: "/usr/share/icons/hicolor/128x128/apps/SilwerWolf999-launcher.png"
-  - src: "./build/linux/SilwerWolf999-launcher.desktop"
-    dst: "/usr/share/applications/SilwerWolf999-launcher.desktop"
+    dst: "/usr/share/icons/hicolor/128x128/apps/SilverWolf999-launcher.png"
+  - src: "./build/linux/SilverWolf999-launcher.desktop"
+    dst: "/usr/share/applications/SilverWolf999-launcher.desktop"
 
 # Default dependencies for Debian 12/Ubuntu 22.04+ with WebKit 4.1
 depends:

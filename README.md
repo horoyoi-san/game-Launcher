@@ -1,4 +1,4 @@
-# 🚀 SilwerWolf999 Launcher
+# 🚀 SilverWolf999 Launcher
 
 # Support REL/BETA
 
@@ -15,7 +15,7 @@ Game downloads are handled by the launcher itself. Each game's page provides ins
 ## 🧑‍💻 About the Developer
 
 Hi! I'm **Horoyoi-san**, a developer passionate about building simple and powerful tools.  
-SilwerWolf999 Launcher is built with:
+SilverWolf999 Launcher is built with:
 
 - ⚙️ **Go + Wails** for backend/frontend integration  
 - 🎨 **Tailwind CSS** + **DaisyUI** for a clean, responsive UI
@@ -59,10 +59,10 @@ wails3 package
 
 ## Automatic launcher updates
 
-The `Build SilwerWolf999 Launcher` workflow in `horoyoi-san/Hoyo` builds the
+The `Build SilverWolf999 Launcher` workflow in `horoyoi-san/Hoyo` builds the
 Windows launcher and overwrites these assets on its existing release:
 
-- `SilwerWolf999-launcher.exe`
+- `SilverWolf999-launcher.exe`
 - `latest.json` (version and SHA-256 checksum)
 
 The version is generated from the latest manifest; no versioned release or tag

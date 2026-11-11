@@ -1,13 +1,13 @@
 [Desktop Entry]
 Version=1.0
-Name=SilwerWolf999 Launcher
-Comment=SilwerWolf999 Launcher
+Name=SilverWolf999 Launcher
+Comment=SilverWolf999 Launcher
 # The Exec line includes %u to pass the URL to the application
-Exec=/usr/local/bin/SilwerWolf999-launcher %u
+Exec=/usr/local/bin/SilverWolf999-launcher %u
 Terminal=false
 Type=Application
-Icon=SilwerWolf999-launcher
+Icon=SilverWolf999-launcher
 Categories=Utility;
-StartupWMClass=SilwerWolf999-launcher
+StartupWMClass=SilverWolf999-launcher
 
  

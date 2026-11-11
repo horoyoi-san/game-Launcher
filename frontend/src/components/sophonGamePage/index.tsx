@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { FSService } from "@bindings/SilwerWolf999-launcher/internal/fs-service";
+import { FSService } from "@bindings/SilverWolf999-launcher/internal/fs-service";
 import { launcherGames } from "@/helper/games";
 import type { SophonBuild } from "@/components/sophonBuildSelector";
 import SophonDownloadStatus from "@/components/sophonDownloadStatus";

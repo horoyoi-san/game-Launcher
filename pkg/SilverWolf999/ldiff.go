@@ -1,7 +1,7 @@
-package SilwerWolf999
+package SilverWolf999
 
 import (
-	"SilwerWolf999-launcher/pkg/SilwerWolf999/pb"
+	"SilverWolf999-launcher/pkg/SilverWolf999/pb"
 	"fmt"
 	"os"
 	"path/filepath"

@@ -3,7 +3,7 @@ import { AlertTriangle, Check, Languages, LoaderCircle, Monitor, Power, RefreshC
 import { CheckUpdateLauncher } from "@/helper"
 import useSettingStore from "@/stores/settingStore"
 import { toast } from "react-toastify"
-import { AppService } from "@bindings/SilwerWolf999-launcher/internal/app-service"
+import { AppService } from "@bindings/SilverWolf999-launcher/internal/app-service"
 
 type UpdateStatus = "idle" | "checking"
 
@@ -184,7 +184,7 @@ export default function SettingModal({
                 </div>
 
                 <footer className="shrink-0 border-t border-white/10 px-6 py-3 text-center text-[11px] text-white/35">
-                    SilwerWolf999 Launcher
+                    SilverWolf999 Launcher
                 </footer>
             </section>
         </div>
