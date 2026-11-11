@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VarsapuraRouteImport } from './routes/varsapura'
 import { Route as NapRouteImport } from './routes/nap'
 import { Route as LegacyDiffRouteImport } from './routes/legacy-diff'
 import { Route as KlRouteImport } from './routes/kl'
@@ -22,6 +23,11 @@ import { Route as Bh3RouteImport } from './routes/bh3'
 import { Route as AbcRouteImport } from './routes/abc'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VarsapuraRoute = VarsapuraRouteImport.update({
+  id: '/varsapura',
+  path: '/varsapura',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NapRoute = NapRouteImport.update({
   id: '/nap',
   path: '/nap',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/kl': typeof KlRoute
   '/legacy-diff': typeof LegacyDiffRoute
   '/nap': typeof NapRoute
+  '/varsapura': typeof VarsapuraRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/kl': typeof KlRoute
   '/legacy-diff': typeof LegacyDiffRoute
   '/nap': typeof NapRoute
+  '/varsapura': typeof VarsapuraRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/kl': typeof KlRoute
   '/legacy-diff': typeof LegacyDiffRoute
   '/nap': typeof NapRoute
+  '/varsapura': typeof VarsapuraRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/kl'
     | '/legacy-diff'
     | '/nap'
+    | '/varsapura'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/kl'
     | '/legacy-diff'
     | '/nap'
+    | '/varsapura'
   id:
     | '__root__'
     | '/'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/kl'
     | '/legacy-diff'
     | '/nap'
+    | '/varsapura'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,10 +196,18 @@ export interface RootRouteChildren {
   KlRoute: typeof KlRoute
   LegacyDiffRoute: typeof LegacyDiffRoute
   NapRoute: typeof NapRoute
+  VarsapuraRoute: typeof VarsapuraRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/varsapura': {
+      id: '/varsapura'
+      path: '/varsapura'
+      fullPath: '/varsapura'
+      preLoaderRoute: typeof VarsapuraRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/nap': {
       id: '/nap'
       path: '/nap'
@@ -288,6 +308,7 @@ const rootRouteChildren: RootRouteChildren = {
   KlRoute: KlRoute,
   LegacyDiffRoute: LegacyDiffRoute,
   NapRoute: NapRoute,
+  VarsapuraRoute: VarsapuraRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

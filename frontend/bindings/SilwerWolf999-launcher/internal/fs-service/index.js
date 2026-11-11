@@ -8,6 +8,7 @@ export {
 };
 
 export {
+    GameArtwork,
     GameConfig,
     SophonVersion
 } from "./models.js";

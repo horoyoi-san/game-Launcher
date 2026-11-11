@@ -51,12 +51,24 @@ export function GetDir(path) {
 }
 
 /**
+ * @param {string[]} gameIDs
+ * @param {string} region
+ * @param {string} launcherID
+ * @returns {$CancellablePromise<$models.GameArtwork[]>}
+ */
+export function GetGameArtwork(gameIDs, region, launcherID) {
+    return $Call.ByID(909452541, gameIDs, region, launcherID).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * @param {string} gameID
  * @returns {$CancellablePromise<$models.GameConfig>}
  */
 export function GetGameConfig(gameID) {
     return $Call.ByID(3722410457, gameID).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+        return $$createType2($result);
     }));
 }
 
@@ -74,7 +86,7 @@ export function GetLauncherDir() {
  */
 export function GetSophonVersions(gameIDs, region) {
     return $Call.ByID(737472939, gameIDs, region).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType4($result);
     }));
 }
 
@@ -162,6 +174,8 @@ export function StartWithConsole(path) {
 }
 
 // Private type creation functions
-const $$createType0 = $models.GameConfig.createFrom;
-const $$createType1 = $models.SophonVersion.createFrom;
-const $$createType2 = $Create.Array($$createType1);
+const $$createType0 = $models.GameArtwork.createFrom;
+const $$createType1 = $Create.Array($$createType0);
+const $$createType2 = $models.GameConfig.createFrom;
+const $$createType3 = $models.SophonVersion.createFrom;
+const $$createType4 = $Create.Array($$createType3);

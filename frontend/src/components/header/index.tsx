@@ -94,7 +94,7 @@ export default function Header() {
             </div>
 
             {/* ปุ่มควบคุมด้านขวาบน */}
-            <div className="fixed right-0 top-0 z-[70] flex items-center gap-1 border-b-2 border-l-2 border-cyan-300/40 bg-[#090b15]/90 px-2 py-1.5 shadow-[-3px_3px_0_rgba(250,77,255,0.12)] backdrop-blur-xl">
+            <div className={`fixed right-0 top-0 z-[70] flex items-center gap-1 border-b-2 border-l-2 border-cyan-300/40 px-2 py-1.5 shadow-[-3px_3px_0_rgba(250,77,255,0.12)] backdrop-blur-xl ${pathname === "/games" ? "bg-[#090b15]" : "bg-[#090b15]/90"}`}>
                 {controlButtons.map((btn, i) => (
                     <motion.button
                         key={i}

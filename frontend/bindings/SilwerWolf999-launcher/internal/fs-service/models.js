@@ -6,6 +6,48 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+export class GameArtwork {
+    /**
+     * Creates a new GameArtwork instance.
+     * @param {Partial<GameArtwork>} [$$source = {}] - The source object to create the GameArtwork.
+     */
+    constructor($$source = {}) {
+        if (!("gameId" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["gameId"] = "";
+        }
+        if (!("backgroundUrl" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["backgroundUrl"] = "";
+        }
+        if (!("thumbnailUrl" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["thumbnailUrl"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new GameArtwork instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {GameArtwork}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new GameArtwork(/** @type {Partial<GameArtwork>} */($$parsedSource));
+    }
+}
+
 export class GameConfig {
     /**
      * Creates a new GameConfig instance.

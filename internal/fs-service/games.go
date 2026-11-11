@@ -59,7 +59,11 @@ var gameConfigs = []GameConfig{
 	},
 	{
 		ID: "TheWeavers", Name: "The Weavers", Package: "game", Region: "CN | OS", Output: "GameData/TheWeavers", Executable: "TheWeavers.exe",
-		GameIDs: map[string][]string{"gameid": {"gameid"}, "CNBETA": {"pkMBmK7jxJ"}},
+		GameIDs: map[string][]string{"gameid": {"gameid"}, "CNBETA": {"pkMBmK7jxJ"}, "OSBETA": {"SIAMAGOONER"}},
+	},
+	{
+		ID: "Varsapura", Name: "Varsapura", Package: "game", Region: "CN | OS", Output: "GameData/Varsapura", Executable: "Vasapura.exe",
+		GameIDs: map[string][]string{"gameid": {"gameid"}, "CNBETA": {"SIAMAGOONER"}, "OSBETA": {"SIAMAGOONER"}},
 	},
 }
 

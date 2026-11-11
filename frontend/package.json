@@ -13,10 +13,8 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-router": "^1.149.3",
-    "@tanstack/react-router-devtools": "^1.149.3",
     "lucide-react": "^0.562.0",
     "motion": "^12.26.2",
-    "path-browserify": "^1.0.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-toastify": "^11.0.5",
@@ -26,7 +24,6 @@
   "devDependencies": {
     "@tanstack/router-plugin": "^1.149.3",
     "@types/node": "^25.0.8",
-    "@types/path-browserify": "^1.0.3",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "^8.53.0",

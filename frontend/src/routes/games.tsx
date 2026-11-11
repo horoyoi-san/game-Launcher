@@ -1,74 +1,184 @@
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Gamepad2, Play } from "lucide-react";
-import { launcherGames } from "@/helper/games";
+import { Check, Gamepad2 } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { fetchLauncherGameArtwork, launcherGames, type LauncherGameArtwork } from "@/helper/games";
 
 export const Route = createFileRoute("/games")({
     component: GameLibraryPage,
 });
 
 function GameLibraryPage() {
+    const prefersReducedMotion = useReducedMotion() ?? false;
+    const [selectedGameId, setSelectedGameId] = useState<string>("StarRail");
+    const [artwork, setArtwork] = useState<Record<string, LauncherGameArtwork>>({});
+    const [artworkError, setArtworkError] = useState("");
+    const selectedGame = launcherGames.find((game) => game.id === selectedGameId) ?? launcherGames[0];
+    const selectedArtwork = artwork[selectedGame.id];
+    const heroImage = selectedArtwork?.backgroundUrl || selectedArtwork?.thumbnailUrl || selectedGame.icon;
+    const [background, setBackground] = useState({ current: heroImage, previous: "" });
+    const backgroundCurrent = useRef(heroImage);
+
+    useEffect(() => {
+        if (heroImage === backgroundCurrent.current) return;
+
+        let active = true;
+        let timeout = 0;
+        const image = new Image();
+        image.onload = () => {
+            if (!active) return;
+            setBackground({ current: heroImage, previous: backgroundCurrent.current });
+            backgroundCurrent.current = heroImage;
+            timeout = window.setTimeout(() => {
+                if (active) setBackground((current) => ({ ...current, previous: "" }));
+            }, 800);
+        };
+        image.src = heroImage;
+
+        return () => {
+            active = false;
+            window.clearTimeout(timeout);
+        };
+    }, [heroImage]);
+
+    useEffect(() => {
+        const controller = new AbortController();
+        fetchLauncherGameArtwork(controller.signal)
+            .then((result) => {
+                setArtwork(result.artwork);
+                if (result.hasUnavailableEndpoints) {
+                    setArtworkError("Some live artwork could not be loaded. Built-in game icons are used where needed.");
+                }
+            })
+            .catch((error: unknown) => {
+                if (controller.signal.aborted) return;
+                setArtworkError(error instanceof Error ? error.message : "Could not load live game artwork.");
+            });
+
+        return () => controller.abort();
+    }, []);
+
     return (
-        <main className="fixed inset-0 z-0 overflow-y-auto bg-slate-950 text-white">
-            <video
-                className="fixed inset-0 h-full w-full object-cover"
-                src="/video3.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                aria-hidden="true"
-            />
-            <div className="fixed inset-0 bg-gradient-to-br from-[#080a12]/95 via-[#101323]/75 to-[#1a1030]/75" />
+        <main className="fixed inset-0 z-0 overflow-hidden bg-[#080913] text-white">
+            <div className="absolute inset-y-0 left-[76px] right-0 overflow-hidden bg-[#080913]">
+                {background.previous && (
+                    <img
+                        src={background.previous}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 h-full w-full scale-[1.03] object-cover object-center opacity-90"
+                    />
+                )}
+                <motion.img
+                    key={background.current}
+                    src={background.current}
+                    alt=""
+                    aria-hidden="true"
+                    initial={background.previous ? { opacity: 0, scale: 1.035 } : false}
+                    animate={{ opacity: 2, scale: 1.03 }}
+                    transition={{
+                        duration: prefersReducedMotion ? 0 : 0.75,
+                        ease: [0.22, 1, 0.36, 1],
+                    }}
+                    className="absolute inset-0 h-full w-full object-cover object-center"
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,7,14,0.64)_0%,rgba(5,7,14,0.12)_65%,rgba(5,7,14,0.28)_100%),linear-gradient(0deg,#070810_0%,rgba(7,8,16,0.92)_13%,rgba(7,8,16,0.08)_66%,rgba(7,8,16,0.16)_100%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_68%_36%,transparent_25%,rgba(4,5,12,0.3)_100%)]" />
 
-            <div className="relative min-h-full pl-24 pr-8 pt-20 sm:pl-28 sm:pr-12 sm:pt-24">
-                <header className="arcade-frame mb-8 max-w-3xl p-5 sm:p-7">
-                    <div className="arcade-kicker mb-3 flex items-center gap-2">
-                        <Gamepad2 size={18} />
-                        Silver Wolf Arcade · Player Select
+                <div className="relative flex h-full flex-col px-5 pb-6 pt-24 sm:px-9 sm:pb-8 lg:px-12">
+                    <div className="mt-auto pb-5 sm:pb-7">
+                        <div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.24em] text-white/75 sm:text-xs">
+                            <Gamepad2 size={16} className="text-white" />
+                            HoYoverse · Game Library
+                        </div>
+                        <AnimatePresence mode="wait" initial={false}>
+                            <motion.h1
+                                key={selectedGame.id}
+                                initial={{ opacity: 0, y: -8 }}
+                                animate={{ opacity: 2, y: 0 }}
+                                exit={{ opacity: 0, y: 0.5 }}
+                                transition={{
+                                    duration: prefersReducedMotion ? 0 : 0.75,
+                                    ease: [0.22, 1, 0.36, 1],
+                                }}
+                                className="max-w-3xl font-sans text-3xl font-bold tracking-tight text-white drop-shadow-[0_3px_16px_rgba(0,0,0,0.7)] sm:text-5xl lg:text-6xl"
+                            >
+                                {selectedGame.name}
+                            </motion.h1>
+                        </AnimatePresence>
+                        <p className="mt-3 max-w-xl font-sans text-sm leading-relaxed text-white/80 drop-shadow sm:text-base">
+                            เลือกเกมเพื่อเข้าสู่หน้าจัดการ ดาวน์โหลด และตั้งค่าเกม
+                        </p>
                     </div>
-                    <h1 className="text-2xl font-black uppercase tracking-[0.08em] text-white drop-shadow-[3px_3px_0_rgba(250,77,255,0.55)] sm:text-4xl">Game Library <span className="text-cyan-200">/</span> เลือกเกม</h1>
-                    <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/65 sm:text-base">
-                        รวมเกมทั้งหมดไว้ในหน้าเดียว เลือกเกมเพื่อไปยังหน้าจัดการและดาวน์โหลดของเกมนั้น
-                    </p>
-                    <div className="mt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-lime-200/80">
-                        <span className="size-2 animate-pulse bg-lime-300" />
-                        Player 1 · LV.999 · Select a world
-                    </div>
-                </header>
 
-                <section aria-label="รายการเกม" className="grid grid-cols-1 gap-4 pb-10 sm:grid-cols-2 xl:grid-cols-3">
-                    {launcherGames.map((game) => (
-                        <Link
-                            key={game.id}
-                            to={game.route}
-                            aria-label={`เปิดหน้า ${game.name}`}
-                            className="group relative isolate flex min-h-52 overflow-hidden border-2 border-white/20 bg-[#101323] shadow-[5px_5px_0_rgba(0,0,0,0.7)] transition duration-150 hover:-translate-y-1 hover:border-cyan-200 hover:shadow-[5px_5px_0_rgba(250,77,255,0.5)] sm:min-h-64"
-                        >
-                            <img
-                                src={game.icon}
-                                alt=""
-                                className="absolute inset-0 -z-20 h-full w-full object-cover opacity-55 transition duration-500 group-hover:scale-105 group-hover:opacity-75"
-                            />
-                            <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#080a12] via-[#080a12]/45 to-[#101323]/10" />
+                    <section aria-label="รายการเกม" className="shrink-0">
+                        <div className="mb-3 flex items-center justify-between gap-4">
+                            <p className="font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-white/65 sm:text-xs">
+                                เลือกเกม <span className="ml-1 text-white/40">· {launcherGames.length}</span>
+                            </p>
+                            {artworkError && (
+                                <p role="status" className="max-w-[65%] text-right font-sans text-[10px] text-white/55 sm:text-xs">
+                                    {artworkError}
+                                </p>
+                            )}
+                        </div>
+                        <div className="game-library-scrollbar -mt-2 flex gap-2.5 overflow-x-auto px-1 pb-2 pt-2 sm:gap-3">
+                            {launcherGames.map((game) => {
+                                const isSelected = game.id === selectedGame.id;
+                                const cardImage = artwork[game.id]?.thumbnailUrl || game.icon;
 
-                            <div className="flex w-full items-end justify-between gap-4 p-5 sm:p-6">
-                                <div className="min-w-0">
-                                    <div className="mb-3 flex h-11 w-11 items-center justify-center overflow-hidden border-2 border-cyan-200/60 bg-black/70">
-                                        <img src={game.icon} alt="" className="h-full w-full object-cover [image-rendering:pixelated]" />
-                                    </div>
-                                    <h2 className="text-lg font-black uppercase tracking-wide drop-shadow sm:text-xl">{game.name}</h2>
-                                    <span className="mt-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-100">
-                                        <Play size={14} fill="currentColor" />
-                                        Start game
-                                    </span>
-                                </div>
-                                <span className="flex h-10 w-10 shrink-0 items-center justify-center border-2 border-white/25 bg-black/60 transition group-hover:border-cyan-200 group-hover:bg-cyan-300 group-hover:text-slate-950">
-                                    <ArrowRight size={18} />
-                                </span>
-                            </div>
-                        </Link>
-                    ))}
-                </section>
+                                return (
+                                    <Link
+                                        key={game.id}
+                                        to={game.route}
+                                        aria-current={isSelected ? "page" : undefined}
+                                        aria-label={`เปิดหน้า ${game.name}`}
+                                        onMouseEnter={() => setSelectedGameId(game.id)}
+                                        onFocus={() => setSelectedGameId(game.id)}
+                                        className={`group relative h-[92px] w-[116px] shrink-0 overflow-hidden rounded-lg border text-left transition-[border-color,box-shadow,transform] duration-500 ease-out motion-reduce:duration-0 sm:h-[106px] sm:w-[142px] ${
+                                            isSelected
+                                                ? "z-10 -translate-y-1 border-[#f2c94c] shadow-[0_0_0_1px_rgba(242,201,76,0.35),0_8px_24px_rgba(0,0,0,0.4)]"
+                                                : "border-white/20 hover:border-white/70"
+                                        }`}
+                                    >
+                                        <img
+                                            src={cardImage}
+                                            alt=""
+                                            aria-hidden="true"
+                                            className={`absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-700 ease-out motion-reduce:duration-0 group-hover:scale-105 ${
+                                                isSelected ? "opacity-30" : "opacity-70 group-hover:opacity-90"
+                                            }`}
+                                            onError={(event) => {
+                                                event.currentTarget.onerror = null;
+                                                event.currentTarget.src = game.icon;
+                                            }}
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/20" />
+                                        <span
+                                            aria-hidden="true"
+                                            className={`absolute inset-0 flex flex-col items-center justify-center gap-1.5 font-sans text-[10px] font-semibold text-[#ffe28a] transition-[opacity,transform] duration-500 ease-out motion-reduce:duration-0 ${
+                                                isSelected ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
+                                            }`}
+                                        >
+                                                <span className="grid size-8 place-items-center overflow-hidden rounded-full border border-white/60 bg-black/50">
+                                                    <img src={game.icon} alt="" className="h-full w-full object-cover" />
+                                                </span>
+                                                <span className="inline-flex items-center gap-1">
+                                                    <Check size={12} />
+                                                    กำลังเลือก
+                                                </span>
+                                        </span>
+                                        <span className={`absolute inset-x-2 bottom-2 truncate font-sans text-xs font-bold text-white drop-shadow transition-[opacity,transform] duration-500 ease-out motion-reduce:duration-0 sm:text-sm ${
+                                            isSelected ? "translate-y-2 opacity-0" : "translate-y-0 opacity-100"
+                                        }`}>
+                                                {game.name}
+                                        </span>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    </section>
+                </div>
             </div>
         </main>
     );
