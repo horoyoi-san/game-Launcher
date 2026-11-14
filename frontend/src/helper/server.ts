@@ -15,7 +15,7 @@ export async function CheckUpdateServer(
     const resolvedServerPath = isKafka ? "./server/kafka" : "./server/remielle"
     const version = isKafka ? "kafka-latest" : "remielle-0.1.x"
     const serverExists = isKafka
-        ? await FSService.FileExists(`${resolvedServerPath}/zig-out/bin/kafka.exe`)
+        ? await FSService.FileExists(`${resolvedServerPath}/zig-out/bin/remielle.exe`)
         : await FSService.FileExists(`${resolvedServerPath}/build.zig`)
     const zigExecutable = isKafka
         ? "./server/zig/zig-x86_64-windows-0.17.0/zig.exe"

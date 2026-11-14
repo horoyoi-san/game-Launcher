@@ -221,22 +221,22 @@
   "1101": {
     "characterName": "Koleda Belobog",
     "role": "Stun (starter)",
-    "fourPieceSetId": 33300,
-    "twoPieceSetId": 31600,
+    "fourPieceSetId": 33200,
+    "twoPieceSetId": 31200,
     "alternativeTwoPieceSetIds": [
       31000
     ],
     "mainStats": {
-      "4": 12102,
-      "5": 12102,
+      "4": 20103,
+      "5": 31603,
       "6": 12202
     },
     "subStats": [
       12102,
-      12103,
+      0,
       20103,
       21103,
-      23203
+      0
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
@@ -486,21 +486,21 @@
   "1211": {
     "characterName": "Alexandrina Sebastiane",
     "role": "Support (starter)",
-    "fourPieceSetId": 32800,
-    "twoPieceSetId": 31600,
+    "fourPieceSetId": 33400,
+    "twoPieceSetId": 31100,
     "alternativeTwoPieceSetIds": [
       31000
     ],
     "mainStats": {
       "4": 12102,
-      "5": 12102,
+      "5": 23103,
       "6": 30502
     },
     "subStats": [
       12102,
       12103,
-      20103,
-      21103,
+      0,
+      0,
       23203
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
@@ -729,22 +729,22 @@
   "1321": {
     "characterName": "Evelyn Chevalier",
     "role": "Attack DPS (starter)",
-    "fourPieceSetId": 32700,
-    "twoPieceSetId": 31000,
+    "fourPieceSetId": 31000,
+    "twoPieceSetId": 32700,
     "alternativeTwoPieceSetIds": [
       31100
     ],
     "mainStats": {
       "4": 20103,
-      "5": 12102,
+      "5": 31603,
       "6": 12102
     },
     "subStats": [
       20103,
       21103,
       12102,
-      12103,
-      23203
+      0,
+      0
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",

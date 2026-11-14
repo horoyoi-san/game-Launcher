@@ -21,7 +21,7 @@ func (g *GitService) GetNAPServerGameVersion(serverChoice string) (string, strin
 	var pattern *regexp.Regexp
 	switch strings.ToLower(strings.TrimSpace(serverChoice)) {
 	case "kafka":
-		configPath = filepath.Join(constant.KafkaStorageDir, "defaults", "kafka.zon")
+		configPath = filepath.Join(constant.KafkaStorageDir, "defaults", "remielle.zon")
 		pattern = kafkaGameTagPattern
 	case "remielle":
 		configPath = filepath.Join(constant.RemielleStorageDir, "dpsv", "config.zon")
