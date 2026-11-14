@@ -219,7 +219,7 @@ const buildRecommendedDisks = (recommendation: DiscRecommendation): DiskConfig[]
             slot,
             mainStat,
             subStatIds,
-            subStatRolls: randomizeSubStatRolls(subStatIds.length, 2, getMaxDiskRolls(4)),
+            subStatRolls: randomizeSubStatRolls(subStatIds.length, getMaxDiskRolls(4), getMaxDiskRolls(4)),
             allowOverLimitRolls: false,
         };
     });

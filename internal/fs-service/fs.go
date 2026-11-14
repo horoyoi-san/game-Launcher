@@ -334,7 +334,7 @@ func (f *FSService) StartNAPServer() (bool, string) {
 }
 
 func (f *FSService) StartKafkaServer() (bool, string) {
-	serverExecutable := filepath.Join(constant.KafkaStorageDir, "zig-out", "bin", "kafka.exe")
+	serverExecutable := filepath.Join(constant.KafkaStorageDir, "zig-out", "bin", "remielle.exe")
 	command, _, err := startConsoleProcess(serverExecutable)
 	if err != nil {
 		return false, fmt.Errorf("prepare Kafka server executable: %w", err).Error()
