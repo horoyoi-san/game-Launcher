@@ -14,11 +14,12 @@ const (
 	avatarSaveWeaponUIDField = 10
 	quickTeamItemField       = 1
 	quickTeamAvatarIDField   = 2
+	weaponUIDBase            = 0x010000
 )
 
 func deleteInventoryItemSave(serverDir string, playerUID uint32, itemType string, itemUID uint32) (string, []uint32, error) {
-	if playerUID == 0 || itemUID == 0 {
-		return "", nil, errors.New("player UID and inventory item UID must be greater than zero")
+	if playerUID == 0 {
+		return "", nil, errors.New("player UID must be greater than zero")
 	}
 	if itemType != "disk" && itemType != "weapon" {
 		return "", nil, fmt.Errorf("unsupported inventory item type %q", itemType)
@@ -40,9 +41,6 @@ func deleteInventoryItemSave(serverDir string, playerUID uint32, itemType string
 }
 
 func deleteInventoryItemFromPlayerSave(playerSave []byte, itemType string, itemUID uint64) ([]byte, []uint32, error) {
-	if itemUID == 0 {
-		return nil, nil, errors.New("inventory item UID must be greater than zero")
-	}
 	updated, affectedAvatarIDs, removed, err := deleteInventoryItemsFromPlayerSave(
 		playerSave,
 		itemType,
@@ -158,7 +156,9 @@ func deleteInventoryItemsFromPlayerSave(
 	avatarUIDValues := make(map[uint64]bool, len(itemUIDs))
 	for itemUID := range itemUIDs {
 		avatarUIDValue := itemUID
-		if itemType == "disk" {
+		if itemType == "weapon" {
+			avatarUIDValue += weaponUIDBase
+		} else {
 			avatarUIDValue += equipmentUIDBase
 		}
 		avatarUIDValues[avatarUIDValue] = true
@@ -463,8 +463,8 @@ func deleteCharacterFromPlayerSave(playerSave []byte, avatarID uint32) ([]byte, 
 	}
 
 	weaponUIDsToRemove := make(map[uint64]bool)
-	if targetWeaponUID != 0 && !sharedWeaponUIDs[targetWeaponUID] {
-		weaponUIDsToRemove[targetWeaponUID] = true
+	if inventoryUID, ok := weaponInventoryUID(targetWeaponUID); ok && !sharedWeaponUIDs[targetWeaponUID] {
+		weaponUIDsToRemove[inventoryUID] = true
 	}
 	diskUIDsToRemove := make(map[uint64]bool)
 	for _, uid := range targetDiskUIDs {
@@ -493,6 +493,13 @@ func diskInventoryUID(equipmentUID uint64) uint64 {
 		return equipmentUID - equipmentUIDBase
 	}
 	return equipmentUID
+}
+
+func weaponInventoryUID(avatarUID uint64) (uint64, bool) {
+	if avatarUID < weaponUIDBase || avatarUID-weaponUIDBase > uint64(^uint16(0)) {
+		return 0, false
+	}
+	return avatarUID - weaponUIDBase, true
 }
 
 func readAvatarSaveEquipment(item []byte) (uint64, uint64, []uint64, error) {

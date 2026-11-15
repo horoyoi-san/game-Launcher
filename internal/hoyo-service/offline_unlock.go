@@ -60,6 +60,234 @@ func unlockCharacterSave(serverDir string, playerUID, avatarID uint32) (string, 
 	return backupPath, true, nil
 }
 
+func updateWeaponSave(
+	serverDir string,
+	playerUID, avatarID, weaponID, level, refinement uint32,
+) (string, uint32, error) {
+	if playerUID == 0 {
+		return "", 0, errors.New("player UID must be greater than zero")
+	}
+	if avatarID != 0 && !containsID(characterIDs, avatarID) {
+		return "", 0, fmt.Errorf("unknown character ID %d", avatarID)
+	}
+	packet, err := buildCreateWeaponPacket(playerUID, weaponID, level, refinement, 1)
+	if err != nil {
+		return "", 0, err
+	}
+
+	savePath := savePlayerPath(serverDir, playerUID)
+	data, err := os.ReadFile(savePath)
+	if err != nil {
+		return "", 0, fmt.Errorf("could not read Remielle account save %s: %w", savePath, err)
+	}
+
+	updated := data
+	if avatarID != 0 {
+		updated, _, err = appendAvatarToPlayerSave(updated, avatarID)
+		if err != nil {
+			return "", 0, fmt.Errorf("could not prepare character save: %w", err)
+		}
+	}
+	updated, weaponUID, err := appendWeaponToPlayerSave(updated, packet)
+	if err != nil {
+		return "", 0, fmt.Errorf("could not add W-Engine to the account save: %w", err)
+	}
+	if avatarID != 0 {
+		updated, err = equipWeaponToAvatar(updated, avatarID, weaponUID)
+		if err != nil {
+			return "", 0, fmt.Errorf("could not equip W-Engine: %w", err)
+		}
+	}
+	backupPath, err := writePlayerSaveUpdate(savePath, data, updated)
+	if err != nil {
+		return "", 0, err
+	}
+	return backupPath, weaponUID, nil
+}
+
+func equipAgentBuildSave(
+	serverDir string,
+	playerUID, avatarID uint32,
+	disks []diskLoadoutItem,
+	weaponID, level, refinement uint32,
+) (string, uint32, error) {
+	if playerUID == 0 || avatarID == 0 {
+		return "", 0, errors.New("player UID and character ID must be greater than zero")
+	}
+	if !containsID(characterIDs, avatarID) {
+		return "", 0, fmt.Errorf("unknown character ID %d", avatarID)
+	}
+	if len(disks) == 0 || len(disks) > 6 {
+		return "", 0, errors.New("a Drive Disc loadout must contain between 1 and 6 discs")
+	}
+	packet, err := buildCreateWeaponPacket(playerUID, weaponID, level, refinement, 1)
+	if err != nil {
+		return "", 0, err
+	}
+
+	savePath := savePlayerPath(serverDir, playerUID)
+	data, err := os.ReadFile(savePath)
+	if err != nil {
+		return "", 0, fmt.Errorf("could not read Remielle account save %s: %w", savePath, err)
+	}
+	updated, _, err := appendAvatarToPlayerSave(data, avatarID)
+	if err != nil {
+		return "", 0, fmt.Errorf("could not prepare character save: %w", err)
+	}
+	updated, err = appendAndEquipDisks(updated, avatarID, disks)
+	if err != nil {
+		return "", 0, fmt.Errorf("could not equip Drive Discs: %w", err)
+	}
+	updated, weaponUID, err := appendWeaponToPlayerSave(updated, packet)
+	if err != nil {
+		return "", 0, fmt.Errorf("could not add W-Engine to the account save: %w", err)
+	}
+	updated, err = equipWeaponToAvatar(updated, avatarID, weaponUID)
+	if err != nil {
+		return "", 0, fmt.Errorf("could not equip W-Engine: %w", err)
+	}
+	backupPath, err := writePlayerSaveUpdate(savePath, data, updated)
+	if err != nil {
+		return "", 0, err
+	}
+	return backupPath, weaponUID, nil
+}
+
+func appendWeaponToPlayerSave(playerSave, packet []byte) ([]byte, uint32, error) {
+	rootFields, err := parseProtobufFields(playerSave)
+	if err != nil {
+		return nil, 0, fmt.Errorf("invalid player save: %w", err)
+	}
+	weaponSaveIndex, err := uniqueLengthDelimitedFieldIndex(rootFields, playerSaveWeaponField)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var weaponSave []byte
+	usedUIDs := make(map[uint64]bool)
+	if weaponSaveIndex >= 0 {
+		field := rootFields[weaponSaveIndex]
+		weaponSave = append([]byte(nil), playerSave[field.payloadFrom:field.payloadTo]...)
+		items, err := parseProtobufFields(weaponSave)
+		if err != nil {
+			return nil, 0, fmt.Errorf("invalid W-Engine inventory: %w", err)
+		}
+		for _, itemField := range items {
+			if itemField.number != 1 {
+				continue
+			}
+			if itemField.wireType != 2 {
+				return nil, 0, errors.New("W-Engine inventory contains an invalid item")
+			}
+			item, err := parseSaveWeaponItem(weaponSave[itemField.payloadFrom:itemField.payloadTo], nil)
+			if err != nil {
+				return nil, 0, err
+			}
+			usedUIDs[uint64(item.UID)] = true
+		}
+	}
+	nextUID, ok := firstAvailableInventoryUID(usedUIDs)
+	if !ok {
+		return nil, 0, errors.New("account has reached the maximum W-Engine UID")
+	}
+
+	metadata := binary.LittleEndian.Uint16(packet[18:20])
+	weapon := appendVarintField(nil, 1, nextUID)
+	weapon = appendVarintField(weapon, 2, uint64(binary.LittleEndian.Uint16(packet[16:18])))
+	weapon = appendVarintField(weapon, 3, uint64(metadata&0x3f))
+	weapon = appendVarintField(weapon, 4, uint64(metadata>>6&0x07))
+	weapon = appendVarintField(weapon, 5, uint64(metadata>>9&0x07))
+	weaponSave = appendLengthDelimitedField(weaponSave, 1, weapon)
+
+	var updated []byte
+	if weaponSaveIndex < 0 {
+		updated = appendLengthDelimitedField(playerSave, playerSaveWeaponField, weaponSave)
+	} else {
+		updated, err = replaceLengthDelimitedField(playerSave, weaponSaveIndex, weaponSave)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
+	return updated, uint32(nextUID), nil
+}
+
+func equipWeaponToAvatar(playerSave []byte, avatarID, weaponUID uint32) ([]byte, error) {
+	if uint64(weaponUID) > uint64(^uint16(0)) {
+		return nil, errors.New("W-Engine UID is outside the supported range")
+	}
+	rootFields, err := parseProtobufFields(playerSave)
+	if err != nil {
+		return nil, fmt.Errorf("invalid player save: %w", err)
+	}
+	avatarSaveIndex, err := uniqueLengthDelimitedFieldIndex(rootFields, playerSaveAvatarField)
+	if err != nil {
+		return nil, err
+	}
+	if avatarSaveIndex < 0 {
+		return nil, errors.New("player save has no character data")
+	}
+
+	avatarField := rootFields[avatarSaveIndex]
+	avatarSave := playerSave[avatarField.payloadFrom:avatarField.payloadTo]
+	avatarFields, err := parseProtobufFields(avatarSave)
+	if err != nil {
+		return nil, fmt.Errorf("invalid character save: %w", err)
+	}
+	avatarItemIndex := -1
+	for index, itemField := range avatarFields {
+		if itemField.number != avatarSaveItemField {
+			continue
+		}
+		if itemField.wireType != 2 {
+			return nil, errors.New("account save has an invalid character entry")
+		}
+		item := avatarSave[itemField.payloadFrom:itemField.payloadTo]
+		id, _, _, err := readAvatarSaveEquipment(item)
+		if err != nil {
+			return nil, err
+		}
+		if id == uint64(avatarID) {
+			if avatarItemIndex >= 0 {
+				return nil, fmt.Errorf("character %d appears more than once in the account save", avatarID)
+			}
+			avatarItemIndex = index
+		}
+	}
+	if avatarItemIndex < 0 {
+		return nil, fmt.Errorf("character %d could not be found in the account save", avatarID)
+	}
+
+	avatarItemField := avatarFields[avatarItemIndex]
+	avatarItem := avatarSave[avatarItemField.payloadFrom:avatarItemField.payloadTo]
+	itemFields, err := parseProtobufFields(avatarItem)
+	if err != nil {
+		return nil, fmt.Errorf("invalid character entry: %w", err)
+	}
+	var updatedAvatarItem []byte
+	for _, field := range itemFields {
+		if field.number == avatarWeaponUIDField {
+			continue
+		}
+		updatedAvatarItem = append(updatedAvatarItem, avatarItem[field.start:field.end]...)
+	}
+	updatedAvatarItem = appendVarintField(updatedAvatarItem, avatarWeaponUIDField, weaponUIDBase+uint64(weaponUID))
+
+	updatedAvatarSave, err := replaceLengthDelimitedField(avatarSave, avatarItemIndex, updatedAvatarItem)
+	if err != nil {
+		return nil, err
+	}
+	return replaceLengthDelimitedField(playerSave, avatarSaveIndex, updatedAvatarSave)
+}
+
+func firstAvailableInventoryUID(usedUIDs map[uint64]bool) (uint64, bool) {
+	for uid := uint64(0); uid <= uint64(^uint16(0)); uid++ {
+		if !usedUIDs[uid] {
+			return uid, true
+		}
+	}
+	return 0, false
+}
+
 type SaveInventory struct {
 	Characters []uint32            `json:"characters"`
 	Weapons    []SaveInventoryItem `json:"weapons"`
@@ -126,8 +354,8 @@ func parseSaveInventory(playerSave []byte) (SaveInventory, error) {
 				return inventory, err
 			}
 			inventory.Characters = append(inventory.Characters, uint32(avatarID))
-			if weaponUID != 0 {
-				equippedWeaponByUID[weaponUID] = append(equippedWeaponByUID[weaponUID], uint32(avatarID))
+			if inventoryUID, ok := weaponInventoryUID(weaponUID); ok {
+				equippedWeaponByUID[inventoryUID] = append(equippedWeaponByUID[inventoryUID], uint32(avatarID))
 			}
 			for _, uid := range diskUIDs {
 				if uid < equipmentUIDBase {
@@ -398,7 +626,7 @@ func appendAndEquipDisks(playerSave []byte, avatarID uint32, disks []diskLoadout
 	equipSave := []byte(nil)
 	equipFields := []protobufField(nil)
 	equipmentUIDs := make([]uint64, 6)
-	var nextUID uint64 = 1
+	usedUIDs := make(map[uint64]bool)
 	if equipSaveIndex >= 0 {
 		equipSaveField := rootFields[equipSaveIndex]
 		equipSave = playerSave[equipSaveField.payloadFrom:equipSaveField.payloadTo]
@@ -418,14 +646,11 @@ func appendAndEquipDisks(playerSave []byte, avatarID uint32, disks []diskLoadout
 				return nil, parseErr
 			}
 			for _, itemField := range itemFields {
-				if itemField.number == 1 && itemField.wireType == 0 && itemField.value >= nextUID {
-					nextUID = itemField.value + 1
+				if itemField.number == 1 && itemField.wireType == 0 {
+					usedUIDs[itemField.value] = true
 				}
 			}
 		}
-	}
-	if nextUID > 1<<16-1 || uint64(len(disks)) > 1<<16-nextUID {
-		return nil, errors.New("account has reached the maximum Drive Disc UID")
 	}
 
 	avatarItemField := avatarFields[avatarItemIndex]
@@ -484,8 +709,12 @@ func appendAndEquipDisks(playerSave []byte, avatarID uint32, disks []diskLoadout
 		if packetErr != nil {
 			return nil, packetErr
 		}
+		nextUID, ok := firstAvailableInventoryUID(usedUIDs)
+		if !ok {
+			return nil, errors.New("account has reached the maximum Drive Disc UID")
+		}
 		uid := nextUID
-		nextUID++
+		usedUIDs[uid] = true
 		equipmentUIDs[disk.slot-1] = equipmentUIDBase + uid
 		equipItem := encodeDiskSaveItem(uid, packet)
 		newItems = appendLengthDelimitedField(newItems, equipSaveItemField, equipItem)

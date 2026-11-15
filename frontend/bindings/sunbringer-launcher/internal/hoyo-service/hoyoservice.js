@@ -80,10 +80,40 @@ export function DeleteInventoryItem(playerUID, itemType, itemUID) {
  * @param {number[]} mainStats
  * @param {number[][]} subStatIDs
  * @param {number[][]} subRolls
+ * @param {number} weaponID
+ * @param {number} level
+ * @param {number} refinement
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function EquipAgentBuild(playerUID, avatarID, setIDs, ranks, slots, mainStats, subStatIDs, subRolls, weaponID, level, refinement) {
+    return $Call.ByID(1176059890, playerUID, avatarID, setIDs, ranks, slots, mainStats, subStatIDs, subRolls, weaponID, level, refinement);
+}
+
+/**
+ * @param {number} playerUID
+ * @param {number} avatarID
+ * @param {number[]} setIDs
+ * @param {number[]} ranks
+ * @param {number[]} slots
+ * @param {number[]} mainStats
+ * @param {number[][]} subStatIDs
+ * @param {number[][]} subRolls
  * @returns {$CancellablePromise<[boolean, string]>}
  */
 export function EquipDiskSet(playerUID, avatarID, setIDs, ranks, slots, mainStats, subStatIDs, subRolls) {
     return $Call.ByID(346418600, playerUID, avatarID, setIDs, ranks, slots, mainStats, subStatIDs, subRolls);
+}
+
+/**
+ * @param {number} playerUID
+ * @param {number} avatarID
+ * @param {number} weaponID
+ * @param {number} level
+ * @param {number} refinement
+ * @returns {$CancellablePromise<[boolean, string]>}
+ */
+export function EquipWeapon(playerUID, avatarID, weaponID, level, refinement) {
+    return $Call.ByID(3948624205, playerUID, avatarID, weaponID, level, refinement);
 }
 
 /**

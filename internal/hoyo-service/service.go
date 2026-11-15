@@ -87,18 +87,39 @@ func (s *HoyoService) EquipDiskSet(
 	if !containsID(characterIDs, avatarID) {
 		return result(fmt.Errorf("unknown character ID %d", avatarID))
 	}
+	disks, err := prepareDiskLoadout(playerUID, setIDs, ranks, slots, mainStats, subStatIDs, subRolls)
+	if err != nil {
+		return result(err)
+	}
+
+	if err := disconnectUIDBeforeSaveEdit(playerUID, "equipping discs"); err != nil {
+		return result(err)
+	}
+
+	backupPath, err := equipDiskSetSave(constant.RemielleStorageDir, playerUID, avatarID, disks)
+	if err != nil {
+		return result(err)
+	}
+	return true, fmt.Sprintf("Equipped %d Drive Discs to character %d. Backup: %s. Reconnect UID %d to load the changes.", len(disks), avatarID, backupPath, playerUID)
+}
+
+func prepareDiskLoadout(
+	playerUID uint32,
+	setIDs, ranks, slots, mainStats []uint32,
+	subStatIDs, subRolls [][]uint32,
+) ([]diskLoadoutItem, error) {
 	count := len(setIDs)
 	if count == 0 || count > 6 ||
 		len(ranks) != count || len(slots) != count || len(mainStats) != count ||
 		len(subStatIDs) != count || len(subRolls) != count {
-		return result(errors.New("Drive Disc loadout data is incomplete or contains more than six discs"))
+		return nil, errors.New("Drive Disc loadout data is incomplete or contains more than six discs")
 	}
 
 	disks := make([]diskLoadoutItem, count)
 	usedSlots := make(map[uint32]bool, count)
 	for index := range disks {
 		if usedSlots[slots[index]] {
-			return result(fmt.Errorf("Drive Disc slot %d appears more than once", slots[index]))
+			return nil, fmt.Errorf("Drive Disc slot %d appears more than once", slots[index])
 		}
 		usedSlots[slots[index]] = true
 		disks[index] = diskLoadoutItem{
@@ -113,19 +134,44 @@ func (s *HoyoService) EquipDiskSet(
 			playerUID, disks[index].setID, disks[index].rank, disks[index].slot,
 			disks[index].mainStat, disks[index].subStatIDs, disks[index].subRolls, 1,
 		); err != nil {
-			return result(fmt.Errorf("invalid Drive Disc in slot %d: %w", disks[index].slot, err))
+			return nil, fmt.Errorf("invalid Drive Disc in slot %d: %w", disks[index].slot, err)
 		}
 	}
+	return disks, nil
+}
 
-	if err := disconnectUIDBeforeSaveEdit(playerUID, "equipping discs"); err != nil {
-		return result(err)
+func (s *HoyoService) EquipAgentBuild(
+	playerUID, avatarID uint32,
+	setIDs, ranks, slots, mainStats []uint32,
+	subStatIDs, subRolls [][]uint32,
+	weaponID, level, refinement uint32,
+) (bool, string) {
+	if playerUID == 0 || avatarID == 0 {
+		return result(errors.New("player UID and character ID must be greater than zero"))
 	}
-
-	backupPath, err := equipDiskSetSave(constant.RemielleStorageDir, playerUID, avatarID, disks)
+	if !containsID(characterIDs, avatarID) {
+		return result(fmt.Errorf("unknown character ID %d", avatarID))
+	}
+	disks, err := prepareDiskLoadout(playerUID, setIDs, ranks, slots, mainStats, subStatIDs, subRolls)
 	if err != nil {
 		return result(err)
 	}
-	return true, fmt.Sprintf("Equipped %d Drive Discs to character %d. Backup: %s. Reconnect UID %d to load the changes.", len(disks), avatarID, backupPath, playerUID)
+	if _, err := buildCreateWeaponPacket(playerUID, weaponID, level, refinement, 1); err != nil {
+		return result(err)
+	}
+	if err := disconnectUIDBeforeSaveEdit(playerUID, "creating and equipping an Agent build"); err != nil {
+		return result(err)
+	}
+	backupPath, weaponUID, err := equipAgentBuildSave(
+		constant.RemielleStorageDir, playerUID, avatarID, disks, weaponID, level, refinement,
+	)
+	if err != nil {
+		return result(err)
+	}
+	return true, fmt.Sprintf(
+		"Equipped %d Drive Discs and W-Engine %d (UID %d) to character %d. Backup: %s. Reconnect UID %d to load the changes.",
+		len(disks), weaponID, weaponUID, avatarID, backupPath, playerUID,
+	)
 }
 
 func (s *HoyoService) CreateWeapon(playerUID, weaponID, level, refinement uint32) (bool, string) {
@@ -138,6 +184,33 @@ func (s *HoyoService) CreateWeapon(playerUID, weaponID, level, refinement uint32
 		return result(err)
 	}
 	return result(sendControlPacket(packet))
+}
+
+func (s *HoyoService) EquipWeapon(
+	playerUID, avatarID, weaponID, level, refinement uint32,
+) (bool, string) {
+	if playerUID == 0 || avatarID == 0 {
+		return result(errors.New("player UID and character ID must be greater than zero"))
+	}
+	if !containsID(characterIDs, avatarID) {
+		return result(fmt.Errorf("unknown character ID %d", avatarID))
+	}
+	if _, err := buildCreateWeaponPacket(playerUID, weaponID, level, refinement, 1); err != nil {
+		return result(err)
+	}
+	if err := disconnectUIDBeforeSaveEdit(playerUID, "equipping a W-Engine"); err != nil {
+		return result(err)
+	}
+	backupPath, weaponUID, err := updateWeaponSave(
+		constant.RemielleStorageDir, playerUID, avatarID, weaponID, level, refinement,
+	)
+	if err != nil {
+		return result(err)
+	}
+	return true, fmt.Sprintf(
+		"W-Engine %d (UID %d) equipped to character %d. Backup: %s. Reconnect UID %d to load the changes.",
+		weaponID, weaponUID, avatarID, backupPath, playerUID,
+	)
 }
 
 func (s *HoyoService) UnlockCharacter(playerUID, avatarID uint32) (bool, string) {
@@ -225,9 +298,6 @@ func (s *HoyoService) DeleteInventoryItem(playerUID uint32, itemType string, ite
 	}
 	if itemType != "disk" && itemType != "weapon" {
 		return result(fmt.Errorf("unsupported inventory item type %q", itemType))
-	}
-	if itemUID == 0 {
-		return result(errors.New("inventory item UID must be greater than zero"))
 	}
 	if err := disconnectUIDBeforeSaveEdit(playerUID, "deleting an inventory item"); err != nil {
 		return result(err)

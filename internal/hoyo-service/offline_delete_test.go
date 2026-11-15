@@ -17,11 +17,11 @@ func TestDeleteCharacterFromPlayerSaveRemovesOnlyEquippedItems(t *testing.T) {
 	)
 
 	targetAvatar := appendVarintField(nil, avatarItemIDField, targetAvatarID)
-	targetAvatar = appendVarintField(targetAvatar, avatarWeaponUIDField, targetWeaponID)
+	targetAvatar = appendVarintField(targetAvatar, avatarWeaponUIDField, weaponUIDBase+targetWeaponID)
 	targetAvatar = appendVarintField(targetAvatar, avatarEquipmentField, sharedDiskID)
 	targetAvatar = appendVarintField(targetAvatar, avatarEquipmentField, targetDiskID)
 	otherAvatar := appendVarintField(nil, avatarItemIDField, otherAvatarID)
-	otherAvatar = appendVarintField(otherAvatar, avatarWeaponUIDField, sharedWeaponID)
+	otherAvatar = appendVarintField(otherAvatar, avatarWeaponUIDField, weaponUIDBase+sharedWeaponID)
 	otherAvatar = appendVarintField(otherAvatar, avatarEquipmentField, sharedDiskID)
 	avatarSave := appendLengthDelimitedField(nil, avatarSaveItemField, targetAvatar)
 	avatarSave = appendLengthDelimitedField(avatarSave, avatarSaveItemField, otherAvatar)
@@ -119,7 +119,7 @@ func TestDeleteAllCharactersSaveKeepsSelectedCharacterAndBackup(t *testing.T) {
 	makeAvatar := func(id, weaponUID, diskUID uint64) []byte {
 		avatar := appendVarintField(nil, avatarItemIDField, id)
 		if weaponUID != 0 {
-			avatar = appendVarintField(avatar, avatarWeaponUIDField, weaponUID)
+			avatar = appendVarintField(avatar, avatarWeaponUIDField, weaponUIDBase+weaponUID)
 		}
 		if diskUID != 0 {
 			avatar = appendVarintField(avatar, avatarEquipmentField, equipmentUIDBase+diskUID)
@@ -198,7 +198,7 @@ func TestDeleteAllCharactersSaveKeepsSelectedCharacterAndBackup(t *testing.T) {
 	avatarStart := rootFields[avatarSaveIndex].payloadFrom + avatarSaveFields[0].payloadFrom
 	avatarEnd := rootFields[avatarSaveIndex].payloadFrom + avatarSaveFields[0].payloadTo
 	avatarID, weaponUID, diskUIDs, err := readAvatarSaveEquipment(updated[avatarStart:avatarEnd])
-	if err != nil || avatarID != 1041 || weaponUID != 10 || len(diskUIDs) != 1 || diskUIDs[0] != equipmentUIDBase+20 {
+	if err != nil || avatarID != 1041 || weaponUID != weaponUIDBase+10 || len(diskUIDs) != 1 || diskUIDs[0] != equipmentUIDBase+20 {
 		t.Fatalf("remaining character data = id %d, weapon %d, discs %v, err %v", avatarID, weaponUID, diskUIDs, err)
 	}
 	if got := countInventoryUID(t, updated, playerSaveWeaponField, 1, 7); got != 0 {
@@ -286,7 +286,7 @@ func TestParseSaveInventory(t *testing.T) {
 		diskUID   = uint64(8)
 	)
 	avatar := appendVarintField(nil, avatarItemIDField, avatarID)
-	avatar = appendVarintField(avatar, avatarWeaponUIDField, weaponUID)
+	avatar = appendVarintField(avatar, avatarWeaponUIDField, weaponUIDBase+weaponUID)
 	avatar = appendVarintField(avatar, avatarEquipmentField, equipmentUIDBase+diskUID)
 	avatarSave := appendLengthDelimitedField(nil, avatarSaveItemField, avatar)
 
@@ -334,6 +334,31 @@ func TestParseSaveInventory(t *testing.T) {
 	}
 }
 
+func TestParseSaveInventoryDoesNotTreatInventoryUIDAsAvatarUID(t *testing.T) {
+	const weaponUID = uint64(7)
+	avatar := appendVarintField(nil, avatarItemIDField, 1011)
+	avatar = appendVarintField(avatar, avatarWeaponUIDField, weaponUID)
+	avatarSave := appendLengthDelimitedField(nil, avatarSaveItemField, avatar)
+
+	weapon := appendVarintField(nil, 1, weaponUID)
+	weapon = appendVarintField(weapon, 2, 14160)
+	weapon = appendVarintField(weapon, 3, 60)
+	weapon = appendVarintField(weapon, 4, 5)
+	weapon = appendVarintField(weapon, 5, 3)
+	weaponSave := appendLengthDelimitedField(nil, 1, weapon)
+
+	playerSave := appendLengthDelimitedField(nil, playerSaveAvatarField, avatarSave)
+	playerSave = appendLengthDelimitedField(playerSave, playerSaveWeaponField, weaponSave)
+
+	inventory, err := parseSaveInventory(playerSave)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(inventory.Weapons) != 1 || len(inventory.Weapons[0].EquippedToAgentIDs) != 0 {
+		t.Fatalf("invalid avatar W-Engine reference was treated as equipped: %+v", inventory.Weapons)
+	}
+}
+
 func TestDeleteInventoryItemFromPlayerSaveRemovesReferences(t *testing.T) {
 	const (
 		avatarID  = uint64(1011)
@@ -341,7 +366,7 @@ func TestDeleteInventoryItemFromPlayerSaveRemovesReferences(t *testing.T) {
 		diskUID   = uint64(8)
 	)
 	avatar := appendVarintField(nil, avatarItemIDField, avatarID)
-	avatar = appendVarintField(avatar, avatarWeaponUIDField, weaponUID)
+	avatar = appendVarintField(avatar, avatarWeaponUIDField, weaponUIDBase+weaponUID)
 	avatar = appendVarintField(avatar, avatarEquipmentField, equipmentUIDBase+diskUID)
 	avatar = appendVarintField(avatar, avatarEquipmentField, equipmentUIDBase+9)
 	avatarSave := appendLengthDelimitedField(nil, avatarSaveItemField, avatar)
@@ -427,6 +452,42 @@ func TestDeleteInventoryItemFromPlayerSaveRemovesReferences(t *testing.T) {
 	}
 }
 
+func TestDeleteInventoryItemFromPlayerSaveAllowsUIDZero(t *testing.T) {
+	avatar := appendVarintField(nil, avatarItemIDField, 1011)
+	avatar = appendVarintField(avatar, avatarWeaponUIDField, weaponUIDBase)
+	avatar = appendVarintField(avatar, avatarEquipmentField, equipmentUIDBase)
+	avatarSave := appendLengthDelimitedField(nil, avatarSaveItemField, avatar)
+
+	weapon := appendVarintField(nil, 1, 0)
+	weapon = appendVarintField(weapon, 2, 14160)
+	weaponSave := appendLengthDelimitedField(nil, 1, weapon)
+	disk := appendVarintField(nil, 1, 0)
+	disk = appendVarintField(disk, 2, 33041)
+	diskSave := appendLengthDelimitedField(nil, equipSaveItemField, disk)
+	playerSave := appendLengthDelimitedField(nil, playerSaveAvatarField, avatarSave)
+	playerSave = appendLengthDelimitedField(playerSave, playerSaveWeaponField, weaponSave)
+	playerSave = appendLengthDelimitedField(playerSave, playerSaveEquipField, diskSave)
+
+	for _, itemType := range []string{"weapon", "disk"} {
+		updated, affected, err := deleteInventoryItemFromPlayerSave(playerSave, itemType, 0)
+		if err != nil {
+			t.Fatalf("delete UID 0 %s: %v", itemType, err)
+		}
+		if len(affected) != 1 || affected[0] != 1011 {
+			t.Errorf("affected Agents for %s UID 0 = %v, want [1011]", itemType, affected)
+		}
+		var inventoryRoot uint64 = playerSaveWeaponField
+		equipmentItem := uint64(1)
+		if itemType == "disk" {
+			inventoryRoot = playerSaveEquipField
+			equipmentItem = equipSaveItemField
+		}
+		if got := countInventoryUID(t, updated, inventoryRoot, equipmentItem, 0); got != 0 {
+			t.Errorf("UID 0 %s remains in inventory %d times", itemType, got)
+		}
+	}
+}
+
 func TestDeleteAllInventoryItemsSaveCreatesOneBackupAndUnequipsAll(t *testing.T) {
 	const playerUID = uint32(666)
 	serverDir := t.TempDir()
@@ -436,7 +497,7 @@ func TestDeleteAllInventoryItemsSaveCreatesOneBackupAndUnequipsAll(t *testing.T)
 	}
 
 	avatar := appendVarintField(nil, avatarItemIDField, 1011)
-	avatar = appendVarintField(avatar, avatarWeaponUIDField, 7)
+	avatar = appendVarintField(avatar, avatarWeaponUIDField, weaponUIDBase+7)
 	avatar = appendVarintField(avatar, avatarEquipmentField, equipmentUIDBase+8)
 	avatarSave := appendLengthDelimitedField(nil, avatarSaveItemField, avatar)
 

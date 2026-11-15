@@ -44,6 +44,12 @@ type SavedDiskSet = {
     targetAgentId?: number;
 };
 
+type AgentWeaponBuild = {
+    weaponId: number | null;
+    level: number;
+    refinement: number;
+};
+
 type SaveInventoryItem = {
     uid: number;
     id: number;
@@ -93,6 +99,12 @@ type ConfirmationDialog = {
 
 const SAVED_DISK_SETS_KEY = "hoyoSavedDiskSets";
 const DISC_RECOMMENDATION_OVERRIDES_KEY = "hoyoDiscRecommendationOverrides";
+const AGENT_WEAPON_BUILDS_KEY = "hoyoAgentWeaponBuilds";
+const DEFAULT_AGENT_WEAPON_BUILD: AgentWeaponBuild = {
+    weaponId: null,
+    level: 60,
+    refinement: 1,
+};
 const RANK_FILTERS = [
     { rank: null, label: "ALL" },
     { rank: 4, label: "S" },
@@ -172,6 +184,15 @@ const isEditableDiscRecommendation = (value: unknown): value is EditableDiscReco
         [4, 5, 6].every((slot) => MAIN_STATS_BY_SLOT[slot].includes(mainStats[slot])) &&
         subStats.every((statId) => statId === 0 || SUBSTAT_IDS.includes(statId)) &&
         new Set(subStats.filter((statId) => statId !== 0)).size === subStats.filter((statId) => statId !== 0).length;
+};
+const isAgentWeaponBuild = (value: unknown): value is AgentWeaponBuild => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    const build = value as Partial<AgentWeaponBuild>;
+    return (build.weaponId === null ||
+        (typeof build.weaponId === "number" && Number.isInteger(build.weaponId) && build.weaponId > 0)) &&
+        typeof build.level === "number" && Number.isInteger(build.level) && build.level >= 1 && build.level <= 60 &&
+        typeof build.refinement === "number" && Number.isInteger(build.refinement) &&
+        build.refinement >= 1 && build.refinement <= 5;
 };
 const normalizeRecommendedSubStats = (subStats: number[]) => {
     const seen = new Set<number>();
@@ -341,60 +362,102 @@ function NumberField({
     );
 }
 
-function DiskSetPicker({
+function CatalogImagePicker({
     label,
-    disks,
-    selectedSetId,
+    items,
+    selectedId,
     onChange,
+    emptyLabel,
+    emptyDescription,
+    itemDescription,
+    optional = false,
 }: {
     label: string;
-    disks: CatalogItem[];
-    selectedSetId: number;
-    onChange: (setId: number) => void;
+    items: CatalogItem[];
+    selectedId: number | null;
+    onChange: (id: number | null) => void;
+    emptyLabel?: string;
+    emptyDescription?: string;
+    itemDescription?: (item: CatalogItem) => string;
+    optional?: boolean;
 }) {
     const [isOpen, setIsOpen] = useState(false);
-    const selectedDisk = disks.find((disk) => disk.id === selectedSetId);
-    const listId = `disk-set-options-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+    const selectedItem = items.find((item) => item.id === selectedId);
+    const listId = `catalog-picker-options-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
     return (
-        <div className="hoyo-field hoyo-disc-set-picker">
-            <span>{label}</span>
+        <div className="hoyo-field hoyo-catalog-picker">
+            <span>{label}{optional && <small>OPTIONAL</small>}</span>
             <button
                 type="button"
-                className="hoyo-disc-set-picker__trigger"
+                className="hoyo-catalog-picker__trigger"
                 aria-expanded={isOpen}
                 aria-controls={listId}
                 onClick={() => setIsOpen((open) => !open)}
             >
-                {selectedDisk?.imagePath ? (
-                    <img src={selectedDisk.imagePath} alt="" />
-                ) : (
+                <span className="hoyo-catalog-picker__art">
                     <Sparkles size={18} aria-hidden="true" />
-                )}
-                <span>{selectedDisk?.name ?? `Drive Disc ${selectedSetId}`}</span>
+                    {selectedItem?.imagePath && (
+                        <img
+                            src={selectedItem.imagePath}
+                            alt=""
+                            onError={(event) => {
+                                event.currentTarget.hidden = true;
+                            }}
+                        />
+                    )}
+                </span>
+                <span>{selectedItem?.name ?? emptyLabel ?? `${label} ${selectedId ?? ""}`}</span>
                 <b>{isOpen ? "−" : "+"}</b>
             </button>
             {isOpen && (
-                <div className="hoyo-disc-set-picker__options" id={listId}>
-                    {disks.map((disk) => (
+                <div className="hoyo-catalog-picker__options" id={listId}>
+                    {emptyLabel && (
                         <button
                             type="button"
-                            key={disk.id}
-                            className={`hoyo-disc-set-picker__option ${disk.id === selectedSetId ? "is-selected" : ""}`}
-                            aria-pressed={disk.id === selectedSetId}
+                            className={`hoyo-catalog-picker__option ${selectedId === null ? "is-selected" : ""}`}
+                            aria-pressed={selectedId === null}
                             onClick={() => {
-                                onChange(disk.id);
+                                onChange(null);
                                 setIsOpen(false);
                             }}
                         >
-                            {disk.imagePath ? (
-                                <img src={disk.imagePath} alt="" loading="lazy" />
-                            ) : (
+                            <span className="hoyo-catalog-picker__art">
                                 <Sparkles size={18} aria-hidden="true" />
-                            )}
+                            </span>
                             <span>
-                                <b>{disk.name}</b>
-                                <small>{disk.twoPieceEffect || "Drive Disc set"}</small>
+                                <b>{emptyLabel}</b>
+                                <small>{emptyDescription}</small>
+                            </span>
+                        </button>
+                    )}
+                    {items.map((item) => (
+                        <button
+                            type="button"
+                            key={item.id}
+                            className={`hoyo-catalog-picker__option ${item.id === selectedId ? "is-selected" : ""}`}
+                            aria-pressed={item.id === selectedId}
+                            onClick={() => {
+                                onChange(item.id);
+                                setIsOpen(false);
+                            }}
+                        >
+                            <span className="hoyo-catalog-picker__art">
+                                <Sparkles size={18} aria-hidden="true" />
+                                {item.imagePath && (
+                                    <img
+                                        src={item.imagePath}
+                                        alt=""
+                                        loading="lazy"
+                                        onError={(event) => {
+                                            event.currentTarget.hidden = true;
+                                        }}
+                                    />
+                                )}
+                            </span>
+                            <span>
+                                <b>{item.name}</b>
+                                <small>{itemDescription?.(item) ?? `ID ${item.id}`}</small>
                             </span>
                         </button>
                     ))}
@@ -417,6 +480,8 @@ export default function HoyoPage() {
     const [selectedDiskId, setSelectedDiskId] = useState<number | null>(null);
     const [selectedAgentId, setSelectedAgentId] = useState<number | null>(null);
     const [selectedWeaponId, setSelectedWeaponId] = useState<number | null>(null);
+    const [agentWeaponBuilds, setAgentWeaponBuilds] = useState<Record<number, AgentWeaponBuild>>({});
+    const [agentWeaponBuildsLoaded, setAgentWeaponBuildsLoaded] = useState(false);
     const [diskSlot, setDiskSlot] = useState(1);
     const [diskRank, setDiskRank] = useState(4);
     const [mainStat, setMainStat] = useState(11103);
@@ -446,6 +511,46 @@ export default function HoyoPage() {
     const [isLoadingSaveInventory, setIsLoadingSaveInventory] = useState(false);
     const [inventoryRefreshId, setInventoryRefreshId] = useState(0);
     const [confirmationDialog, setConfirmationDialog] = useState<ConfirmationDialog | null>(null);
+
+    const updateAgentWeaponBuild = (agentId: number, updates: Partial<AgentWeaponBuild>) => {
+        setAgentWeaponBuilds((current) => ({
+            ...current,
+            [agentId]: { ...(current[agentId] ?? DEFAULT_AGENT_WEAPON_BUILD), ...updates },
+        }));
+    };
+
+    useEffect(() => {
+        try {
+            const stored = localStorage.getItem(AGENT_WEAPON_BUILDS_KEY);
+            if (stored) {
+                const parsed: unknown = JSON.parse(stored);
+                if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+                    throw new Error("W-Engine build settings have an invalid format.");
+                }
+                const builds: Record<number, AgentWeaponBuild> = {};
+                for (const [agentId, build] of Object.entries(parsed)) {
+                    if (!/^\d+$/.test(agentId) || !isAgentWeaponBuild(build)) {
+                        throw new Error(`W-Engine build settings for Agent ${agentId} are invalid.`);
+                    }
+                    builds[Number(agentId)] = build;
+                }
+                setAgentWeaponBuilds(builds);
+            }
+        } catch (error: unknown) {
+            toast.error(`Could not load W-Engine build settings: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+            setAgentWeaponBuildsLoaded(true);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!agentWeaponBuildsLoaded) return;
+        try {
+            localStorage.setItem(AGENT_WEAPON_BUILDS_KEY, JSON.stringify(agentWeaponBuilds));
+        } catch (error: unknown) {
+            toast.error(`Could not save W-Engine build settings: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }, [agentWeaponBuilds, agentWeaponBuildsLoaded]);
 
     useEffect(() => {
         try {
@@ -555,6 +660,9 @@ export default function HoyoPage() {
     const selectedItemId = category === "disks" ? selectedDiskId : category === "characters" ? selectedAgentId : selectedWeaponId;
     const selectedItem = currentItems.find((item) => item.id === selectedItemId);
     const selectedCharacter = catalog?.characters.find((item) => item.id === selectedAgentId);
+    const selectedAgentWeaponBuild = selectedAgentId === null
+        ? DEFAULT_AGENT_WEAPON_BUILD
+        : agentWeaponBuilds[selectedAgentId] ?? DEFAULT_AGENT_WEAPON_BUILD;
     const baseAgentRecommendation = selectedCharacter ? getDiscRecommendation(selectedCharacter) : null;
     const selectedAgentOverride = selectedCharacter ? discRecommendationOverrides[selectedCharacter.id] : undefined;
     const selectedAgentRecommendation = baseAgentRecommendation
@@ -920,12 +1028,28 @@ export default function HoyoPage() {
             toast.error(getDiskConfigError(invalidDisk) ?? "The recommended Drive Disc build is invalid.");
             return;
         }
+        const weaponBuild = agentWeaponBuilds[character.id] ?? DEFAULT_AGENT_WEAPON_BUILD;
+        const weapon = weaponBuild.weaponId === null
+            ? undefined
+            : catalog?.weapons.find((item) => item.id === weaponBuild.weaponId);
+        if (weaponBuild.weaponId !== null && !weapon) {
+            toast.error("Select a valid W-Engine first.");
+            return;
+        }
+        const setIds = disks.map((disk) =>
+            disk.setId ?? (disk.slot <= 4 ? recommendation.fourPieceSetId : recommendation.twoPieceSetId),
+        );
         setConfirmationDialog({
             eyebrow: "RECOMMENDED BUILD",
             title: `Equip a build for ${character.name}?`,
-            description: `This creates and equips six recommended S-Rank Drive Discs for UID ${uid}.`,
+            description: weapon
+                ? `This creates and equips six recommended S-Rank Drive Discs and ${weapon.name} for UID ${uid}.`
+                : `This creates and equips six recommended S-Rank Drive Discs for UID ${uid}.`,
             details: [
-                "New discs are added to the account inventory.",
+                weapon
+                    ? "The Drive Discs and W-Engine are added in one save update."
+                    : "New discs are added to the account inventory.",
+                "A single .bin backup is created before the change.",
                 "The UID will be disconnected before the save is updated.",
                 "Reconnect after the update completes.",
             ],
@@ -933,17 +1057,33 @@ export default function HoyoPage() {
             onConfirm: () => {
                 setConfirmationDialog(null);
                 void submitAndRefreshInventory(
-                    () => HoyoService.EquipDiskSet(
-                        uid,
-                        character.id,
-                        disks.map((disk) => disk.setId ?? (disk.slot <= 4 ? recommendation.fourPieceSetId : recommendation.twoPieceSetId)),
-                        disks.map((disk) => disk.rank),
-                        disks.map((disk) => disk.slot),
-                        disks.map((disk) => disk.mainStat),
-                        disks.map((disk) => disk.subStatIds),
-                        disks.map((disk) => disk.subStatRolls),
-                    ),
-                    `Recommended Drive Discs equipped to ${character.name}.`,
+                    () => weapon
+                        ? HoyoService.EquipAgentBuild(
+                            uid,
+                            character.id,
+                            setIds,
+                            disks.map((disk) => disk.rank),
+                            disks.map((disk) => disk.slot),
+                            disks.map((disk) => disk.mainStat),
+                            disks.map((disk) => disk.subStatIds),
+                            disks.map((disk) => disk.subStatRolls),
+                            weapon.id,
+                            weaponBuild.level,
+                            weaponBuild.refinement,
+                        )
+                        : HoyoService.EquipDiskSet(
+                            uid,
+                            character.id,
+                            setIds,
+                            disks.map((disk) => disk.rank),
+                            disks.map((disk) => disk.slot),
+                            disks.map((disk) => disk.mainStat),
+                            disks.map((disk) => disk.subStatIds),
+                            disks.map((disk) => disk.subStatRolls),
+                        ),
+                    weapon
+                        ? `Recommended Drive Discs and ${weapon.name} equipped to ${character.name}.`
+                        : `Recommended Drive Discs equipped to ${character.name}.`,
                 );
             },
         });
@@ -1229,6 +1369,53 @@ export default function HoyoPage() {
         );
     };
 
+    const requestWeaponSave = (
+        weaponID: number | null,
+        level: number,
+        weaponRefinement: number,
+        targetAgentID?: number,
+    ) => {
+        const weapon = catalog?.weapons.find((item) => item.id === weaponID);
+        if (!weapon) {
+            toast.error("Select a W-Engine first.");
+            return;
+        }
+        const agent = targetAgentID === undefined
+            ? undefined
+            : catalog?.characters.find((item) => item.id === targetAgentID);
+        if (targetAgentID !== undefined && !agent) {
+            toast.error("Select an Agent first.");
+            return;
+        }
+
+        if (!agent) {
+            void submit(
+                () => HoyoService.CreateWeapon(uid, weapon.id, level, weaponRefinement),
+                "W-Engine added to inventory.",
+            );
+            return;
+        }
+
+        setConfirmationDialog({
+            eyebrow: "ADD & EQUIP W-ENGINE",
+            title: `Equip ${weapon.name} to ${agent.name}?`,
+            description: `This adds a ${weapon.name} to UID ${uid}'s account save and equips it to ${agent.name}.`,
+            details: [
+                "A .bin backup is created before the change.",
+                "The UID will be disconnected before the save is updated.",
+                "Reconnect after the update completes.",
+            ],
+            confirmLabel: "ADD & EQUIP W-ENGINE",
+            onConfirm: () => {
+                setConfirmationDialog(null);
+                void submitAndRefreshInventory(
+                    () => HoyoService.EquipWeapon(uid, targetAgentID!, weapon.id, level, weaponRefinement),
+                    `W-Engine equipped to ${agent.name}.`,
+                );
+            },
+        });
+    };
+
     const createDefaultWeapon = () => {
         if (!selectedWeaponId) {
             toast.error("Select a W-Engine first.");
@@ -1236,10 +1423,7 @@ export default function HoyoPage() {
         }
         setWeaponLevel(1);
         setRefinement(1);
-        void submit(
-            () => HoyoService.CreateWeapon(uid, selectedWeaponId, 1, 1),
-            "Default W-Engine created.",
-        );
+        requestWeaponSave(selectedWeaponId, 1, 1);
     };
 
     const randomizeDiskStats = () => {
@@ -1304,7 +1488,7 @@ export default function HoyoPage() {
 
             <div className="hoyo-notice">
                 <ShieldCheck size={17} />
-                <span>Live controls use <strong>127.0.0.1:15810</strong> and require an online UID. Equipping a saved Drive Disc set updates the account save and disconnects that UID if Remielle is running.</span>
+                <span>Live controls use <strong>127.0.0.1:15810</strong> and require an online UID. Adding W-Engines or equipping saved gear updates the account save, creates a backup, and disconnects that UID if Remielle is running.</span>
             </div>
             <p className="hoyo-artwork-note">Artwork is loaded from local files in <code>frontend/public/hoyo/</code>; see that folder for the expected image names.</p>
 
@@ -1448,23 +1632,69 @@ export default function HoyoPage() {
                                         <p className="hoyo-agent-disc-recommendation__note">
                                             {selectedAgentRecommendation.note}
                                         </p>
+                                        <div className="hoyo-agent-disc-recommendation__customizer">
+                                            <CatalogImagePicker
+                                                label="W-ENGINE TO INCLUDE"
+                                                items={catalog?.weapons ?? []}
+                                                selectedId={selectedAgentWeaponBuild.weaponId}
+                                                onChange={(weaponId) => updateAgentWeaponBuild(selectedCharacter.id, { weaponId })}
+                                                emptyLabel="Drive Discs only"
+                                                emptyDescription="Do not add a W-Engine"
+                                                itemDescription={(item) => `W-Engine · ID ${item.id}`}
+                                                optional
+                                            />
+                                            {selectedAgentWeaponBuild.weaponId !== null && (
+                                                <div className="hoyo-agent-disc-recommendation__edit-stats">
+                                                    <NumberField
+                                                        label="W-ENGINE LEVEL"
+                                                        min={1}
+                                                        max={60}
+                                                        value={selectedAgentWeaponBuild.level}
+                                                        onChange={(level) => updateAgentWeaponBuild(selectedCharacter.id, { level })}
+                                                    />
+                                                    <label className="hoyo-field">
+                                                        <span>REFINEMENT</span>
+                                                        <select
+                                                            value={selectedAgentWeaponBuild.refinement}
+                                                            onChange={(event) => updateAgentWeaponBuild(
+                                                                selectedCharacter.id,
+                                                                { refinement: Number(event.target.value) },
+                                                            )}
+                                                        >
+                                                            {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>W{value}</option>)}
+                                                        </select>
+                                                    </label>
+                                                </div>
+                                            )}
+                                            <p>
+                                                {selectedAgentWeaponBuild.weaponId === null
+                                                    ? "Each Agent keeps a separate W-Engine selection. Select one to equip with this build."
+                                                    : "This W-Engine selection is saved for this Agent and will be added with the recommended Drive Discs."}
+                                            </p>
+                                        </div>
                                         <details className="hoyo-agent-disc-recommendation__customizer">
                                             <summary>
                                                 CUSTOMIZE BUILD
                                                 {selectedAgentOverride && <span>CUSTOM SAVED</span>}
                                             </summary>
                                             <p>Changes are saved on this device and used by Create &amp; Equip.</p>
-                                            <DiskSetPicker
+                                            <CatalogImagePicker
                                                 label="4-PIECE DRIVE DISC"
-                                                disks={catalog?.disks ?? []}
-                                                selectedSetId={selectedAgentRecommendation.fourPieceSetId}
-                                                onChange={(setId) => updateSelectedAgentRecommendation({ fourPieceSetId: setId })}
+                                                items={catalog?.disks ?? []}
+                                                selectedId={selectedAgentRecommendation.fourPieceSetId}
+                                                itemDescription={(item) => item.twoPieceEffect || "Drive Disc set"}
+                                                onChange={(setId) => {
+                                                    if (setId !== null) updateSelectedAgentRecommendation({ fourPieceSetId: setId });
+                                                }}
                                             />
-                                            <DiskSetPicker
+                                            <CatalogImagePicker
                                                 label="2-PIECE DRIVE DISC"
-                                                disks={catalog?.disks ?? []}
-                                                selectedSetId={selectedAgentRecommendation.twoPieceSetId}
-                                                onChange={(setId) => updateSelectedAgentRecommendation({ twoPieceSetId: setId })}
+                                                items={catalog?.disks ?? []}
+                                                selectedId={selectedAgentRecommendation.twoPieceSetId}
+                                                itemDescription={(item) => item.twoPieceEffect || "Drive Disc set"}
+                                                onChange={(setId) => {
+                                                    if (setId !== null) updateSelectedAgentRecommendation({ twoPieceSetId: setId });
+                                                }}
                                             />
                                             <div className="hoyo-agent-disc-recommendation__edit-stats">
                                                 {[4, 5, 6].map((slot) => (
@@ -1897,12 +2127,9 @@ export default function HoyoPage() {
                                     type="button"
                                     className="hoyo-button hoyo-button--primary hoyo-button--full"
                                     disabled={isSubmitting || !selectedWeaponId}
-                                    onClick={() => void submit(
-                                        () => HoyoService.CreateWeapon(uid, selectedWeaponId!, weaponLevel, refinement),
-                                        "W-Engine created.",
-                                    )}
+                                    onClick={() => requestWeaponSave(selectedWeaponId, weaponLevel, refinement)}
                                 >
-                                    {isSubmitting ? "Sending…" : "Create W-Engine"}
+                                    {isSubmitting ? "ADDING…" : "Add W-Engine to Inventory"}
                                 </button>
                             </div>
                         )}

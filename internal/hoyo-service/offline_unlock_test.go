@@ -146,8 +146,8 @@ func TestAppendAndEquipDisksPreservesExistingSaveData(t *testing.T) {
 			equipmentUIDs = append(equipmentUIDs, field.value)
 		}
 	}
-	if len(equipmentUIDs) != 6 || equipmentUIDs[0] != equipmentUIDBase+8 || equipmentUIDs[3] != equipmentUIDBase+9 {
-		t.Fatalf("equipment UIDs = %v, want slot 1 UID %d and slot 4 UID %d", equipmentUIDs, equipmentUIDBase+8, equipmentUIDBase+9)
+	if len(equipmentUIDs) != 6 || equipmentUIDs[0] != equipmentUIDBase || equipmentUIDs[3] != equipmentUIDBase+1 {
+		t.Fatalf("equipment UIDs = %v, want slot 1 UID %d and slot 4 UID %d", equipmentUIDs, equipmentUIDBase, equipmentUIDBase+1)
 	}
 	if equipmentUIDs[1] != 0 || equipmentUIDs[2] != 0 || equipmentUIDs[4] != 0 || equipmentUIDs[5] != 0 {
 		t.Fatalf("unassigned slots changed: %v", equipmentUIDs)
@@ -173,7 +173,7 @@ func TestAppendAndEquipDisksPreservesExistingSaveData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if firstDiscFields[0].value != 8 || firstDiscFields[1].value != 33041 || firstDiscFields[2].value != 15 || firstDiscFields[3].value != 5 {
+	if firstDiscFields[0].value != 0 || firstDiscFields[1].value != 33041 || firstDiscFields[2].value != 15 || firstDiscFields[3].value != 5 {
 		t.Fatalf("unexpected saved disc fields: %+v", firstDiscFields[:4])
 	}
 	firstProperty, err := parseProtobufFields(firstDisc[firstDiscFields[4].payloadFrom:firstDiscFields[4].payloadTo])
@@ -220,6 +220,201 @@ func TestEquipDiskSetSaveCreatesBackupAndUnlocksCharacter(t *testing.T) {
 	if _, err := findAvatarItem(updated, 1011); err != nil {
 		t.Fatalf("new Agent is missing from save: %v", err)
 	}
+}
+
+func TestUpdateWeaponSaveCreatesBackupAndEquipsWeapon(t *testing.T) {
+	serverDir := t.TempDir()
+	savePath := savePlayerPath(serverDir, 666)
+	if err := os.MkdirAll(filepath.Dir(savePath), 0o700); err != nil {
+		t.Fatal(err)
+	}
+
+	avatar := appendVarintField(nil, avatarItemIDField, 1011)
+	avatar = appendVarintField(avatar, avatarWeaponUIDField, weaponUIDBase+7)
+	avatarSave := appendLengthDelimitedField(nil, avatarSaveItemField, avatar)
+	existingWeapon := appendVarintField(nil, 1, 7)
+	existingWeapon = appendVarintField(existingWeapon, 2, 14150)
+	existingWeapon = appendVarintField(existingWeapon, 3, 60)
+	existingWeapon = appendVarintField(existingWeapon, 4, 5)
+	existingWeapon = appendVarintField(existingWeapon, 5, 3)
+	weaponSave := appendLengthDelimitedField(nil, 1, existingWeapon)
+	original := appendLengthDelimitedField(nil, playerSaveAvatarField, avatarSave)
+	original = appendLengthDelimitedField(original, playerSaveWeaponField, weaponSave)
+	if err := os.WriteFile(savePath, original, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	backupPath, weaponUID, err := updateWeaponSave(serverDir, 666, 1011, 14160, 60, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if weaponUID != 0 {
+		t.Fatalf("new W-Engine UID = %d, want 0", weaponUID)
+	}
+	if backup, err := os.ReadFile(backupPath); err != nil || string(backup) != string(original) {
+		t.Fatalf("backup = %v, err = %v; want original save %v", backup, err, original)
+	}
+	updated, err := os.ReadFile(savePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	inventory, err := parseSaveInventory(updated)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(inventory.Weapons) != 2 {
+		t.Fatalf("W-Engine inventory count = %d, want 2", len(inventory.Weapons))
+	}
+	if got := inventory.Weapons[1]; got.UID != weaponUID || got.ID != 14160 ||
+		got.Level != 60 || got.Rank != 5 || got.Refinement != 5 ||
+		len(got.EquippedToAgentIDs) != 1 || got.EquippedToAgentIDs[0] != 1011 {
+		t.Fatalf("new equipped W-Engine = %+v", got)
+	}
+	if len(inventory.Weapons[0].EquippedToAgentIDs) != 0 {
+		t.Errorf("replaced W-Engine should remain unequipped in inventory: %+v", inventory.Weapons[0])
+	}
+	_, savedWeaponUID, _, err := readAvatarSaveEquipment(mustFindAvatarItem(t, updated, 1011))
+	if err != nil || savedWeaponUID != weaponUIDBase+uint64(weaponUID) {
+		t.Errorf("saved avatar W-Engine UID = %d, err = %v; want %d", savedWeaponUID, err, weaponUIDBase+uint64(weaponUID))
+	}
+}
+
+func TestUpdateWeaponSaveAddsInventoryOnly(t *testing.T) {
+	serverDir := t.TempDir()
+	savePath := savePlayerPath(serverDir, 666)
+	if err := os.MkdirAll(filepath.Dir(savePath), 0o700); err != nil {
+		t.Fatal(err)
+	}
+
+	avatar := appendVarintField(nil, avatarItemIDField, 1011)
+	avatar = appendVarintField(avatar, avatarWeaponUIDField, weaponUIDBase+5)
+	avatarSave := appendLengthDelimitedField(nil, avatarSaveItemField, avatar)
+	var weaponSave []byte
+	for uid := uint64(1); uid <= 5; uid++ {
+		existingWeapon := appendVarintField(nil, 1, uid)
+		existingWeapon = appendVarintField(existingWeapon, 2, 14150+uid)
+		existingWeapon = appendVarintField(existingWeapon, 3, 60)
+		existingWeapon = appendVarintField(existingWeapon, 4, 5)
+		existingWeapon = appendVarintField(existingWeapon, 5, 3)
+		weaponSave = appendLengthDelimitedField(weaponSave, 1, existingWeapon)
+	}
+	original := appendLengthDelimitedField(nil, playerSaveAvatarField, avatarSave)
+	original = appendLengthDelimitedField(original, playerSaveWeaponField, weaponSave)
+	if err := os.WriteFile(savePath, original, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	backupPath, weaponUID, err := updateWeaponSave(serverDir, 666, 0, 14160, 60, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if weaponUID != 0 {
+		t.Fatalf("new W-Engine UID = %d, want 0", weaponUID)
+	}
+	if backup, err := os.ReadFile(backupPath); err != nil || string(backup) != string(original) {
+		t.Fatalf("backup = %v, err = %v; want original save %v", backup, err, original)
+	}
+	updated, err := os.ReadFile(savePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	inventory, err := parseSaveInventory(updated)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(inventory.Weapons) != 6 || inventory.Weapons[5].UID != weaponUID ||
+		inventory.Weapons[5].ID != 14160 || len(inventory.Weapons[5].EquippedToAgentIDs) != 0 {
+		t.Fatalf("inventory-only W-Engine = %+v", inventory.Weapons)
+	}
+	seenUIDs := make(map[uint32]bool, len(inventory.Weapons))
+	for _, item := range inventory.Weapons {
+		if seenUIDs[item.UID] {
+			t.Fatalf("duplicate W-Engine UID %d", item.UID)
+		}
+		seenUIDs[item.UID] = true
+	}
+	for uid := uint32(0); uid < uint32(len(inventory.Weapons)); uid++ {
+		if !seenUIDs[uid] {
+			t.Fatalf("W-Engine UID %d missing from inventory", uid)
+		}
+	}
+	_, savedWeaponUID, _, err := readAvatarSaveEquipment(mustFindAvatarItem(t, updated, 1011))
+	if err != nil || savedWeaponUID != weaponUIDBase+5 {
+		t.Errorf("existing character W-Engine UID = %d, err = %v; want %d", savedWeaponUID, err, weaponUIDBase+5)
+	}
+}
+
+func TestEquipAgentBuildSaveUpdatesDiscsAndWeaponTogether(t *testing.T) {
+	serverDir := t.TempDir()
+	savePath := savePlayerPath(serverDir, 666)
+	if err := os.MkdirAll(filepath.Dir(savePath), 0o700); err != nil {
+		t.Fatal(err)
+	}
+
+	avatar := appendVarintField(nil, avatarItemIDField, 1011)
+	avatar = appendVarintField(avatar, avatarWeaponUIDField, weaponUIDBase+7)
+	avatarSave := appendLengthDelimitedField(nil, avatarSaveItemField, avatar)
+	existingWeapon := appendVarintField(nil, 1, 7)
+	existingWeapon = appendVarintField(existingWeapon, 2, 14150)
+	existingWeapon = appendVarintField(existingWeapon, 3, 60)
+	existingWeapon = appendVarintField(existingWeapon, 4, 5)
+	existingWeapon = appendVarintField(existingWeapon, 5, 3)
+	weaponSave := appendLengthDelimitedField(nil, 1, existingWeapon)
+	original := appendLengthDelimitedField(nil, playerSaveAvatarField, avatarSave)
+	original = appendLengthDelimitedField(original, playerSaveWeaponField, weaponSave)
+	if err := os.WriteFile(savePath, original, 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	backupPath, weaponUID, err := equipAgentBuildSave(serverDir, 666, 1011, []diskLoadoutItem{
+		{
+			setID:      33000,
+			rank:       4,
+			slot:       1,
+			mainStat:   11103,
+			subStatIDs: []uint32{12103, 13103, 23203, 20103},
+			subRolls:   []uint32{0, 0, 0, 0},
+		},
+	}, 14160, 60, 5)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if weaponUID != 0 {
+		t.Fatalf("new W-Engine UID = %d, want 0", weaponUID)
+	}
+	if backup, err := os.ReadFile(backupPath); err != nil || string(backup) != string(original) {
+		t.Fatalf("backup = %v, err = %v; want original save %v", backup, err, original)
+	}
+
+	updated, err := os.ReadFile(savePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	inventory, err := parseSaveInventory(updated)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(inventory.Weapons) != 2 || inventory.Weapons[1].UID != weaponUID ||
+		len(inventory.Weapons[1].EquippedToAgentIDs) != 1 || inventory.Weapons[1].EquippedToAgentIDs[0] != 1011 {
+		t.Fatalf("equipped W-Engine inventory = %+v", inventory.Weapons)
+	}
+	if len(inventory.Disks) != 1 || len(inventory.Disks[0].EquippedToAgentIDs) != 1 ||
+		inventory.Disks[0].EquippedToAgentIDs[0] != 1011 {
+		t.Fatalf("equipped Drive Disc inventory = %+v", inventory.Disks)
+	}
+	_, savedWeaponUID, _, err := readAvatarSaveEquipment(mustFindAvatarItem(t, updated, 1011))
+	if err != nil || savedWeaponUID != weaponUIDBase+uint64(weaponUID) {
+		t.Errorf("saved avatar W-Engine UID = %d, err = %v; want %d", savedWeaponUID, err, weaponUIDBase+uint64(weaponUID))
+	}
+}
+
+func mustFindAvatarItem(t *testing.T, playerSave []byte, avatarID uint32) []byte {
+	t.Helper()
+	item, err := findAvatarItem(playerSave, avatarID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return item
 }
 
 func findAvatarItem(playerSave []byte, avatarID uint32) ([]byte, error) {
