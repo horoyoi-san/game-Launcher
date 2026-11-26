@@ -41,7 +41,7 @@ var gameConfigs = []GameConfig{
 		ID: "Nexusanima", Name: "Honkai: Nexus anima", Package: "game", Region: "CN | OS", Output: "GameData/HonkaiNexusanima", Executable: "NexusAnima.exe",
 		GameIDs: map[string][]string{
 			"gameid": {"gameid"},
-			"OSREL":  {"yneO4yGc4x"},
+			"OSREL":  {"yneO4yGc4x", "3qXq1I0N6o"},
 			"CNREL":  {"m8TGERqknS"},
 			"OSBETA": {"4qvmDrMwKS", "IWISpEcDbC"},
 			"CNBETA": {"j7rlly0oYR", "lgyIM35mz8"},
