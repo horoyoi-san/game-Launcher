@@ -49,7 +49,7 @@ var sophonRegionEndpoints = map[string]sophonRegionEndpoint{
 		url:         "https://sg-hyp-api.hoyoverse.com/hyp/hyp-connect/api/getGameBranches",
 		buildURL:    "https://sg-public-api.hoyoverse.com/downloader/sophon_chunk/api/getBuild",
 		platformApp: "ddxf6vlr1reo",
-		launcherIDs: []string{"VYTpXlbWo8", "dYgxEMpG3U"},
+		launcherIDs: []string{"VYTpXlbWo8", "dYgxEMpG3U", "JMNdqmbl9I"},
 	},
 	"CNREL": {
 		url:         "https://hyp-api.mihoyo.com/hyp/hyp-connect/api/getGameBranches",
