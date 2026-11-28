@@ -1595,10 +1595,7 @@
     "role": "Support (starter)",
     "fourPieceSetId": 33700,
     "twoPieceSetId": 33100,
-    "alternativeTwoPieceSetIds": [
-      33100,
-      31600
-    ],
+    "alternativeTwoPieceSetIds": [],
     "mainStats": {
       "4": 11102,
       "5": 11102,
