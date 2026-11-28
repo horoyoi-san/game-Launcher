@@ -18,7 +18,7 @@ export async function CheckUpdateServer(
         ? await FSService.FileExists(`${resolvedServerPath}/zig-out/bin/remielle.exe`)
         : await FSService.FileExists(`${resolvedServerPath}/build.zig`)
     const zigExecutable = isKafka
-        ? "./server/zig/zig-x86_64-windows-0.17.0/zig.exe"
+        ? "./server/zig/zig-x86_64-windows-0.17.1/zig.exe"
         : "./server/zig/zig-x86_64-windows-0.16.0/zig.exe"
     const zigExists = await FSService.FileExists(zigExecutable)
 
@@ -43,7 +43,7 @@ export async function UpdateServer(serverChoice: NAPServerChoice = "remielle"): 
     const serverName = isKafka ? "Kafka" : "Remielle"
     const serverVersion = isKafka ? "kafka-latest" : "remielle-0.1.x"
 
-    setDownloadType(`Preparing ${serverName} and Zig ${isKafka ? "0.17.0" : "0.16.0"}...`)
+    setDownloadType(`Preparing ${serverName} and Zig ${isKafka ? "0.17.1" : "0.16.0"}...`)
     const [downloaded, downloadError] = isKafka
         ? await GitService.DownloadKafkaServerProgress()
         : await GitService.DownloadNAPServerProgress()
@@ -53,7 +53,7 @@ export async function UpdateServer(serverChoice: NAPServerChoice = "remielle"): 
         return false
     }
 
-    setDownloadType(`Building ${serverName} with Zig ${isKafka ? "0.17.0" : "0.16.0"}...`)
+    setDownloadType(`Building ${serverName} with Zig ${isKafka ? "0.17.1" : "0.16.0"}...`)
     setProgressDownload(0)
     setDownloadProgressIndeterminate(true)
     const [extracted, extractError] = isKafka

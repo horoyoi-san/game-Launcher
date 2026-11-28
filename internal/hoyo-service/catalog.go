@@ -61,7 +61,7 @@ var characterIDs = []uint32{
 	1581, 1211, 1661, 1621, 1461, 1271, 1631, 1591,
 	1381, 1041, 1131, 1531, 1601, 1491, 1361, 1561,
 	1331, 1221, 1431, 1051, 1371, 1411, 1341, 1241,
-	1651,
+	1651, 1671,
 }
 
 var characterImageFiles = map[uint32]string{
@@ -130,6 +130,7 @@ var characterImageFiles = map[uint32]string{
 	1341: "Zhao.webp",
 	1241: "Zhu Yuan.webp",
 	1651: "Kafka.webp",
+	1671: "Secilia.webp",
 }
 
 var weaponIDs = []uint32{
@@ -146,7 +147,7 @@ var weaponIDs = []uint32{
 	13002, 14155, 14160, 14136, 13011, 13004, 13108, 14153,
 	13005, 14102, 13001, 14104, 14114, 13020, 13103, 14149,
 	14122, 13142, 14107, 14002, 14121, 13008, 14147, 14148,
-	14120, 14165,
+	14120, 14165, 14167, 13024,
 }
 
 var weaponImageFileOverrides = map[uint32]string{

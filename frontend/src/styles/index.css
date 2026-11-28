@@ -3960,6 +3960,8 @@ body::before {
 .hoyo-agent-disc-recommendation__customizer > p code { color: #c9b9f4; font-size: 7px; overflow-wrap: anywhere; }
 .hoyo-agent-disc-recommendation__customizer .hoyo-field { gap: 4px; font-size: 7px; }
 .hoyo-agent-disc-recommendation__customizer .hoyo-field select { min-height: 30px; }
+.hoyo-agent-disc-recommendation__alternative { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 5px; }
+.hoyo-agent-disc-recommendation__alternative > .hoyo-button { min-height: 30px; padding: 6px; }
 .hoyo-catalog-picker { position: relative; }
 .hoyo-catalog-picker__trigger { display: grid; width: 100%; min-height: 42px; grid-template-columns: 34px minmax(0, 1fr) 16px; align-items: center; gap: 8px; padding: 4px 8px; border: 1px solid rgba(173, 146, 230, .2); border-radius: 7px; background: rgba(15, 17, 36, .86); color: #e5e1f4; text-align: left; cursor: pointer; }
 .hoyo-catalog-picker__art { position: relative; display: grid; width: 32px; height: 32px; place-items: center; overflow: hidden; color: #b9a2ef; }

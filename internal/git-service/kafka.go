@@ -20,17 +20,17 @@ func (g *GitService) DownloadKafkaServerProgress() (bool, string) {
 
 	zigExecutable, err := filepath.Abs(constant.KafkaZigExecutable)
 	if err != nil {
-		return false, fmt.Errorf("resolve Zig 0.17.0 path: %w", err).Error()
+		return false, fmt.Errorf("resolve Zig 0.17.1 path: %w", err).Error()
 	}
 	if regularFileExists(zigExecutable) {
 		versionCommand := exec.Command(zigExecutable, "version")
 		hiddenexec.HideWindow(versionCommand)
 		version, err := versionCommand.Output()
-		if err == nil && strings.TrimSpace(string(version)) == "0.17.0" {
+		if err == nil && strings.TrimSpace(string(version)) == "0.17.1" {
 			return true, ""
 		}
 		if err := os.RemoveAll(constant.KafkaZigStorageDir); err != nil {
-			return false, fmt.Errorf("replace existing Zig 0.17.0 compiler: %w", err).Error()
+			return false, fmt.Errorf("replace existing Zig 0.17.1 compiler: %w", err).Error()
 		}
 	}
 
@@ -44,18 +44,18 @@ func (g *GitService) DownloadKafkaServerProgress() (bool, string) {
 func (g *GitService) BuildKafkaServer() (bool, string) {
 	zigExecutable, err := filepath.Abs(constant.KafkaZigExecutable)
 	if err != nil {
-		return false, fmt.Errorf("resolve Zig 0.17.0 path: %w", err).Error()
+		return false, fmt.Errorf("resolve Zig 0.17.1 path: %w", err).Error()
 	}
 	if !regularFileExists(zigExecutable) {
 		archivePath := filepath.Join(constant.ServerStorageUrl, constant.KafkaZigArchiveFile)
 		if err := os.RemoveAll(constant.KafkaZigStorageDir); err != nil {
-			return false, fmt.Errorf("clear incomplete Zig 0.17.0 installation: %w", err).Error()
+			return false, fmt.Errorf("clear incomplete Zig 0.17.1 installation: %w", err).Error()
 		}
 		if err := g.unzipParallel(archivePath, filepath.Dir(constant.KafkaZigStorageDir)); err != nil {
-			return false, fmt.Errorf("extract Zig 0.17.0: %w", err).Error()
+			return false, fmt.Errorf("extract Zig 0.17.1: %w", err).Error()
 		}
 		if err := os.Remove(archivePath); err != nil && !os.IsNotExist(err) {
-			return false, fmt.Errorf("remove Zig 0.17.0 archive: %w", err).Error()
+			return false, fmt.Errorf("remove Zig 0.17.1 archive: %w", err).Error()
 		}
 	}
 	if !regularFileExists(filepath.Join(constant.KafkaStorageDir, "build.zig")) {
@@ -64,15 +64,15 @@ func (g *GitService) BuildKafkaServer() (bool, string) {
 	versionCommand := exec.Command(zigExecutable, "version")
 	hiddenexec.HideWindow(versionCommand)
 	version, err := versionCommand.Output()
-	if err != nil || strings.TrimSpace(string(version)) != "0.17.0" {
-		return false, fmt.Sprintf("Zig 0.17.0 was not found at %s", zigExecutable)
+	if err != nil || strings.TrimSpace(string(version)) != "0.17.1" {
+		return false, fmt.Sprintf("Zig 0.17.1 was not found at %s", zigExecutable)
 	}
 	build := exec.Command(zigExecutable, "build")
 	hiddenexec.HideWindow(build)
 	build.Dir = constant.KafkaStorageDir
 	output, err := build.CombinedOutput()
 	if err != nil {
-		return false, fmt.Sprintf("build Kafka with Zig 0.17.0: %v\n%s", err, strings.TrimSpace(string(output)))
+		return false, fmt.Sprintf("build Kafka with Zig 0.17.1: %v\n%s", err, strings.TrimSpace(string(output)))
 	}
 	return true, ""
 }

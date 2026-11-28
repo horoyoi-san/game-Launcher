@@ -70,6 +70,7 @@ type SaveInventory = {
 type DiscRecommendation = {
     characterName: string;
     role: string;
+    weaponId?: number | null;
     fourPieceSetId: number;
     twoPieceSetId: number;
     alternativeTwoPieceSetIds: number[];
@@ -83,7 +84,7 @@ type DiscRecommendation = {
 type EditableDiscRecommendation = Pick<
     DiscRecommendation,
     "fourPieceSetId" | "twoPieceSetId" | "mainStats" | "subStats"
->;
+> & Partial<Pick<DiscRecommendation, "alternativeTwoPieceSetIds">>;
 
 type Category = "disks" | "characters" | "weapons";
 
@@ -175,15 +176,19 @@ const isEditableDiscRecommendation = (value: unknown): value is EditableDiscReco
     const recommendation = value as Partial<EditableDiscRecommendation>;
     const mainStats = recommendation.mainStats;
     const subStats = recommendation.subStats;
+    const alternativeTwoPieceSetIds = recommendation.alternativeTwoPieceSetIds;
     if (typeof recommendation.fourPieceSetId !== "number" ||
         typeof recommendation.twoPieceSetId !== "number" ||
         !mainStats || typeof mainStats !== "object" || Array.isArray(mainStats) ||
-        !Array.isArray(subStats) || subStats.length !== 5) return false;
+        !Array.isArray(subStats) || subStats.length !== 5 ||
+        (alternativeTwoPieceSetIds !== undefined && !Array.isArray(alternativeTwoPieceSetIds))) return false;
     return Number.isInteger(recommendation.fourPieceSetId) && recommendation.fourPieceSetId > 0 &&
         Number.isInteger(recommendation.twoPieceSetId) && recommendation.twoPieceSetId > 0 &&
         [4, 5, 6].every((slot) => MAIN_STATS_BY_SLOT[slot].includes(mainStats[slot])) &&
         subStats.every((statId) => statId === 0 || SUBSTAT_IDS.includes(statId)) &&
-        new Set(subStats.filter((statId) => statId !== 0)).size === subStats.filter((statId) => statId !== 0).length;
+        new Set(subStats.filter((statId) => statId !== 0)).size === subStats.filter((statId) => statId !== 0).length &&
+        (alternativeTwoPieceSetIds === undefined ||
+            alternativeTwoPieceSetIds.every((setId) => Number.isInteger(setId) && setId > 0));
 };
 const isAgentWeaponBuild = (value: unknown): value is AgentWeaponBuild => {
     if (!value || typeof value !== "object" || Array.isArray(value)) return false;
@@ -370,6 +375,7 @@ function CatalogImagePicker({
     emptyLabel,
     emptyDescription,
     itemDescription,
+    filterableRanks,
     optional = false,
 }: {
     label: string;
@@ -379,10 +385,15 @@ function CatalogImagePicker({
     emptyLabel?: string;
     emptyDescription?: string;
     itemDescription?: (item: CatalogItem) => string;
+    filterableRanks?: number[];
     optional?: boolean;
 }) {
     const [isOpen, setIsOpen] = useState(false);
+    const [rankFilter, setRankFilter] = useState<number | null>(null);
     const selectedItem = items.find((item) => item.id === selectedId);
+    const visibleItems = items.filter((item) =>
+        rankFilter === null || getCatalogRank(item, "weapons") === rankFilter,
+    );
     const listId = `catalog-picker-options-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 
     return (
@@ -412,6 +423,29 @@ function CatalogImagePicker({
             </button>
             {isOpen && (
                 <div className="hoyo-catalog-picker__options" id={listId}>
+                    {filterableRanks && (
+                        <div className="hoyo-rank-filter" aria-label="Filter by W-Engine rank">
+                            <button
+                                type="button"
+                                className={rankFilter === null ? "is-active" : ""}
+                                aria-pressed={rankFilter === null}
+                                onClick={() => setRankFilter(null)}
+                            >
+                                ALL
+                            </button>
+                            {filterableRanks.map((rank) => (
+                                <button
+                                    type="button"
+                                    key={rank}
+                                    className={rankFilter === rank ? "is-active" : ""}
+                                    aria-pressed={rankFilter === rank}
+                                    onClick={() => setRankFilter(rank)}
+                                >
+                                    {rank === 4 ? "S" : rank === 3 ? "A" : `R${rank}`}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                     {emptyLabel && (
                         <button
                             type="button"
@@ -431,7 +465,7 @@ function CatalogImagePicker({
                             </span>
                         </button>
                     )}
-                    {items.map((item) => (
+                    {visibleItems.map((item) => (
                         <button
                             type="button"
                             key={item.id}
@@ -496,6 +530,8 @@ export default function HoyoPage() {
     const [editingSavedDisks, setEditingSavedDisks] = useState<Record<string, DiskConfig>>({});
     const [discRecommendationOverrides, setDiscRecommendationOverrides] = useState<Record<number, EditableDiscRecommendation>>({});
     const [discRecommendationOverridesLoaded, setDiscRecommendationOverridesLoaded] = useState(false);
+    const [visibleAlternativeCounts, setVisibleAlternativeCounts] = useState<Record<number, number>>({});
+    const [addingAlternativeForAgentId, setAddingAlternativeForAgentId] = useState<number | null>(null);
     const [agentLevel, setAgentLevel] = useState(0);
     const [skillLevels, setSkillLevels] = useState([0, 0, 0, 0, 0, 0, 0]);
     const [mindscape, setMindscape] = useState(-1);
@@ -660,10 +696,13 @@ export default function HoyoPage() {
     const selectedItemId = category === "disks" ? selectedDiskId : category === "characters" ? selectedAgentId : selectedWeaponId;
     const selectedItem = currentItems.find((item) => item.id === selectedItemId);
     const selectedCharacter = catalog?.characters.find((item) => item.id === selectedAgentId);
+    const baseAgentRecommendation = selectedCharacter ? getDiscRecommendation(selectedCharacter) : null;
     const selectedAgentWeaponBuild = selectedAgentId === null
         ? DEFAULT_AGENT_WEAPON_BUILD
-        : agentWeaponBuilds[selectedAgentId] ?? DEFAULT_AGENT_WEAPON_BUILD;
-    const baseAgentRecommendation = selectedCharacter ? getDiscRecommendation(selectedCharacter) : null;
+        : agentWeaponBuilds[selectedAgentId] ?? {
+            ...DEFAULT_AGENT_WEAPON_BUILD,
+            weaponId: baseAgentRecommendation?.weaponId ?? null,
+        };
     const selectedAgentOverride = selectedCharacter ? discRecommendationOverrides[selectedCharacter.id] : undefined;
     const selectedAgentRecommendation = baseAgentRecommendation
         ? {
@@ -673,11 +712,16 @@ export default function HoyoPage() {
             subStats: selectedAgentOverride?.subStats ?? baseAgentRecommendation.subStats,
         }
         : null;
+    const visibleAlternativeCount = selectedAgentId === null
+        ? 0
+        : visibleAlternativeCounts[selectedAgentId] ??
+            Math.min(1, selectedAgentRecommendation?.alternativeTwoPieceSetIds.length ?? 0);
     const updateSelectedAgentRecommendation = (patch: Partial<EditableDiscRecommendation>) => {
         if (!selectedCharacter || !selectedAgentRecommendation) return;
         const updated: EditableDiscRecommendation = {
             fourPieceSetId: selectedAgentRecommendation.fourPieceSetId,
             twoPieceSetId: selectedAgentRecommendation.twoPieceSetId,
+            alternativeTwoPieceSetIds: selectedAgentRecommendation.alternativeTwoPieceSetIds,
             mainStats: selectedAgentRecommendation.mainStats,
             subStats: selectedAgentRecommendation.subStats,
             ...patch,
@@ -697,6 +741,13 @@ export default function HoyoPage() {
         setIsExportingDiscRecommendations(true);
         try {
             const recommendations: Record<number, DiscRecommendation> = { ...DISC_RECOMMENDATIONS };
+            for (const [characterId, current] of Object.entries(recommendations)) {
+                const weaponBuild = agentWeaponBuilds[Number(characterId)];
+                recommendations[Number(characterId)] = {
+                    ...current,
+                    weaponId: weaponBuild ? weaponBuild.weaponId : current.weaponId ?? null,
+                };
+            }
             for (const [characterId, override] of Object.entries(discRecommendationOverrides)) {
                 const current = recommendations[Number(characterId)];
                 if (!current) {
@@ -708,6 +759,16 @@ export default function HoyoPage() {
                     mainStats: override.mainStats,
                     subStats: override.subStats,
                 };
+            }
+            if (selectedCharacter) {
+                const current = recommendations[selectedCharacter.id];
+                if (current) {
+                    recommendations[selectedCharacter.id] = {
+                        ...current,
+                        alternativeTwoPieceSetIds: current.alternativeTwoPieceSetIds
+                            .slice(0, visibleAlternativeCount),
+                    };
+                }
             }
 
             const filePath = await FSService.ExportDiscRecommendations(
@@ -1636,6 +1697,7 @@ export default function HoyoPage() {
                                             <CatalogImagePicker
                                                 label="W-ENGINE TO INCLUDE"
                                                 items={catalog?.weapons ?? []}
+                                                filterableRanks={[4, 3]}
                                                 selectedId={selectedAgentWeaponBuild.weaponId}
                                                 onChange={(weaponId) => updateAgentWeaponBuild(selectedCharacter.id, { weaponId })}
                                                 emptyLabel="Drive Discs only"
@@ -1677,7 +1739,7 @@ export default function HoyoPage() {
                                                 CUSTOMIZE BUILD
                                                 {selectedAgentOverride && <span>CUSTOM SAVED</span>}
                                             </summary>
-                                            <p>Changes are saved on this device and used by Create &amp; Equip.</p>
+                                            <p>Changes are saved on this device. Only visible alternatives are exported; use ADD 2-PIECE ALTERNATIVE to include more.</p>
                                             <CatalogImagePicker
                                                 label="4-PIECE DRIVE DISC"
                                                 items={catalog?.disks ?? []}
@@ -1696,6 +1758,96 @@ export default function HoyoPage() {
                                                     if (setId !== null) updateSelectedAgentRecommendation({ twoPieceSetId: setId });
                                                 }}
                                             />
+                                            {selectedAgentRecommendation.alternativeTwoPieceSetIds
+                                                .slice(0, visibleAlternativeCount)
+                                                .map((setId, index) => (
+                                                    <div
+                                                        className="hoyo-agent-disc-recommendation__alternative"
+                                                        key={`alternative-${index}`}
+                                                    >
+                                                        <CatalogImagePicker
+                                                            label={`2-PIECE ALTERNATIVE ${index + 1}`}
+                                                            items={catalog?.disks ?? []}
+                                                            selectedId={setId}
+                                                            itemDescription={(item) => item.twoPieceEffect || "Drive Disc set"}
+                                                            onChange={(alternativeSetId) => {
+                                                                if (alternativeSetId === null) return;
+                                                                const updatedAlternatives = [...selectedAgentRecommendation.alternativeTwoPieceSetIds];
+                                                                updatedAlternatives[index] = alternativeSetId;
+                                                                updateSelectedAgentRecommendation({
+                                                                    alternativeTwoPieceSetIds: updatedAlternatives,
+                                                                });
+                                                            }}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            className="hoyo-button hoyo-button--danger"
+                                                            aria-label={`Remove 2-piece alternative ${index + 1}`}
+                                                            title="Remove this alternative"
+                                                            onClick={() => {
+                                                                const updatedAlternatives = selectedAgentRecommendation.alternativeTwoPieceSetIds
+                                                                    .filter((_, alternativeIndex) => alternativeIndex !== index);
+                                                                updateSelectedAgentRecommendation({
+                                                                    alternativeTwoPieceSetIds: updatedAlternatives,
+                                                                });
+                                                                setVisibleAlternativeCounts((current) => ({
+                                                                    ...current,
+                                                                    [selectedCharacter.id]: Math.max(0, visibleAlternativeCount - 1),
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <Trash2 size={12} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            {addingAlternativeForAgentId === selectedCharacter.id && (
+                                                <CatalogImagePicker
+                                                    label={`2-PIECE ALTERNATIVE ${selectedAgentRecommendation.alternativeTwoPieceSetIds.length + 1}`}
+                                                    items={catalog?.disks ?? []}
+                                                    selectedId={null}
+                                                    itemDescription={(item) => item.twoPieceEffect || "Drive Disc set"}
+                                                    emptyLabel="Select a Drive Disc"
+                                                    emptyDescription="Add this set as a 2-piece alternative"
+                                                    onChange={(alternativeSetId) => {
+                                                        if (alternativeSetId === null) return;
+                                                        const updatedAlternatives = [
+                                                            ...selectedAgentRecommendation.alternativeTwoPieceSetIds,
+                                                            alternativeSetId,
+                                                        ];
+                                                        updateSelectedAgentRecommendation({
+                                                            alternativeTwoPieceSetIds: updatedAlternatives,
+                                                        });
+                                                        setVisibleAlternativeCounts((current) => ({
+                                                            ...current,
+                                                            [selectedCharacter.id]: updatedAlternatives.length,
+                                                        }));
+                                                        setAddingAlternativeForAgentId(null);
+                                                    }}
+                                                />
+                                            )}
+                                            <button
+                                                type="button"
+                                                className="hoyo-button hoyo-button--muted"
+                                                onClick={() => {
+                                                    if (addingAlternativeForAgentId === selectedCharacter.id) {
+                                                        setAddingAlternativeForAgentId(null);
+                                                        return;
+                                                    }
+                                                    if (visibleAlternativeCount <
+                                                        selectedAgentRecommendation.alternativeTwoPieceSetIds.length) {
+                                                        setVisibleAlternativeCounts((current) => ({
+                                                            ...current,
+                                                            [selectedCharacter.id]: visibleAlternativeCount + 1,
+                                                        }));
+                                                        return;
+                                                    }
+                                                    setAddingAlternativeForAgentId(selectedCharacter.id);
+                                                }}
+                                            >
+                                                {addingAlternativeForAgentId === selectedCharacter.id
+                                                    ? "CANCEL ADDITION"
+                                                    : "ADD 2-PIECE ALTERNATIVE"}
+                                            </button>
                                             <div className="hoyo-agent-disc-recommendation__edit-stats">
                                                 {[4, 5, 6].map((slot) => (
                                                     <label className="hoyo-field" key={slot}>
@@ -1749,15 +1901,16 @@ export default function HoyoPage() {
                                             <button
                                                 type="button"
                                                 className="hoyo-button hoyo-button--primary"
-                                                disabled={isExportingDiscRecommendations || Object.keys(discRecommendationOverrides).length === 0}
+                                                disabled={isExportingDiscRecommendations}
                                                 onClick={() => void exportDiscRecommendationsForBuild()}
                                             >
                                                 {isExportingDiscRecommendations ? "SAVING JSON…" : "SAVE JSON FOR BUILD"}
                                             </button>
                                         </details>
-                                        {selectedAgentRecommendation.alternativeTwoPieceSetIds.length > 0 && (
+                                        {visibleAlternativeCount > 0 && (
                                             <p className="hoyo-agent-disc-recommendation__alternatives">
                                                 2-PIECE ALTERNATIVES: {selectedAgentRecommendation.alternativeTwoPieceSetIds
+                                                    .slice(0, visibleAlternativeCount)
                                                     .map((setId) => catalog?.disks.find((disk) => disk.id === setId)?.name)
                                                     .filter((name): name is string => Boolean(name))
                                                     .join(" · ")}

@@ -21,7 +21,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": null
   },
   "1021": {
     "characterName": "Nekomiya Mana",
@@ -45,7 +46,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14102
   },
   "1031": {
     "characterName": "Nicole Demara",
@@ -69,7 +71,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": null
   },
   "1041": {
     "characterName": "Soldier 11",
@@ -93,7 +96,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14104
   },
   "1051": {
     "characterName": "Yidhari Murphy",
@@ -117,7 +121,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14105
   },
   "1061": {
     "characterName": "Corin Wickes",
@@ -141,7 +146,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": null
   },
   "1071": {
     "characterName": "Caesar King",
@@ -165,7 +171,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14107
   },
   "1081": {
     "characterName": "Billy Kid",
@@ -189,7 +196,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": null
   },
   "1091": {
     "characterName": "Miyabi",
@@ -216,16 +224,15 @@
     ],
     "note": "Main stats vary with Mindscape and substats: Slot 4 ATK% is a strong default; CRIT can be used if needed. PEN% is preferred in Slot 5 at M0, and Anomaly Mastery is recommended in Slot 6 below M1. Aim for 80% in-combat CRIT Rate.",
     "guideUpdated": "2026-01-12",
-    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/miyabi.yml"
+    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/miyabi.yml",
+    "weaponId": 14109
   },
   "1101": {
     "characterName": "Koleda Belobog",
     "role": "Stun (starter)",
     "fourPieceSetId": 33200,
     "twoPieceSetId": 31200,
-    "alternativeTwoPieceSetIds": [
-      31000
-    ],
+    "alternativeTwoPieceSetIds": [],
     "mainStats": {
       "4": 20103,
       "5": 31603,
@@ -240,7 +247,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14110
   },
   "1111": {
     "characterName": "Anton Ivanov",
@@ -264,7 +272,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14150
   },
   "1121": {
     "characterName": "Ben Bigger",
@@ -288,7 +297,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": null
   },
   "1131": {
     "characterName": "Soukaku",
@@ -312,7 +322,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": null
   },
   "1141": {
     "characterName": "Von Lycaon",
@@ -336,7 +347,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14114
   },
   "1151": {
     "characterName": "Luciana de Montefio",
@@ -360,7 +372,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": null
   },
   "1161": {
     "characterName": "Lighter",
@@ -384,7 +397,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14116
   },
   "1171": {
     "characterName": "Burnice White",
@@ -408,7 +422,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14117
   },
   "1181": {
     "characterName": "Grace Howard",
@@ -433,7 +448,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14118
   },
   "1191": {
     "characterName": "Ellen Joe",
@@ -457,7 +473,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14119
   },
   "1201": {
     "characterName": "Asaba Harumasa",
@@ -481,16 +498,15 @@
     ],
     "note": "Shadow Harmony is the consistent 4-piece choice; Hormone Punk is a burst alternative. Prioritize CRIT Rate only to the appropriate cap for his Dash Attacks and team buffs.",
     "guideUpdated": "2025-06-25",
-    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/harumasa.yml"
+    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/harumasa.yml",
+    "weaponId": 14120
   },
   "1211": {
     "characterName": "Alexandrina Sebastiane",
     "role": "Support (starter)",
     "fourPieceSetId": 33400,
     "twoPieceSetId": 31100,
-    "alternativeTwoPieceSetIds": [
-      31000
-    ],
+    "alternativeTwoPieceSetIds": [],
     "mainStats": {
       "4": 12102,
       "5": 23103,
@@ -505,7 +521,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14121
   },
   "1221": {
     "characterName": "Tsukishiro Yanagi",
@@ -530,7 +547,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14122
   },
   "1241": {
     "characterName": "Zhu Yuan",
@@ -554,7 +572,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14124
   },
   "1251": {
     "characterName": "Qingyi",
@@ -578,7 +597,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14125
   },
   "1261": {
     "characterName": "Jane Doe",
@@ -603,7 +623,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14126
   },
   "1271": {
     "characterName": "Seth Lowell",
@@ -627,7 +648,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": null
   },
   "1281": {
     "characterName": "Piper",
@@ -652,7 +674,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": null
   },
   "1291": {
     "characterName": "Hugo Vlad",
@@ -676,7 +699,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14129
   },
   "1301": {
     "characterName": "Orphie Magnusson & Magus",
@@ -700,7 +724,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14130
   },
   "1311": {
     "characterName": "Astra Yao",
@@ -724,7 +749,8 @@
     ],
     "note": "Prioritize reaching her 3429 ATK passive requirement. Slot 6 ATK% helps reach it; switch to Energy Regen% once the requirement is met and you want more frequent Quick Assists.",
     "guideUpdated": "2025-06-25",
-    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/astra.yml"
+    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/astra.yml",
+    "weaponId": 14131
   },
   "1321": {
     "characterName": "Evelyn Chevalier",
@@ -748,7 +774,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14132
   },
   "1331": {
     "characterName": "Vivian Banshee",
@@ -772,7 +799,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14133
   },
   "1341": {
     "characterName": "Zhao",
@@ -796,7 +824,8 @@
     ],
     "note": "Build HP toward her passive requirement; use Energy Regen in Slot 6 for buff uptime. Yunkui Tales is the 2-piece alternative when additional HP is preferred.",
     "guideUpdated": "2026-01-15",
-    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/zhao.yml"
+    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/zhao.yml",
+    "weaponId": 14134
   },
   "1351": {
     "characterName": "Pulchra Fellini",
@@ -820,7 +849,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": null
   },
   "1361": {
     "characterName": "Trigger",
@@ -844,7 +874,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14136
   },
   "1371": {
     "characterName": "Yixuan",
@@ -868,7 +899,8 @@
     ],
     "note": "Yunkui Tales is tailored to her Sheer DMG scaling. She does not need PEN for Sheer DMG; choose CRIT Rate or CRIT DMG in Slot 4 based on her current CRIT ratio.",
     "guideUpdated": "2025-06-25",
-    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/yixuan.yml"
+    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/yixuan.yml",
+    "weaponId": 14137
   },
   "1381": {
     "characterName": "Soldier 0 - Anby",
@@ -892,7 +924,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14138
   },
   "1391": {
     "characterName": "Ju Fufu",
@@ -916,7 +949,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14139
   },
   "1401": {
     "characterName": "Alice Thymefield",
@@ -940,7 +974,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14140
   },
   "1411": {
     "characterName": "Ukinami Yuzuha",
@@ -964,7 +999,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14141
   },
   "1421": {
     "characterName": "Pan Yinhu",
@@ -988,7 +1024,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": null
   },
   "1431": {
     "characterName": "Ye Shunguang",
@@ -1013,7 +1050,8 @@
     ],
     "note": "White Water Ballad is her dedicated 4-piece set. Keep displayed CRIT Rate at or below 50% to account for the set and Core Passive combat bonuses; ATK% or PEN% are both viable in Slot 5.",
     "guideUpdated": "2026-01-15",
-    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/ye-shunguang.yml"
+    "source": "https://github.com/seriaati/szgf/blob/main/guides/original/ye-shunguang.yml",
+    "weaponId": 14143
   },
   "1441": {
     "characterName": "Komano Manato",
@@ -1037,7 +1075,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": null
   },
   "1451": {
     "characterName": "Lucia Elowen",
@@ -1061,7 +1100,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14145
   },
   "1461": {
     "characterName": "Seed",
@@ -1085,7 +1125,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14146
   },
   "1471": {
     "characterName": "Banyue",
@@ -1109,7 +1150,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14147
   },
   "1481": {
     "characterName": "Dialyn",
@@ -1133,7 +1175,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14148
   },
   "1491": {
     "characterName": "Sunna",
@@ -1157,7 +1200,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14149
   },
   "1501": {
     "characterName": "Aria",
@@ -1181,7 +1225,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14150
   },
   "1511": {
     "characterName": "Nangong Yu",
@@ -1205,7 +1250,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14151
   },
   "1521": {
     "characterName": "Cissia",
@@ -1229,7 +1275,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14152
   },
   "1531": {
     "characterName": "Starlight - Billy",
@@ -1253,7 +1300,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14153
   },
   "1541": {
     "characterName": "Promeia",
@@ -1278,16 +1326,15 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14154
   },
   "1551": {
     "characterName": "Pyrois",
     "role": "Attack DPS (starter)",
     "fourPieceSetId": 32700,
     "twoPieceSetId": 31000,
-    "alternativeTwoPieceSetIds": [
-      31100
-    ],
+    "alternativeTwoPieceSetIds": [],
     "mainStats": {
       "4": 20103,
       "5": 12102,
@@ -1302,7 +1349,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14155
   },
   "1561": {
     "characterName": "Velina Airgid",
@@ -1326,7 +1374,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14156
   },
   "1571": {
     "characterName": "Norma Hollowell",
@@ -1350,16 +1399,15 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14157
   },
   "1581": {
     "characterName": "Remielle Dan",
     "role": "Defense Support (starter)",
     "fourPieceSetId": 34100,
     "twoPieceSetId": 33400,
-    "alternativeTwoPieceSetIds": [
-      33100
-    ],
+    "alternativeTwoPieceSetIds": [],
     "mainStats": {
       "4": 31203,
       "5": 12102,
@@ -1374,7 +1422,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14143
   },
   "1591": {
     "characterName": "Sigrid de Lazur",
@@ -1398,7 +1447,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14159
   },
   "1601": {
     "characterName": "Sunbringer",
@@ -1406,7 +1456,6 @@
     "fourPieceSetId": 34300,
     "twoPieceSetId": 34200,
     "alternativeTwoPieceSetIds": [
-      34300,
       34200
     ],
     "mainStats": {
@@ -1418,11 +1467,13 @@
       20103,
       21103,
       13102,
-      13103
+      13103,
+      0
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14160
   },
   "1611": {
     "characterName": "Claret Flint",
@@ -1446,7 +1497,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14161
   },
   "1621": {
     "characterName": "Roxy Ifrita Pryce",
@@ -1471,7 +1523,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14162
   },
   "1631": {
     "characterName": "Severian Lowell",
@@ -1495,7 +1548,8 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14163
   },
   "1641": {
     "characterName": "Phoenix Reffaella",
@@ -1519,18 +1573,15 @@
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14164
   },
   "1651": {
     "characterName": "Kafka",
     "role": "Anomaly DPS (starter)",
     "fourPieceSetId": 31300,
     "twoPieceSetId": 33400,
-    "alternativeTwoPieceSetIds": [
-      31300,
-      33400,
-      31800
-    ],
+    "alternativeTwoPieceSetIds": [],
     "mainStats": {
       "4": 31203,
       "5": 31803,
@@ -1539,11 +1590,14 @@
     "subStats": [
       31203,
       12102,
-      12103
+      12103,
+      0,
+      0
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
-    "source": "https://www.prydwen.gg/zenless/characters"
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14165
   },
   "1661": {
     "characterName": "Robin",
@@ -1551,7 +1605,6 @@
     "fourPieceSetId": 33700,
     "twoPieceSetId": 33100,
     "alternativeTwoPieceSetIds": [
-      33700,
       33100,
       31600
     ],
@@ -1562,7 +1615,34 @@
     },
     "subStats": [
       11102,
-      11103
+      11103,
+      0,
+      0,
+      0
+    ],
+    "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
+    "guideUpdated": "2026-11-09",
+    "source": "https://www.prydwen.gg/zenless/characters",
+    "weaponId": 14166
+  },
+  "1671": {
+    "characterName": "Secilia",
+    "role": "Support (starter)",
+    "weaponId": 14167,
+    "fourPieceSetId": 33400,
+    "twoPieceSetId": 33900,
+    "alternativeTwoPieceSetIds": [],
+    "mainStats": {
+      "4": 20103,
+      "5": 32303,
+      "6": 30502
+    },
+    "subStats": [
+      21103,
+      20103,
+      23203,
+      0,
+      0
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
