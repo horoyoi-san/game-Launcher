@@ -175,15 +175,25 @@ func (s *HoyoService) EquipAgentBuild(
 }
 
 func (s *HoyoService) CreateWeapon(playerUID, weaponID, level, refinement uint32) (bool, string) {
-	userdata, err := randomUserdata()
+	if playerUID == 0 {
+		return result(errors.New("player UID must be greater than zero"))
+	}
+	if _, err := buildCreateWeaponPacket(playerUID, weaponID, level, refinement, 1); err != nil {
+		return result(err)
+	}
+	if err := disconnectUIDBeforeSaveEdit(playerUID, "adding a W-Engine to inventory"); err != nil {
+		return result(err)
+	}
+	backupPath, weaponUID, err := updateWeaponSave(
+		constant.RemielleStorageDir, playerUID, 0, weaponID, level, refinement,
+	)
 	if err != nil {
 		return result(err)
 	}
-	packet, err := buildCreateWeaponPacket(playerUID, weaponID, level, refinement, userdata)
-	if err != nil {
-		return result(err)
-	}
-	return result(sendControlPacket(packet))
+	return true, fmt.Sprintf(
+		"W-Engine %d (UID %d) added to inventory. Backup: %s. Reconnect UID %d to load the changes.",
+		weaponID, weaponUID, backupPath, playerUID,
+	)
 }
 
 func (s *HoyoService) EquipWeapon(

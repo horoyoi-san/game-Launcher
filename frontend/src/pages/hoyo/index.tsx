@@ -1453,7 +1453,7 @@ export default function HoyoPage() {
         }
 
         if (!agent) {
-            void submit(
+            void submitAndRefreshInventory(
                 () => HoyoService.CreateWeapon(uid, weapon.id, level, weaponRefinement),
                 "W-Engine added to inventory.",
             );
