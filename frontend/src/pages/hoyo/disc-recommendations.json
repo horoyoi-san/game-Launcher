@@ -1033,20 +1033,19 @@
     "fourPieceSetId": 33500,
     "twoPieceSetId": 32700,
     "alternativeTwoPieceSetIds": [
-      31000,
       32800
     ],
     "mainStats": {
-      "4": 12102,
-      "5": 12102,
+      "4": 21103,
+      "5": 31503,
       "6": 12102
     },
     "subStats": [
       20103,
       21103,
       12102,
-      12103,
-      23203
+      0,
+      0
     ],
     "note": "White Water Ballad is her dedicated 4-piece set. Keep displayed CRIT Rate at or below 50% to account for the set and Core Passive combat bonuses; ATK% or PEN% are both viable in Slot 5.",
     "guideUpdated": "2026-01-15",
@@ -1106,22 +1105,20 @@
   "1461": {
     "characterName": "Seed",
     "role": "Attack DPS (starter)",
-    "fourPieceSetId": 32700,
+    "fourPieceSetId": 33300,
     "twoPieceSetId": 31000,
-    "alternativeTwoPieceSetIds": [
-      31100
-    ],
+    "alternativeTwoPieceSetIds": [],
     "mainStats": {
       "4": 20103,
-      "5": 12102,
+      "5": 31803,
       "6": 12102
     },
     "subStats": [
       20103,
       21103,
       12102,
-      12103,
-      23203
+      0,
+      0
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
@@ -1156,22 +1153,20 @@
   "1481": {
     "characterName": "Dialyn",
     "role": "Support (starter)",
-    "fourPieceSetId": 32800,
-    "twoPieceSetId": 31600,
-    "alternativeTwoPieceSetIds": [
-      31000
-    ],
+    "fourPieceSetId": 33200,
+    "twoPieceSetId": 31000,
+    "alternativeTwoPieceSetIds": [],
     "mainStats": {
-      "4": 12102,
-      "5": 12102,
+      "4": 20103,
+      "5": 31503,
       "6": 30502
     },
     "subStats": [
       12102,
-      12103,
+      0,
       20103,
       21103,
-      23203
+      0
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
@@ -1423,27 +1418,25 @@
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
     "source": "https://www.prydwen.gg/zenless/characters",
-    "weaponId": 14143
+    "weaponId": 14158
   },
   "1591": {
     "characterName": "Sigrid de Lazur",
     "role": "Support (starter)",
-    "fourPieceSetId": 32800,
-    "twoPieceSetId": 31600,
-    "alternativeTwoPieceSetIds": [
-      31000
-    ],
+    "fourPieceSetId": 33300,
+    "twoPieceSetId": 31100,
+    "alternativeTwoPieceSetIds": [],
     "mainStats": {
-      "4": 12102,
-      "5": 12102,
-      "6": 30502
+      "4": 20103,
+      "5": 23103,
+      "6": 12102
     },
     "subStats": [
       12102,
-      12103,
+      0,
       20103,
       21103,
-      23203
+      0
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
@@ -1529,22 +1522,20 @@
   "1631": {
     "characterName": "Severian Lowell",
     "role": "Support (starter)",
-    "fourPieceSetId": 32800,
-    "twoPieceSetId": 31600,
-    "alternativeTwoPieceSetIds": [
-      31000
-    ],
+    "fourPieceSetId": 33300,
+    "twoPieceSetId": 31100,
+    "alternativeTwoPieceSetIds": [],
     "mainStats": {
-      "4": 12102,
-      "5": 12102,
-      "6": 30502
+      "4": 20103,
+      "5": 23103,
+      "6": 12102
     },
     "subStats": [
       12102,
-      12103,
+      0,
       20103,
       21103,
-      23203
+      0
     ],
     "note": "General starter setup based on Specialty, not a character-specific optimized guide. Replace with signature-set recommendations when available.",
     "guideUpdated": "2026-11-09",
