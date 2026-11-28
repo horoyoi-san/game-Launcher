@@ -1089,7 +1089,10 @@ export default function HoyoPage() {
             toast.error(getDiskConfigError(invalidDisk) ?? "The recommended Drive Disc build is invalid.");
             return;
         }
-        const weaponBuild = agentWeaponBuilds[character.id] ?? DEFAULT_AGENT_WEAPON_BUILD;
+        const weaponBuild = agentWeaponBuilds[character.id] ?? {
+            ...DEFAULT_AGENT_WEAPON_BUILD,
+            weaponId: recommendation.weaponId ?? null,
+        };
         const weapon = weaponBuild.weaponId === null
             ? undefined
             : catalog?.weapons.find((item) => item.id === weaponBuild.weaponId);
